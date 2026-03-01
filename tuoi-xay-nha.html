@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xem Tuổi Xây Nhà Chi Tiết</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f1ea;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-top: 5px solid #2980b9;
+        }
+        h2 {
+            text-align: center;
+            color: #2980b9;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #2980b9;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background-color: #3498db;
+        }
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #fdfaf6;
+            border: 1px solid #e0d4c8;
+            border-radius: 5px;
+            display: none;
+        }
+        .alert {
+            color: #c0392b;
+            font-weight: bold;
+        }
+        .success {
+            color: #27ae60;
+            font-weight: bold;
+        }
+        .highlight {
+            color: #d35400;
+            font-weight: bold;
+        }
+        .conclusion {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .conclusion.good {
+            background-color: #d4efdf;
+            color: #1e8449;
+            border: 1px solid #27ae60;
+        }
+        .conclusion.bad {
+            background-color: #fadbd8;
+            color: #c0392b;
+            border: 1px solid #e74c3c;
+        }
+        .note {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .list-tuoi {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .tuoi-badge {
+            background-color: #2980b9;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 14px;
+        }
+        #borrowSection {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Tra Cứu Tuổi Xây Nhà</h2>
+    
+    <div class="form-group">
+        <label for="namSinh">Năm Sinh Của Bạn (Dương Lịch):</label>
+        <input type="number" id="namSinh" value="1993" placeholder="Ví dụ: 1993">
+    </div>
+
+    <div class="form-group">
+        <label for="namXay">Năm Dự Kiến Xây Nhà (Dương Lịch):</label>
+        <input type="number" id="namXay" value="2026" placeholder="Ví dụ: 2026">
+    </div>
+
+    <button onclick="xemTuoi()">Xem Kết Quả</button>
+
+    <div id="resultBox" class="result-box">
+        <h3>Đánh Giá Chi Tiết:</h3>
+        <ul id="details"></ul>
+        
+        <div id="conclusionBox" class="conclusion"></div>
+
+        <div id="borrowSection">
+            <div class="note" style="background-color: #e8f8f5; border-left-color: #1abc9c;">
+                <strong>Danh sách các tuổi cực tốt để mượn tuổi cúng động thổ năm <span id="yearLabel"></span>:</strong>
+                <div id="goodYears" class="list-tuoi"></div>
+            </div>
+        </div>
+
+        <div class="note" style="border-left-color: #e74c3c; background-color: #fdedec;">
+            <strong>Lưu ý quan trọng cho NGƯỜI ĐỨNG CÚNG (dù là gia chủ hay người được mượn tuổi):</strong><br>
+            - Tuyệt đối không đứng cúng nếu đang có tang chế.<br>
+            - Đời sống gia đạo yên ấm, không được 2 đời vợ (hoặc chồng).<br>
+            - Sức khỏe tốt, tính tình cởi mở, công việc làm ăn thuận lợi.
+        </div>
+    </div>
+</div>
+
+<script>
+    // Hàm kiểm tra Tam Tai
+    function checkTamTai(namSinh, namXay) {
+        let chiSinh = (namSinh + 8) % 12; // 0: Tý, 1: Sửu, 2: Dần...
+        let chiXay = (namXay + 8) % 12;
+        let isTamTai = false;
+
+        if ([8, 0, 4].includes(chiSinh) && [2, 3, 4].includes(chiXay)) isTamTai = true; // Thân, Tý, Thìn -> Dần, Mão, Thìn
+        if ([2, 6, 10].includes(chiSinh) && [8, 9, 10].includes(chiXay)) isTamTai = true; // Dần, Ngọ, Tuất -> Thân, Dậu, Tuất
+        if ([5, 9, 1].includes(chiSinh) && [11, 0, 1].includes(chiXay)) isTamTai = true; // Tỵ, Dậu, Sửu -> Hợi, Tý, Sửu
+        if ([11, 3, 7].includes(chiSinh) && [5, 6, 7].includes(chiXay)) isTamTai = true; // Hợi, Mão, Mùi -> Tỵ, Ngọ, Mùi
+        
+        return isTamTai;
+    }
+
+    // Hàm kiểm tra Hoang Ốc
+    function getHoangOcDetails(tuoiMu) {
+        let chuc = Math.floor(tuoiMu / 10);
+        let donVi = tuoiMu % 10;
+        let hoangOcMod = (chuc + donVi) % 6;
+        if (hoangOcMod === 0) hoangOcMod = 6;
+
+        let names = {
+            1: "Nhất Cát (Tốt - Chốn an cư tốt, mọi việc hanh thông)",
+            2: "Nhị Nghi (Tốt - Nhà cửa hưng vượng, giàu có)",
+            3: "Tam Địa Sát (Xấu - Mắc bệnh tật, ảnh hưởng sức khỏe)",
+            4: "Tứ Tấn Tài (Rất Tốt - Phúc lộc dồi dào, làm ăn phát đạt)",
+            5: "Ngũ Thọ Tử (Xấu - Sinh ly tử biệt, gia đạo chia rẽ)",
+            6: "Lục Hoang Ốc (Xấu - Khó thành đạt, nghèo túng)"
+        };
+        
+        let isBad = [3, 5, 6].includes(hoangOcMod);
+        return { mod: hoangOcMod, name: names[hoangOcMod], isBad: isBad };
+    }
+
+    function xemTuoi() {
+        let namSinh = parseInt(document.getElementById("namSinh").value);
+        let namXay = parseInt(document.getElementById("namXay").value);
+
+        if (!namSinh || !namXay || namSinh > namXay) {
+            alert("Vui lòng nhập năm hợp lệ!");
+            return;
+        }
+
+        let tuoiMu = namXay - namSinh + 1;
+        
+        document.getElementById("resultBox").style.display = "block";
+        document.getElementById("yearLabel").innerText = namXay;
+        let details = document.getElementById("details");
+        details.innerHTML = `<li><strong>Tuổi Mụ:</strong> ${tuoiMu} tuổi</li>`;
+
+        let isGiaChuBad = false;
+
+        // 1. Kiểm tra Kim Lâu
+        let klMod = tuoiMu % 9;
+        let klText = "";
+        let isKimLau = true;
+        
+        if (klMod === 1) klText = "<span class='alert'>Phạm Kim Lâu Thân</span> (Kỵ bản thân mình).";
+        else if (klMod === 3) klText = "<span class='alert'>Phạm Kim Lâu Thê</span> (Kỵ vợ/chồng -> Xây nhà dễ đổ nợ).";
+        else if (klMod === 6) klText = "<span class='alert'>Phạm Kim Lâu Tử</span> (Kỵ con cái, ảnh hưởng sự phát triển của con).";
+        else if (klMod === 8) klText = "<span class='alert'>Phạm Kim Lâu Lục Súc</span> (Ảnh hưởng thú nuôi, chăn nuôi thất bại).";
+        else {
+            klText = "<span class='success'>Không phạm Kim Lâu.</span>";
+            isKimLau = false;
+        }
+        if (isKimLau) isGiaChuBad = true;
+        details.innerHTML += `<li><strong>Kim Lâu:</strong> ${klText}</li>`;
+
+        // 2. Kiểm tra Tam Tai
+        let isTamTai = checkTamTai(namSinh, namXay);
+        if (isTamTai) isGiaChuBad = true;
+        details.innerHTML += `<li><strong>Tam Tai:</strong> ${isTamTai ? "<span class='alert'>Phạm Tam Tai.</span>" : "<span class='success'>Không phạm Tam Tai.</span>"}</li>`;
+
+        // 3. Kiểm tra Hoang Ốc
+        let hoangOc = getHoangOcDetails(tuoiMu);
+        let hoangOcText = "";
+        if (hoangOc.isBad) {
+            hoangOcText = `<span class='alert'>Phạm ${hoangOc.name}</span>`;
+            isGiaChuBad = true;
+        } else {
+            if (hoangOc.mod === 4) {
+                hoangOcText = `<span class='success'>Thuộc <strong class='highlight'>TỨ TẤN TÀI</strong> - Cực kỳ tốt để xây nhà, tài lộc tới!</span>`;
+            } else {
+                hoangOcText = `<span class='success'>Thuộc ${hoangOc.name}</span>`;
+            }
+        }
+        details.innerHTML += `<li><strong>Hoang Ốc:</strong> ${hoangOcText}</li>`;
+
+        // KẾT LUẬN & XỬ LÝ MƯỢN TUỔI
+        let conclusionBox = document.getElementById("conclusionBox");
+        let borrowSection = document.getElementById("borrowSection");
+        
+        if (!isGiaChuBad) {
+            // Tuổi tốt, tự cúng
+            conclusionBox.className = "conclusion good";
+            conclusionBox.innerHTML = "🎉 TUỔI RẤT ĐẸP!<br>Gia chủ hoàn toàn CÓ THỂ TỰ ĐỨNG RA CÚNG động thổ xây nhà, không cần mượn tuổi ai cả.";
+            borrowSection.style.display = "none"; // Ẩn phần mượn tuổi
+        } else {
+            // Tuổi xấu, cần mượn tuổi
+            conclusionBox.className = "conclusion bad";
+            conclusionBox.innerHTML = "⚠️ NĂM NAY CHƯA HỢP TUỔI!<br>Gia chủ phạm kỵ, CẦN MƯỢN TUỔI người khác để đại diện cúng động thổ.";
+            borrowSection.style.display = "block"; // Hiện phần mượn tuổi
+            
+            // Tính toán danh sách mượn tuổi
+            let goodYearsContainer = document.getElementById("goodYears");
+            goodYearsContainer.innerHTML = "";
+            let foundGoodYears = false;
+            
+            // Tìm những người từ 25 đến 70 tuổi hợp cúng
+            for (let i = namXay - 70; i <= namXay - 25; i++) {
+                let tMu = namXay - i + 1;
+                let checkKL = [1, 3, 6, 8].includes(tMu % 9);
+                let checkTT = checkTamTai(i, namXay);
+                let hoCheck = getHoangOcDetails(tMu);
+
+                if (!checkKL && !checkTT && !hoCheck.isBad) {
+                    foundGoodYears = true;
+                    // Bôi bật nếu người đó có cung Hoang Ốc đẹp (đặc biệt là Tứ Tấn Tài)
+                    let extraLabel = (hoCheck.mod === 4) ? " - Tứ Tấn Tài" : "";
+                    goodYearsContainer.innerHTML += `<span class="tuoi-badge">${i} (${tMu} tuổi${extraLabel})</span>`;
+                }
+            }
+            
+            if (!foundGoodYears) {
+                goodYearsContainer.innerHTML = "<span>Không tìm thấy tuổi thật sự hoàn hảo trong phạm vi 25-70 tuổi năm nay.</span>";
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

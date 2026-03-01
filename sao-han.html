@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tra Cứu Vận Hạn & Thái Tuế</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+
+  <style>
+    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    input:focus, textarea:focus, select:focus { background-color: rgba(251, 191, 36, 0.1) !important; border-color: #f59e0b !important; outline: none; box-shadow: 0 0 0 1px #f59e0b; }
+    
+    .badge-menh-kim { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+    .badge-menh-moc { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+    .badge-menh-thuy { background: #e0f2fe; color: #075985; border: 1px solid #7dd3fc; }
+    .badge-menh-hoa { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .badge-menh-tho { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+
+    .animate-fade-in { animation: fadeIn 0.6s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="min-h-screen bg-[#0f172a] text-slate-200 selection:bg-amber-500/30 pb-10">
+  
+  <div class="bg-slate-900/90 backdrop-blur border-b border-slate-700 shadow-lg sticky top-0 z-50">
+      <div class="max-w-6xl mx-auto px-4">
+          <div class="flex flex-col md:flex-row items-center justify-between py-3 gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-xl shadow-lg shadow-amber-900/30 text-white">☯</div>
+                <div>
+                    <h1 class="text-xl font-bold text-amber-500 leading-tight">Tra Cứu Vận Hạn</h1>
+                    <p id="headerYear" class="text-slate-400 text-xs font-bold uppercase tracking-wider"></p>
+                </div>
+            </div>
+            <div class="flex gap-2 items-center">
+                <label class="text-slate-400 text-xs uppercase hidden md:block font-bold">Năm xem</label>
+                <input id="selectedYear" type="number" min="1900" max="2099" step="1" class="w-20 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-center focus:border-amber-500 outline-none font-bold text-amber-500" />
+                <button id="btnResetApp" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs"><i class="fa-solid fa-rotate-right"></i></button>
+            </div>
+          </div>
+      </div>
+  </div>
+
+  <div class="max-w-6xl mx-auto p-4 md:p-6 relative z-10">
+    <div id="tabLookup" class="flex flex-col gap-6 animate-fade-in">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4">
+                <h3 class="text-amber-500 font-bold text-xs uppercase mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-gavel"></i> Các con giáp phạm Thái Tuế
+                </h3>
+                <div id="thaiTueListText" class="flex flex-wrap gap-2"></div>
+            </div>
+            
+            <div class="bg-rose-500/10 border border-rose-500/30 rounded-xl p-4">
+                <h3 class="text-rose-400 font-bold text-xs uppercase mb-2 flex items-center gap-2">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Các con giáp phạm Tam Tai
+                </h3>
+                <div id="tamTaiListText" class="flex flex-wrap gap-2"></div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div class="md:col-span-4 bg-slate-800/40 rounded-2xl border border-slate-700/50 p-6 shadow-xl h-fit">
+                <h3 class="text-amber-500 text-xs font-bold uppercase tracking-wider mb-5 flex items-center gap-2">
+                    <i class="fa-regular fa-id-card"></i> Thông tin Tín Chủ
+                </h3>
+                <div class="space-y-4" id="formLookup">
+                    <div>
+                        <label class="block text-[11px] text-slate-500 uppercase mb-1 font-semibold">Họ và Tên</label>
+                        <input type="text" id="fullName" placeholder="VD: Nguyễn Văn A" class="input-enter w-full bg-slate-900/50 border border-slate-600 rounded-lg px-3 py-2.5 text-sm transition-all focus:ring-1 focus:ring-amber-500/50" />
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] text-slate-500 uppercase mb-1 font-semibold">Năm sinh (DL)</label>
+                            <input type="number" id="birthYear" placeholder="VD: 1985" class="input-enter w-full bg-slate-900/50 border border-slate-600 rounded-lg px-3 py-2.5 text-sm transition-all" />
+                        </div>
+                        <div>
+                            <label class="block text-[11px] text-slate-500 uppercase mb-1 font-semibold">Tuổi Âm</label>
+                            <input type="number" id="ageInput" placeholder="VD: 41" class="input-enter w-full bg-slate-900/50 border border-slate-600 rounded-lg px-3 py-2.5 text-sm transition-all" />
+                        </div>
+                    </div>
+
+                    <div>
+                         <label class="block text-[11px] text-slate-500 uppercase mb-1 font-semibold">Giới tính</label>
+                        <div class="flex bg-slate-900/50 rounded-lg p-1 border border-slate-600">
+                            <button type="button" id="btnGenderMale" class="flex-1 py-2 rounded-md text-sm font-medium transition-all bg-slate-700 text-amber-400 shadow-sm">Nam</button>
+                            <button type="button" id="btnGenderFemale" class="flex-1 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-slate-200">Nữ</button>
+                        </div>
+                    </div>
+
+                    <button id="btnCalculate" type="button" class="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-900 font-bold py-3 px-4 rounded-lg transition-all shadow-lg mt-2 group">
+                        <span>Xem Luận Giải</span> <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="md:col-span-8">
+                <div id="resultCard" class="min-h-[400px]">
+                    <div id="resultEmpty" class="h-full flex flex-col justify-center items-center opacity-30 border-2 border-dashed border-slate-800 rounded-2xl p-8">
+                        <i class="fa-solid fa-seedling w-16 h-16 mx-auto mb-4 text-slate-400 text-6xl"></i>
+                        <p class="text-base text-center font-light">Nhập thông tin để xem vận hạn<br>dưới góc nhìn <span class="text-amber-500">Tích Cực & Nhân Văn</span></p>
+                    </div>
+
+                    <div id="resultContent" class="hidden space-y-6 animate-fade-in">
+                        <div class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl border border-slate-700/50 shadow-lg p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <div>
+                                <h2 class="text-2xl font-bold text-white tracking-tight" id="resName"></h2>
+                                <p class="text-slate-400 text-sm mt-1" id="resInfo"></p>
+                            </div>
+                            <div id="resMenhBadge" class="px-4 py-1.5 rounded-full font-bold text-sm border shadow-sm"></div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-slate-800/40 rounded-xl border border-slate-700/50 p-5 relative overflow-hidden group">
+                                <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fa-solid fa-star text-6xl text-amber-500"></i></div>
+                                <p class="text-xs uppercase text-slate-500 font-bold mb-2">Sao Chiếu Mệnh</p>
+                                <div class="flex items-baseline gap-2 mb-2">
+                                    <h3 id="resSao" class="text-2xl font-bold text-amber-400"></h3>
+                                    <span id="resSaoHanh" class="text-xs px-2 py-0.5 rounded bg-slate-700 text-slate-300"></span>
+                                </div>
+                                <div id="resSaoPos"></div> 
+                            </div>
+                            
+                            <div class="bg-slate-800/40 rounded-xl border border-slate-700/50 p-5 relative overflow-hidden group">
+                                 <div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity"><i class="fa-solid fa-scroll text-6xl text-slate-400"></i></div>
+                                <p class="text-xs uppercase text-slate-500 font-bold mb-2">Hạn Niên</p>
+                                <h3 id="resHan" class="text-2xl font-bold text-slate-200 mb-2"></h3>
+                                <p id="resHanDesc" class="text-sm text-slate-400 leading-relaxed"></p>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#1e293b] rounded-xl border border-slate-700 shadow-xl overflow-hidden">
+                            <div class="px-5 py-4 border-b border-slate-700 bg-slate-800/50 flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-amber-500/10 flex items-center justify-center text-amber-500"><i class="fa-solid fa-scale-balanced"></i></div>
+                                <h3 class="font-bold text-slate-200 uppercase text-sm tracking-wide">Luận Giải Tương Tác (Mệnh & Sao)</h3>
+                            </div>
+                            <div class="p-6">
+                                <div id="analysisGraph" class="flex flex-wrap items-center gap-3 text-sm text-slate-400 mb-4 font-mono"></div>
+                                <h4 id="analysisTitle" class="text-lg font-bold mb-3"></h4>
+                                <div id="analysisContent" class="text-slate-300 text-sm leading-7 text-justify"></div>
+                                <div class="mt-4 pt-4 border-t border-slate-700/50 flex gap-3">
+                                    <i class="fa-solid fa-quote-left text-amber-500/50 text-xl"></i>
+                                    <p class="text-sm italic text-slate-400">"Sao tốt hay xấu vốn dĩ không cố định. Tâm mình hướng thiện, làm việc phước đức thì gặp Sao dữ cũng hóa lành, gặp Sao lành thì càng thêm rực rỡ."</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-800/40 rounded-xl border border-slate-700 overflow-hidden">
+                            <div class="px-5 py-3 border-b border-slate-700/50 flex items-center justify-between bg-slate-900/20">
+                                <h3 class="font-bold text-slate-300 uppercase text-xs flex items-center gap-2"><i class="fa-solid fa-hands-praying"></i> Nghi Thức & Kiêng Kỵ</h3>
+                                <span class="text-[10px] text-slate-500 uppercase tracking-wider">Hóa Giải</span>
+                            </div>
+                            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-sm">
+                                <div class="space-y-4">
+                                    <div class="flex justify-between border-b border-slate-700/50 pb-2"><span class="text-slate-500">Ngày cúng:</span> <span class="text-slate-200 font-medium" id="cungTime"></span></div>
+                                    <div class="flex justify-between border-b border-slate-700/50 pb-2"><span class="text-slate-500">Hướng lạy:</span> <span class="text-amber-500 font-bold" id="cungHuong"></span></div>
+                                    <div class="flex justify-between border-b border-slate-700/50 pb-2"><span class="text-slate-500">Số đèn/nến:</span> <span class="text-slate-200 font-bold" id="cungDen"></span></div>
+                                    <div class="bg-slate-900/50 rounded p-3 border border-slate-700/50">
+                                        <span class="text-slate-500 block mb-1 text-[10px] uppercase font-bold">Bài vị (Viết trên giấy):</span>
+                                        <div id="cungBaiVi" class="text-amber-200 font-serif italic text-center"></div>
+                                    </div>
+                                </div>
+
+                                <div class="space-y-4">
+                                    <div>
+                                        <span class="text-emerald-500 block mb-1 text-xs uppercase font-bold"><i class="fa-solid fa-palette mr-1"></i> Màu Hợp (Kích Tài/Hóa Giải):</span>
+                                        <div id="colorGood" class="text-emerald-100 bg-emerald-900/20 px-2 py-1.5 rounded border border-emerald-500/20"></div>
+                                    </div>
+                                    <div>
+                                        <span class="text-rose-500 block mb-1 text-xs uppercase font-bold"><i class="fa-solid fa-ban mr-1"></i> Màu Kỵ (Nên Tránh):</span>
+                                        <div id="colorBad" class="text-rose-100 bg-rose-900/20 px-2 py-1.5 rounded border border-rose-500/20"></div>
+                                    </div>
+                                    <div class="pt-2">
+                                        <div class="bg-orange-900/10 border border-orange-500/20 rounded-lg p-3">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <i class="fa-solid fa-triangle-exclamation text-orange-500 text-xs"></i>
+                                                <span class="text-orange-400 font-bold text-xs uppercase">Đặc Biệt Cần Thận Trọng</span>
+                                            </div>
+                                            <p id="starCaution" class="text-slate-300 text-sm leading-relaxed text-justify"></p>
+                                            <div class="mt-2 text-xs text-slate-500 border-t border-orange-500/10 pt-1 flex justify-between">
+                                                <span>Tháng kỵ (ÂL):</span>
+                                                <span class="text-orange-300 font-bold" id="cungThangKy"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="resTamTai"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <footer class="text-center text-slate-600 text-xs py-6 mt-8">
+      <p>Viết bởi <span class="text-amber-600 font-bold">Đồng Thịnh</span></p>
+  </footer>
+
+  <script>
+    // --- DATA & CONSTANTS ---
+    const Gender = { MALE: "male", FEMALE: "female" };
+    // Mảng Index 12 Con Giáp
+    const CHI = ["Thân", "Dậu", "Tuất", "Hợi", "Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi"];
+    const CAN = ["Canh", "Tân", "Nhâm", "Quý", "Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ"];
+    const NGU_HANH = { 1: "Kim", 2: "Thủy", 3: "Hỏa", 4: "Thổ", 5: "Mộc" };
+
+    // BẢNG MAP CHUẨN XÁC NĂM TAM TAI & THÁI TUẾ (Dựa trên Index của mảng CHI)
+    const TAM_TAI_MAP = {
+        6: ["Thân", "Tý", "Thìn"], 7: ["Thân", "Tý", "Thìn"], 8: ["Thân", "Tý", "Thìn"], // Năm Dần, Mão, Thìn
+        0: ["Dần", "Ngọ", "Tuất"], 1: ["Dần", "Ngọ", "Tuất"], 2: ["Dần", "Ngọ", "Tuất"], // Năm Thân, Dậu, Tuất
+        3: ["Tỵ", "Dậu", "Sửu"], 4: ["Tỵ", "Dậu", "Sửu"], 5: ["Tỵ", "Dậu", "Sửu"],       // Năm Hợi, Tý, Sửu
+        9: ["Hợi", "Mão", "Mùi"], 10: ["Hợi", "Mão", "Mùi"], 11: ["Hợi", "Mão", "Mùi"]   // Năm Tỵ, Ngọ, Mùi
+    };
+
+    const THAI_TUE_MAP = {
+        4: ["Tý", "Ngọ", "Mão", "Mùi", "Dậu"],     // Năm Tý
+        5: ["Sửu", "Mùi", "Tuất", "Ngọ", "Thìn"],  // Năm Sửu
+        6: ["Dần", "Thân", "Tỵ", "Hợi"],           // Năm Dần
+        7: ["Mão", "Dậu", "Tý", "Thìn", "Ngọ"],    // Năm Mão
+        8: ["Thìn", "Tuất", "Mão", "Sửu", "Mùi"],  // Năm Thìn
+        9: ["Tỵ", "Hợi", "Dần", "Thân"],           // Năm Tỵ
+        10: ["Ngọ", "Tý", "Sửu", "Mão"],           // Năm Ngọ
+        11: ["Mùi", "Sửu", "Tuất", "Tý"],          // Năm Mùi
+        0: ["Thân", "Dần", "Tỵ", "Hợi"],           // Năm Thân
+        1: ["Dậu", "Mão", "Tuất", "Tý"],           // Năm Dậu
+        2: ["Tuất", "Thìn", "Sửu", "Dậu", "Mùi"],  // Năm Tuất
+        3: ["Hợi", "Tỵ", "Thân", "Dần"]            // Năm Hợi
+    };
+
+    const SAO_DATA = {
+      "La Hầu": { 
+        name: "La Hầu", type: "challenge", hanhID: 1, 
+        cungNgay: "Mùng 8 ÂL", cungHuong: "Chính Bắc", cungDen: "9 ngọn", kyThang: "Tháng 1, Tháng 7",
+        baiVi: "Thiên Cung Thần Thủ La Hầu Tinh Quân",
+        mauHop: "Đen, Xanh biển (Thủy)", mauKy: "Trắng (Kim), Vàng (Thổ)",
+        canThan: "Đề phòng chuyện thị phi, tranh chấp, bệnh về tai mắt và máu huyết.",
+        luanGiai: "Đây là sao chủ về 'Khẩu Nghiệp'. Với người thường, nó mang đến thị phi, rắc rối. Nhưng với người tu tập, đây là cơ hội tốt nhất để học hạnh **Nhẫn Nhục** và **Cẩn Trọng Lời Nói**. Nếu biết giữ mình, không tranh cãi, thì họa tự chuyển thành phước. Đặc biệt, nam giới có vợ mang thai năm nay thì lại được 'ngược dòng' hưởng phúc, mẹ tròn con vuông."
+      },
+      "Kế Đô": { 
+        name: "Kế Đô", type: "challenge", hanhID: 4,
+        cungNgay: "18 ÂL", cungHuong: "Chính Tây", cungDen: "21 ngọn", kyThang: "Tháng 3, Tháng 9",
+        baiVi: "Địa Cung Thần Vĩ Kế Đô Tinh Quân",
+        mauHop: "Trắng, Xám (Kim)", mauKy: "Vàng (Thổ), Đỏ (Hỏa)",
+        canThan: "Cẩn thận giấy tờ, đừng đi đêm nơi vắng vẻ. Tâm trạng hay bất an vô cớ.",
+        luanGiai: "Sao chủ về sự thử thách nội tâm. Bạn có thể cảm thấy buồn chán, tự ti mà không rõ nguyên do. Đừng sợ hãi, hãy xem đây là lúc 'đóng cửa' với bên ngoài để **Quay Về Chăm Sóc Tâm Hồn**. Siêng năng sám hối, tụng kinh thì trí tuệ sẽ sáng suốt. Riêng phụ nữ mang thai gặp Kế Đô thì lại rất hên, hóa giải được mọi tai ương."
+      },
+      "Thái Bạch": { 
+        name: "Thái Bạch", type: "challenge", hanhID: 1, 
+        cungNgay: "Rằm (15) ÂL", cungHuong: "Chính Tây", cungDen: "8 ngọn", kyThang: "Tháng 2, 5, 8",
+        baiVi: "Tây Phương Canh Tân Kim Đức Thái Bạch Tinh Quân",
+        mauHop: "Đen, Xanh biển (Thủy)", mauKy: "Trắng (Kim)",
+        canThan: "Tuyệt đối kỵ màu trắng quanh năm. Tránh các việc liên quan đến tiền bạc lớn, kỵ đám tang.",
+        luanGiai: "Dân gian sợ 'sạch cửa nhà', nhưng nhà Phật nhìn nhận đây là bài học về sự **Buông Xả**. Hạn này nhắc nhở bạn đừng quá tham cầu vật chất. Thay vì lo mất tiền, hãy chủ động dùng tiền làm phước, bố thí. 'Của đi thay người', sự hao tài chủ động (làm thiện) sẽ giúp bạn giữ được bình an và tích được âm đức lớn."
+      },
+      "Thủy Diệu": { 
+        name: "Thủy Diệu", type: "support", hanhID: 2, 
+        cungNgay: "21 ÂL", cungHuong: "Chính Bắc", cungDen: "7 ngọn", kyThang: "Tháng 4, Tháng 8",
+        baiVi: "Bắc Phương Nhâm Quý Thủy Đức Tinh Quân",
+        mauHop: "Trắng (Kim), Xanh lá (Mộc)", mauKy: "Vàng, Nâu (Thổ)",
+        canThan: "Kỵ sông nước, đi biển. Nữ giới cần tránh tranh cãi để khỏi sinh tai tiếng.",
+        luanGiai: "Sao Phước Tinh mang dòng chảy hanh thông. Tài lộc và tin vui rất dễ đến. Tuy nhiên, nước có thể nâng thuyền cũng có thể lật thuyền. Đừng vì thấy may mắn mà chủ quan, lơ là. Hãy giữ tâm **Khiêm Hạ** như nước, uyển chuyển trong ứng xử thì phúc lộc mới bền lâu."
+      },
+      "Thái Dương": { 
+        name: "Thái Dương", type: "support", hanhID: 3, 
+        cungNgay: "27 ÂL", cungHuong: "Chính Đông", cungDen: "12 ngọn", kyThang: "Tháng 6, Tháng 10",
+        baiVi: "Nhật Cung Thái Dương Thiên Tử Tinh Quân",
+        mauHop: "Đỏ, Hồng, Xanh lá", mauKy: "Trắng, Đen",
+        canThan: "Người già, người huyết áp cao cần chú ý sức khỏe. Cẩn thận hỏa hoạn.",
+        luanGiai: "Như mặt trời ban trưa rực rỡ, tốt cho công danh sự nghiệp. Nhưng **'Vật Cực Tất Phản'**, đang lúc thịnh vượng nhất là lúc cần đề phòng sự kiêu ngạo. Hãy dùng ánh sáng (thành công) của mình để soi đường, giúp đỡ người khác. Càng san sẻ phước báu, ánh hào quang của Thái Dương càng được duy trì."
+      },
+      "Thái Âm": { 
+        name: "Thái Âm", type: "support", hanhID: 2, 
+        cungNgay: "26 ÂL", cungHuong: "Chính Tây", cungDen: "7 ngọn", kyThang: "Tháng 11",
+        baiVi: "Nguyệt Cung Thái Âm Hoàng Hậu Tinh Quân",
+        mauHop: "Đen, Trắng, Vàng", mauKy: "Vàng sẫm (Thổ)",
+        canThan: "Phụ nữ sinh nở cần chú ý an toàn. Đi lại vùng sông nước cẩn thận.",
+        luanGiai: "Tượng trưng cho mặt trăng dịu hiền, chủ về sự sung túc, điền sản (đất đai). Đây là quả ngọt từ những nhân lành bạn đã gieo. Tuy nhiên, phước như nước trong hồ, dùng mãi cũng vơi. Năm nay thuận lợi, hãy tranh thủ **Gieo Duyên Lành** mới (cúng dường, ấn tống) để dòng phước không bị cạn kiệt."
+      },
+      "Mộc Đức": { 
+        name: "Mộc Đức", type: "support", hanhID: 5, 
+        cungNgay: "25 ÂL", cungHuong: "Chính Đông", cungDen: "20 ngọn", kyThang: "Ít kỵ",
+        baiVi: "Đông Phương Giáp Ất Mộc Đức Tinh Quân",
+        mauHop: "Xanh lá, Đen, Xanh biển", mauKy: "Trắng, Bạc",
+        canThan: "Tránh leo trèo cao. Đề phòng các bệnh nhẹ về mắt.",
+        luanGiai: "Sao của sự sinh sôi, nảy nở và an vui. Trẻ em gặp thì học giỏi, người lớn thì công việc ôn hòa. Lời khuyên là **Đừng Lười Biếng**. Vận may đang đến giống như hạt giống tốt gặp đất màu, nhưng nếu bạn không gieo trồng và chăm sóc thì cũng không có quả ngọt."
+      },
+      "Vân Hớn": { 
+        name: "Vân Hớn", type: "neutral", hanhID: 3, 
+        cungNgay: "29 ÂL", cungHuong: "Chính Nam", cungDen: "15 ngọn", kyThang: "Tháng 2, Tháng 8",
+        baiVi: "Nam Phương Bính Đinh Hỏa Đức Tinh Quân",
+        mauHop: "Vàng, Nâu (Thổ)", mauKy: "Đỏ, Xanh lá",
+        canThan: "Nóng nảy dễ hỏng việc. Cẩn thận giấy tờ pháp lý và tai nạn lửa điện.",
+        luanGiai: "Sao chủ về sự bảo thủ và nóng nảy. Mọi rắc rối năm nay thường đến từ cái Tôi quá lớn. Bài học năm nay là **Lắng Nghe và Kiểm Soát Cảm Xúc**. Chỉ cần bạn biết nhu hòa, 'một câu nhịn chín câu lành' thì mọi tai ách của Vân Hớn đều tan biến, công việc vẫn bình ổn."
+      },
+      "Thổ Tú": { 
+        name: "Thổ Tú", type: "neutral", hanhID: 4, 
+        cungNgay: "19 ÂL", cungHuong: "Chính Tây", cungDen: "5 ngọn", kyThang: "Tháng 4, Tháng 8",
+        baiVi: "Trung Ương Mậu Kỷ Thổ Đức Tinh Quân",
+        mauHop: "Trắng, Xám (Kim)", mauKy: "Vàng, Đỏ",
+        canThan: "Xuất hành đi xa không thuận. Tâm lý hay ngờ vực, không kiên định.",
+        luanGiai: "Sao thử thách lòng kiên trì. Công việc có thể trì trệ, tiểu nhân gièm pha khiến bạn nản lòng. Đây là lúc rèn luyện **Nghị Lực và Sự Chân Thành**. Đừng vội vàng thay đổi, cứ làm việc chắc chắn, lấy đức độ đối đãi với tiểu nhân thì họ sẽ tự lui. 'Chậm mà chắc' là từ khóa cho năm nay."
+      }
+    };
+    const SAO_NAM_LIST = ["La Hầu", "Thổ Tú", "Thủy Diệu", "Thái Bạch", "Thái Dương", "Vân Hớn", "Kế Đô", "Thái Âm", "Mộc Đức"];
+    const SAO_NU_LIST = ["Kế Đô", "Vân Hớn", "Mộc Đức", "Thái Âm", "Thổ Tú", "La Hầu", "Thái Dương", "Thái Bạch", "Thủy Diệu"];
+
+    const HAN_DATA = {
+      "Huỳnh Tuyền": "Cần lưu ý sức khỏe, tránh làm việc quá sức. Dành thời gian nghỉ ngơi.",
+      "Tam Kheo": "Chú ý đi lại xe cộ, giữ gìn chân tay. Tránh nơi xô bồ đông đúc.",
+      "Ngũ Mộ": "Cẩn thận tài chính, tránh mua đồ không rõ nguồn gốc. Nên bố thí để tạo phước.",
+      "Thiên Tinh": "Chú ý an toàn vệ sinh thực phẩm. Giữ tinh thần thoải mái.",
+      "Tán Tận": "Tiền bạc cẩn trọng. Không nên mang đồ quý giá phô trương.",
+      "Thiên La": "Gia đạo cần sự nhẫn nhịn, thấu hiểu. Chuyện to hóa nhỏ.",
+      "Địa Võng": "Tránh đi khuya, tránh tranh luận vô bổ. Sống tuân thủ pháp luật.",
+      "Diêm Vương": "Người bệnh cần thăm khám sớm. Người khỏe mạnh thì tài lộc vẫn tốt."
+    };
+    const HAN_LIST = ["Huỳnh Tuyền", "Tam Kheo", "Ngũ Mộ", "Thiên Tinh", "Tán Tận", "Thiên La", "Địa Võng", "Diêm Vương"];
+
+    // --- HELPER FUNCTIONS ---
+    const getCanChi = (year) => { return CAN[year % 10] + " " + CHI[year % 12]; };
+
+    const getMenh = (year) => {
+        let sum = ([4,4,5,5,1,1,2,2,3,3][year%10] + ([4,5,10,11].includes(year%12)?0:[6,7,0,1].includes(year%12)?1:2));
+        if(sum>5) sum-=5;
+        const cls = {1:"badge-menh-kim",2:"badge-menh-thuy",3:"badge-menh-hoa",4:"badge-menh-tho",5:"badge-menh-moc"};
+        return {id:sum, name:NGU_HANH[sum], class:cls[sum]};
+    };
+
+    const calculateSaoHan = (birthYear, yearToCheck, gen) => {
+      const age = yearToCheck - birthYear + 1;
+      if (age < 10) return null;
+      const saoIndex = (age - 10) % 9;
+      const saoName = gen === Gender.MALE ? SAO_NAM_LIST[saoIndex] : SAO_NU_LIST[saoIndex];
+      const tens = Math.floor(age / 10);
+      const units = age % 10;
+      let hanIndex = 0;
+      if (gen === Gender.MALE) { hanIndex = (tens + units - 1) % 8; } 
+      else {
+        let rawIndex = (4 - ((tens - 1) + units)) % 8;
+        if (rawIndex < 0) rawIndex += 8;
+        hanIndex = rawIndex;
+      }
+      return { sao: saoName, han: HAN_LIST[hanIndex], age };
+    };
+
+    // --- LOGIC LUẬN GIẢI PHONG THỦY ---
+    function analyzeRelationship(userMenhID, saoName) {
+        const sao = SAO_DATA[saoName];
+        if(!sao) return { title: "...", content: "...", color: "text-slate-300" };
+
+        const saoMenhID = sao.hanhID;
+        const uName = NGU_HANH[userMenhID]; 
+        const sName = NGU_HANH[saoMenhID];  
+
+        const mapSinh = {1:2, 2:5, 5:3, 3:4, 4:1};
+        const mapKhac = {1:5, 5:4, 4:2, 2:3, 3:1};
+
+        let relation = "HOA";
+        if (userMenhID === saoMenhID) relation = "HOA"; 
+        else if (mapSinh[saoMenhID] === userMenhID) relation = "SAO_SINH_MENH"; 
+        else if (mapSinh[userMenhID] === saoMenhID) relation = "MENH_SINH_SAO"; 
+        else if (mapKhac[userMenhID] === saoMenhID) relation = "MENH_KHAC_SAO"; 
+        else if (mapKhac[saoMenhID] === userMenhID) relation = "SAO_KHAC_MENH"; 
+
+        let title="", content="", color="text-slate-300";
+
+        if (relation === "HOA") {
+            title = "ĐẠI CÁT (Tương Hòa - Cùng Mạng)";
+            content = `Bản mệnh ${uName} và Sao ${sName} tuy hai mà một. Sự đồng hành này tạo nên thế vững chãi. Đây là thế **Tốt Nhất** giúp bạn làm chủ vận mệnh, chuyển hung thành cát.`;
+            color = "text-emerald-400"; 
+        } else if (relation === "SAO_SINH_MENH") {
+            title = "ĐƯỢC TRỢ LỰC (Sao sinh Mệnh)";
+            content = `Sao thuộc hành ${sName} sinh dưỡng cho Bản mệnh ${uName}. Sao mang năng lượng đến nuôi dưỡng bản mệnh. Đây là thế **Tốt thứ 2**, nhận được nhiều may mắn.`;
+            color = "text-emerald-400"; 
+        } else if (relation === "MENH_SINH_SAO") {
+            if(sao.type === "support") { 
+                title = "TỐT VỪA (Sinh Xuất)";
+                content = `Bản mệnh ${uName} sinh cho Sao tốt ${sName}. Bạn được sao tốt chiếu, nhưng bản thân phải nỗ lực bỏ công sức thì mới thu hoạch được thành quả.`;
+                color = "text-emerald-200";
+            } else { 
+                title = "HÓA GIẢI (Tiết Khí)";
+                content = `Bản mệnh ${uName} sinh cho Sao ${sName}. Đây là cách hóa giải tự nhiên: Bản mệnh làm mềm dịu sự khắc nghiệt của sao, khiến cái xấu tự tiêu tan.`;
+                color = "text-emerald-300";
+            }
+        } else if (relation === "MENH_KHAC_SAO") {
+             title = "XUNG KHẮC (Mệnh khắc Sao)";
+             content = `Bản mệnh ${uName} đi khắc chế Sao ${sName}. Đi khắc người khác thì bản thân cũng tổn hao năng lượng. Bạn cần giữ gìn sức khỏe.`;
+             color = "text-amber-400"; 
+        } else if (relation === "SAO_KHAC_MENH") {
+            title = "KHẮC NHẬP (Sao khắc Mệnh)";
+            content = `Sao hành ${sName} khắc Bản mệnh ${uName}. Hãy xem đây là cơ hội "Lửa thử vàng" để rèn luyện bản lĩnh.`;
+            color = "text-rose-400"; 
+        }
+        return { title, content, color };
+    }
+
+    // --- STATE & DOM ---
+    let currentYear = new Date().getFullYear();
+    let lookupGender = Gender.MALE;
+
+    const elSelectedYear = document.getElementById("selectedYear");
+    const elHeaderYear = document.getElementById("headerYear");
+    
+    // Lookup Elements
+    const elBirthYear = document.getElementById("birthYear");
+    const elAgeInput = document.getElementById("ageInput");
+    const elFullName = document.getElementById("fullName");
+    const btnCalculate = document.getElementById("btnCalculate");
+    const btnGenderMale = document.getElementById("btnGenderMale");
+    const btnGenderFemale = document.getElementById("btnGenderFemale");
+    const elResultContent = document.getElementById("resultContent");
+    const elResultEmpty = document.getElementById("resultEmpty");
+
+    // --- INIT ---
+    function init() {
+        elSelectedYear.value = currentYear;
+        updateYearAlerts();
+        
+        // Global Year Change
+        elSelectedYear.addEventListener("change", (e) => {
+            currentYear = parseInt(e.target.value);
+            updateYearAlerts();
+            if(!elResultEmpty.classList.contains("hidden")) btnCalculate.click();
+        });
+
+        document.getElementById("btnResetApp").addEventListener("click", () => location.reload());
+
+        // --- LOOKUP EVENTS ---
+        btnGenderMale.addEventListener("click", () => { lookupGender = Gender.MALE; renderLookupGender(); });
+        btnGenderFemale.addEventListener("click", () => { lookupGender = Gender.FEMALE; renderLookupGender(); });
+        elBirthYear.addEventListener("input", () => {
+             const y = parseInt(elBirthYear.value);
+             if(y) elAgeInput.value = currentYear - y + 1; else elAgeInput.value = "";
+        });
+        elAgeInput.addEventListener("input", () => {
+            const a = parseInt(elAgeInput.value);
+            if(a) elBirthYear.value = currentYear - a + 1; else elBirthYear.value = "";
+        });
+        btnCalculate.addEventListener("click", handleLookupCalculate);
+
+        setupEnterKeyNavigation("formLookup", "btnCalculate");
+    }
+
+    function setupEnterKeyNavigation(containerId, finalActionIdOrNextId) {
+        const container = document.getElementById(containerId);
+        if(!container) return;
+        container.addEventListener("keydown", function(e) {
+            if (e.key === "Enter") {
+                if (e.target.classList.contains("input-enter")) {
+                    e.preventDefault();
+                    const allInputs = Array.from(container.querySelectorAll(".input-enter"));
+                    const visibleInputs = allInputs.filter(input => input.offsetParent !== null);
+                    const currentIndex = visibleInputs.indexOf(e.target);
+                    if (currentIndex >= 0 && currentIndex < visibleInputs.length - 1) {
+                        visibleInputs[currentIndex + 1].focus();
+                    } else {
+                        const finalEl = document.getElementById(finalActionIdOrNextId);
+                        if(finalEl) { finalEl.focus(); if(finalEl.tagName === "BUTTON") finalEl.click(); }
+                    }
+                }
+            }
+        });
+    }
+
+    // --- HIỂN THỊ CẢNH BÁO NĂM (THÁI TUẾ & TAM TAI) THEO MAP CHUẨN ---
+    function updateYearAlerts() {
+        elHeaderYear.textContent = "Năm " + getCanChi(currentYear) + " (" + currentYear + ")";
+        const chiIdx = currentYear % 12;
+
+        // Thái Tuế
+        const thaiTueList = THAI_TUE_MAP[chiIdx] || [];
+        document.getElementById("thaiTueListText").innerHTML = thaiTueList.map(c => 
+            `<span class="bg-amber-500 text-slate-900 px-3 py-1 rounded-md text-xs font-bold uppercase shadow-sm">${c}</span>`
+        ).join('');
+
+        // Tam Tai
+        const tamTaiList = TAM_TAI_MAP[chiIdx] || [];
+        document.getElementById("tamTaiListText").innerHTML = tamTaiList.map(c => 
+            `<span class="bg-rose-500 text-white px-3 py-1 rounded-md text-xs font-bold uppercase shadow-sm">${c}</span>`
+        ).join('');
+    }
+
+    // --- LOOKUP FUNCTIONS ---
+    function renderLookupGender() {
+        if(lookupGender === Gender.MALE) {
+            btnGenderMale.className = "flex-1 py-2 rounded-md text-sm font-medium transition-all bg-slate-700 text-amber-400 shadow-sm";
+            btnGenderFemale.className = "flex-1 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-slate-200";
+        } else {
+            btnGenderMale.className = "flex-1 py-2 rounded-md text-sm font-medium transition-all text-slate-400 hover:text-slate-200";
+            btnGenderFemale.className = "flex-1 py-2 rounded-md text-sm font-medium transition-all bg-slate-700 text-amber-400 shadow-sm";
+        }
+    }
+
+    function handleLookupCalculate() {
+        const y = parseInt(elBirthYear.value);
+        if(!y) { alert("Vui lòng nhập Năm sinh"); return; }
+        
+        const calc = calculateSaoHan(y, currentYear, lookupGender);
+        if(!calc) { alert("Tuổi nhỏ chưa tính hạn."); return; }
+        
+        const menh = getMenh(y);
+        const saoInfo = SAO_DATA[calc.sao];
+        const hanText = HAN_DATA[calc.han];
+        const analysis = analyzeRelationship(menh.id, calc.sao);
+        const fullName = elFullName.value || "Tín Chủ";
+
+        elResultEmpty.classList.add("hidden");
+        elResultContent.classList.remove("hidden");
+
+        document.getElementById("resName").textContent = fullName;
+        document.getElementById("resInfo").textContent = `${calc.age} tuổi (${getCanChi(y)}) - ${lookupGender===Gender.MALE?"Nam Mạng":"Nữ Mạng"}`;
+        const bdg = document.getElementById("resMenhBadge");
+        bdg.textContent = menh.name; bdg.className = `px-4 py-1.5 rounded-full font-bold text-sm border shadow-sm ${menh.class}`;
+
+        document.getElementById("resSao").textContent = saoInfo.name;
+        document.getElementById("resSaoHanh").textContent = `Hành ${NGU_HANH[saoInfo.hanhID]}`;
+        
+        const elPos = document.getElementById("resSaoPos"); 
+        elPos.className = "mt-3 text-sm text-slate-300 leading-relaxed border-t border-slate-700/50 pt-2 text-justify";
+        elPos.innerHTML = `<strong class="text-amber-500 block mb-1 text-xs uppercase"><i class="fa-solid fa-om mr-1"></i> Bản chất & Lời khuyên:</strong> ${saoInfo.luanGiai}`;
+        
+        document.getElementById("resHan").textContent = calc.han;
+        document.getElementById("resHanDesc").textContent = hanText;
+
+        document.getElementById("analysisGraph").innerHTML = `<span class="text-slate-500">Mệnh ${menh.name}</span> <i class="fa-solid fa-arrow-right text-slate-600"></i> <span class="text-amber-500 font-bold">Sao ${NGU_HANH[saoInfo.hanhID]}</span>`;
+        const anaTitle = document.getElementById("analysisTitle");
+        anaTitle.textContent = analysis.title;
+        anaTitle.className = `text-lg font-bold mb-3 ${analysis.color}`;
+        document.getElementById("analysisContent").innerHTML = analysis.content;
+
+        document.getElementById("cungTime").textContent = saoInfo.cungNgay + " (19h-21h)";
+        document.getElementById("cungHuong").textContent = saoInfo.cungHuong;
+        document.getElementById("cungDen").textContent = saoInfo.cungDen;
+        document.getElementById("colorGood").textContent = saoInfo.mauHop;
+        document.getElementById("colorBad").textContent = saoInfo.mauKy;
+        document.getElementById("cungBaiVi").textContent = saoInfo.baiVi;
+        document.getElementById("starCaution").textContent = saoInfo.canThan;
+        document.getElementById("cungThangKy").textContent = saoInfo.kyThang;
+
+        // --- XỬ LÝ CẢNH BÁO CÁ NHÂN THEO MAP CHUẨN ---
+        const chiBirthYear = y % 12;
+        const chiCurrentYear = currentYear % 12;
+        const birthChiName = CHI[chiBirthYear];
+
+        // Tam Tai
+        const currentTamTaiList = TAM_TAI_MAP[chiCurrentYear] || [];
+        const isTamTai = currentTamTaiList.includes(birthChiName);
+
+        // Thái Tuế
+        const currentThaiTueList = THAI_TUE_MAP[chiCurrentYear] || [];
+        const isThaiTue = currentThaiTueList.includes(birthChiName);
+        const isTruc = chiBirthYear === chiCurrentYear;
+        const isXung = Math.abs(chiBirthYear - chiCurrentYear) === 6;
+
+        let alertHtml = "";
+        
+        if (isTamTai) {
+            alertHtml += `<div class="p-3 bg-rose-900/20 border border-rose-500/30 rounded-xl text-rose-300 text-sm text-center mb-3"><i class="fa-solid fa-triangle-exclamation mr-1"></i> <strong>Năm nay bạn gặp hạn Tam Tai.</strong> Nên giữ tâm bình an, tránh khởi sự lớn.</div>`;
+        }
+        
+        if (isTruc) {
+            alertHtml += `<div class="p-3 bg-amber-900/20 border border-amber-500/30 rounded-xl text-amber-400 text-sm text-center"><i class="fa-solid fa-gavel mr-1"></i> <strong>Năm nay bạn phạm Trực Thái Tuế (Năm tuổi).</strong> Cẩn trọng thị phi, sức khỏe, mọi việc nên nhẫn nhịn.</div>`;
+        } else if (isXung) {
+            alertHtml += `<div class="p-3 bg-amber-900/20 border border-amber-500/30 rounded-xl text-amber-400 text-sm text-center"><i class="fa-solid fa-gavel mr-1"></i> <strong>Năm nay bạn phạm Xung Thái Tuế.</strong> Dễ có biến động lớn, hạn chế thay đổi công việc, cẩn thận khi đi xa.</div>`;
+        } else if (isThaiTue) {
+            alertHtml += `<div class="p-3 bg-amber-900/20 border border-amber-500/30 rounded-xl text-amber-400 text-sm text-center"><i class="fa-solid fa-gavel mr-1"></i> <strong>Năm nay bạn phạm Thái Tuế (Hình/Hại/Phá).</strong> Chú ý các mối quan hệ gia đạo, cẩn thận tiểu nhân hãm hại hoặc hao tài tốn của.</div>`;
+        }
+
+        document.getElementById("resTamTai").innerHTML = alertHtml;
+    }
+
+    // Khởi chạy App
+    init();
+  </script>
+</body>
+</html>

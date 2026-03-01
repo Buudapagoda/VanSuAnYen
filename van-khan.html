@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sổ Tay Nghi Lễ Phật Giáo Tại Gia</title>
+    <style>
+        :root {
+            --primary-color: #8B5A2B; /* Màu nâu vân gỗ/áo tràng */
+            --bg-color: #FDF5E6; /* Màu nền vàng nhạt */
+            --text-color: #333;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-top: 5px solid var(--primary-color);
+        }
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            border-bottom: 2px dashed var(--primary-color);
+            padding-bottom: 10px;
+        }
+        .selector-group {
+            margin: 20px 0;
+            text-align: center;
+        }
+        select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 80%;
+            max-width: 400px;
+            cursor: pointer;
+        }
+        .content-section {
+            display: none;
+            margin-top: 20px;
+            animation: fadeIn 0.5s;
+        }
+        .active {
+            display: block;
+        }
+        h2 { color: #A0522D; }
+        h3 { 
+            background-color: #F5DEB3; 
+            padding: 8px; 
+            border-left: 4px solid var(--primary-color);
+        }
+        .van-khan {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 5px;
+            font-style: italic;
+            white-space: pre-wrap;
+        }
+        ul { padding-left: 20px; }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 14px;
+            color: #777;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Sổ Tay Nghi Lễ Tại Gia</h1>
+    
+    <div class="selector-group">
+        <label for="ritualSelect"><strong>Chọn Nghi Lễ: </strong></label><br><br>
+        <select id="ritualSelect" onchange="showRitual()">
+            <option value="">-- Vui lòng chọn một nghi lễ --</option>
+            <option value="cung_ong_ba">Cúng Ông Bà, Gia Tiên (Giỗ, Lễ Tết)</option>
+            <option value="cung_dong_tho">Cúng Động Thổ / Mở Móng / Khai Trương</option>
+            <option value="cung_ngoai_san">Cúng Ngoài Sân (Thí Thực / Cô Hồn)</option>
+            <option value="cung_mo">Cúng Xây Mộ / Tạ Mộ / Bốc Mộ</option>
+            <option value="cuoi_hoi">Nghi Lễ Cưới Hỏi (Gia Tiên)</option>
+        </select>
+    </div>
+
+    <div id="displayArea">
+        </div>
+
+    <footer>
+        Phụng sự nhân sinh - Tài liệu tham khảo lưu hành nội bộ
+    </footer>
+</div>
+
+<script>
+    const ritualsData = {
+        cung_ong_ba: {
+            title: "Cúng Ông Bà, Gia Tiên",
+            meaning: "Thể hiện lòng tri ân, báo hiếu và cầu nguyện Tam Bảo gia hộ cho gia đạo bình an, độ trì cho cửu huyền thất tổ siêu sinh Tịnh Độ. Việc cúng chay giúp người mất không phải gánh thêm nghiệp sát sinh.",
+            offerings: [
+                "Hương (nhang), đèn (nến), hoa tươi, trái cây.",
+                "3 chén nước lọc (hoặc trà).",
+                "Mâm cơm chay tươm tất (xôi, chè, món xào, canh rau... tuyệt đối không dùng thịt cá).",
+                "Giấy cúng: Một ít tiền vàng mã tượng trưng (nhắc nhở gia đình từ từ giảm bớt, chủ yếu lấy tâm thành làm trọng)."
+            ],
+            vow: `Nam Mô Bổn Sư Thích Ca Mâu Ni Phật! (3 lần)
+Nam Mô A Di Đà Phật! (3 lần)
+
+Kính lạy Mười phương Chư Phật, chư Đại Bồ Tát.
+Kính lạy Cửu huyền thất tổ, nội ngoại gia tiên.
+
+Hôm nay là ngày... tháng... năm...
+Đệ tử con tên là:..., cùng toàn thể gia quyến ngụ tại:...
+
+Nhân ngày [Giỗ / Lễ Tết], gia đình con thiết lập đạo tràng, dâng chút lễ bạc tâm thành gồm hương hoa, trà quả, thực phẩm chay tịnh và chút kim ngân xuyến chỉ tượng trưng. Trước xin cúng dường mười phương Chư Phật, sau xin dâng lên Ông Bà Tổ Tiên.
+
+Chúng con cầu nguyện Tam Bảo gia hộ cho hương linh gia tiên được nghe kinh thính pháp, xả bỏ chấp niệm, siêu sinh Tịnh Độ. Đồng nguyện cầu cho gia đạo chúng con an lành, con cháu hiếu thuận, biết tu nhân tích đức.
+
+Nam Mô A Di Đà Phật! (3 lần - sau đó lạy 3 lạy)`
+        },
+        cung_dong_tho: {
+            title: "Cúng Động Thổ / Mở Móng / Khai Trương",
+            meaning: "Trình báo, xin phép chư Thiên, Thần linh, Thổ địa cai quản khu vực. Hồi hướng phước báu cho các vong linh nương tựa tại mảnh đất đó để công việc xây dựng, làm ăn hanh thông.",
+            offerings: [
+                "Mâm ngũ quả, bình hoa tươi (cúc, lay ơn).",
+                "3 chén nước trong, 3 chén chè, 3 đĩa xôi.",
+                "Bánh kẹo chay, trầu cau.",
+                "Giấy cúng: 1 bộ giấy cúng động thổ/khai trương cơ bản (vàng mã, tiền nẻ tượng trưng để đốt báo cáo Thần linh, không mua quá nhiều)."
+            ],
+            vow: `Nam Mô Bổn Sư Thích Ca Mâu Ni Phật! (3 lần)
+
+Kính lạy Mười phương Chư Phật, chư Đại Bồ Tát, chư Thiên, chư Thần Hộ Pháp.
+Kính lạy Tôn thần Bản cảnh Thành Hoàng, Ngài Bản xứ Thần linh Thổ Địa cai quản tại xứ này.
+
+Hôm nay là ngày... tháng... năm...
+Tín chủ con là:..., ngụ tại:...
+
+Nay con phát tâm [Khai trương cửa hàng / Động thổ / Mở móng xây nhà] tại địa chỉ:... Chúng con xin sắm sửa lễ chay thanh tịnh, cùng chút kim ngân lễ vật dâng lên các vị Tôn thần.
+
+Kính xin các Ngài quang giáng chứng minh tâm thành. Cầu xin các Ngài che chở cho công việc của chúng con được hanh thông, an toàn, nhân sự bình an. Chúng con xin nguyện làm việc thiện lành để hồi hướng phước báu này đến các vong linh tại khu vực, mong tất cả đều được an vui.
+
+Nam Mô A Di Đà Phật! (3 lần - sau đó lạy 3 lạy)`
+        },
+        cung_ngoai_san: {
+            title: "Cúng Ngoài Sân (Thí Thực / Cô Hồn)",
+            meaning: "Nghi thức rải tâm từ bi của người Phật tử đến các chúng sinh vô hình, đói khát. Khuyên họ quy y Tam Bảo, sớm thoát vòng đau khổ.",
+            offerings: [
+                "1 nồi cháo trắng loãng, 1 đĩa muối gạo.",
+                "Ly nước lọc, bánh kẹo, bỏng ngô, khoai luộc (tuyệt đối không cúng đồ mặn để tránh oan gia trái chủ).",
+                "Giấy cúng: 1 xấp tiền vàng lẻ tượng trưng để bố thí (khuyên Phật tử dần dần thay bằng việc phóng sinh hoặc ấn tống kinh sách)."
+            ],
+            vow: `Nam Mô A Di Đà Phật! (3 lần)
+
+Kính lạy chư Phật, chư Bồ Tát, Đức Đại Bi Quan Thế Âm Bồ Tát chứng minh.
+
+Hôm nay ngày... tháng... năm...
+Tín chủ con tên là:... ngụ tại:...
+
+Bằng tâm từ bi, con xin thiết lập mâm cúng thí thực chay tịnh ngoài hiên nhà. Xin thỉnh mời các chư vị khuất mày khuất mặt, thập loại cô hồn, các vong linh vô tự tại khu vực này cùng về đây thọ tài hưởng thực.
+
+Nguyện nhờ oai thần của Chư Phật, biến thức ăn này thành cam lộ, giúp các vị no đủ. Khuyên các vị hãy xả bỏ oán hờn, nương tựa Tam Bảo, thường niệm "Nam Mô A Di Đà Phật" để sớm thoát vòng đau khổ, siêu sinh Tịnh Độ. 
+
+(Sau khi khấn xong, niệm: "Nam Mô A Di Đà Phật" 21 lần. Cuối cùng đem đốt chút giấy tiền vàng và rải gạo muối, nước ra ngoài đường).`
+        },
+        cung_mo: {
+            title: "Cúng Xây Mộ / Tạ Mộ / Bốc Mộ",
+            meaning: "Báo cáo với Thần linh cai quản nghĩa trang và cầu siêu cho vong linh người quá cố. Dùng đồ chay để người mất được nhẹ nhàng, không thêm nghiệp bám víu.",
+            offerings: [
+                "2 mâm lễ: 1 mâm cúng Thần linh Thổ Địa (hoa quả, nước, trầu cau), 1 mâm cúng tại mộ người thân.",
+                "Mâm cúng mộ: Trái cây, hoa tươi, nhang đèn, xôi, chè hoặc 1 món xào chay đơn giản.",
+                "Giấy cúng: Vài xấp tiền vàng, quần áo giấy tượng trưng (đốt để yên tâm theo tập tục, nhưng người cúng cần dốc tâm niệm Phật cầu siêu mới là chính)."
+            ],
+            vow: `Nam Mô A Di Đà Phật! (3 lần)
+
+Kính lạy mười phương Chư Phật, chư Tôn thần cai quản Thổ Địa tại khu vực nghĩa trang này.
+
+Hôm nay là ngày... tháng... năm...
+Tín chủ con là:..., đại diện cho gia quyến.
+
+Chúng con xin đến đây thành tâm dâng lễ chay thanh tịnh, trước tạ ơn chư vị Thần linh đã che chở, sau xin phép được tiến hành [Xây mộ / Tạ mộ / Bốc mộ] cho hương linh là: [Tên người mất], mất ngày...
+
+Cầu xin chư vị Thần linh độ trì cho công việc được thuận lợi, viên mãn. Chúng con cũng thành tâm cầu xin chư Phật phóng quang tiếp dẫn hương linh [Tên người mất] rũ bỏ trần lao, nương theo ánh sáng Phật pháp mà siêu sinh về cõi lành. 
+
+Nam Mô A Di Đà Phật! (3 lần)`
+        },
+        cuoi_hoi: {
+            title: "Nghi Lễ Cưới Hỏi (Trước Bàn Thờ Gia Tiên)",
+            meaning: "Trình báo ông bà tổ tiên về hỷ sự của con cháu. Mong mỏi sự chứng minh của tổ tiên và cầu nguyện Phật pháp gia hộ cho đôi uyên ương biết sống nhẫn nhịn, hòa thuận và hướng thiện.",
+            offerings: [
+                "Hương, hoa tươi (thường dùng hoa huệ đỏ, lay ơn, cúc, sen...), trái cây ngũ quả.",
+                "Trà, xôi gấc, bánh phu thê (su sê).",
+                "Mâm cỗ mặn thường để đãi khách bên ngoài, nhưng trên bàn thờ gia tiên tuyệt đối chỉ dâng đồ chay thanh tịnh.",
+                "Giấy cúng: Một ít tiền vàng mã đặt mâm gia tiên để trình báo theo lệ làng."
+            ],
+            vow: `Nam Mô Bổn Sư Thích Ca Mâu Ni Phật! (3 lần)
+
+Kính lạy Cửu huyền thất tổ, nội ngoại gia tiên họ [Họ của gia đình].
+
+Hôm nay là ngày lành tháng tốt, ngày... tháng... năm...
+Đệ tử con tên là:..., cùng toàn thể gia quyến.
+
+Nay gia đình có hỷ sự, cử hành lễ [Đính hôn / Tân hôn] cho hai cháu:
+Trưởng nam / Thứ nam: ...
+Trưởng nữ / Thứ nữ: ...
+
+Chúng con thành tâm sắm sửa hương hoa, trà quả, lễ chay thanh tịnh dâng lên bàn thờ gia tiên. Kính thỉnh Ông Bà, Tổ Tiên nội ngoại về chứng giám cho tình duyên của hai cháu.
+
+Cầu nguyện Tam Bảo và Tổ Tiên gia hộ cho vợ chồng tân lang tân nương được trăm năm hạnh phúc, thuận hòa êm ấm, biết nhường nhịn nhau, cùng nhau tu nhân tích đức, làm tròn hiếu đạo với hai bên gia đình.
+
+Nam Mô A Di Đà Phật! (3 lần - Tân lang tân nương lạy 4 lạy)`
+        }
+    };
+
+    function showRitual() {
+        const selectBox = document.getElementById("ritualSelect");
+        const selectedValue = selectBox.value;
+        const displayArea = document.getElementById("displayArea");
+
+        if (!selectedValue) {
+            displayArea.innerHTML = "";
+            displayArea.classList.remove("active");
+            return;
+        }
+
+        const data = ritualsData[selectedValue];
+        
+        let offeringsHtml = data.offerings.map(item => `<li>${item}</li>`).join("");
+
+        displayArea.innerHTML = `
+            <div class="content-section active">
+                <h2>${data.title}</h2>
+                <h3>Ý Nghĩa</h3>
+                <p>${data.meaning}</p>
+                
+                <h3>Lễ Vật Chuẩn Bị</h3>
+                <ul>
+                    ${offeringsHtml}
+                </ul>
+                
+                <h3>Văn Khấn</h3>
+                <div class="van-khan">${data.vow}</div>
+            </div>
+        `;
+    }
+</script>
+
+</body>
+</html>

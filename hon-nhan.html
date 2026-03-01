@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luận Giải Duyên Nghiệp & Xem Năm Cưới Hỏi (Âm Lịch)</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4ede3;
+            color: #4a3f35;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 650px;
+            margin: 0 auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-top: 6px solid #b8860b;
+        }
+        h2 {
+            text-align: center;
+            color: #8b4513;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #5c4033;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #dcdcdc;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 15px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #b8860b;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: background 0.3s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #8b4513;
+        }
+        .result-box {
+            margin-top: 25px;
+            padding: 20px;
+            background-color: #fbf8f1;
+            border: 1px solid #e8dcc4;
+            border-radius: 5px;
+            display: none;
+        }
+        .result-title {
+            font-weight: bold;
+            color: #8b4513;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #c19a6b;
+            padding-bottom: 5px;
+        }
+        .note {
+            font-size: 0.9em;
+            font-style: italic;
+            color: #666;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f0eae1;
+            border-left: 3px solid #b8860b;
+        }
+        ul {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Luận Giải Duyên Nợ Vợ Chồng</h2>
+    
+    <div class="input-group">
+        <label for="namChong">Năm sinh ÂM LỊCH của Chú rể:</label>
+        <input type="number" id="namChong" placeholder="VD: 1990" min="1900" max="2100">
+    </div>
+    
+    <div class="input-group">
+        <label for="namVo">Năm sinh ÂM LỊCH của Cô dâu:</label>
+        <input type="number" id="namVo" placeholder="VD: 1993" min="1900" max="2100">
+    </div>
+    
+    <div class="input-group">
+        <label for="namCuoi">Năm dự định cưới (ÂM LỊCH):</label>
+        <input type="number" id="namCuoi" placeholder="VD: 2026" min="2020" max="2100">
+    </div>
+    
+    <button onclick="xemKetQua()">Luận Giải Duyên Nghiệp</button>
+
+    <div id="ketQua" class="result-box">
+        <div id="cungMenh" class="result-section"></div>
+        <div id="duyenNghiep" class="result-section" style="margin-top: 20px;"></div>
+        <div id="luanNamCuoi" class="result-section" style="margin-top: 20px;"></div>
+        
+        <div class="note">
+            "Kính lạy mười phương Phật, pháp, tăng tam bảo. Hôn nhân là duyên nợ nhiều đời. Ác duyên hay thiện duyên đều do nghiệp quả. Chuyên tâm tu tập, hành thiện tích đức thì ác nghiệp tiêu trừ, gia đạo bình an."
+        </div>
+    </div>
+</div>
+
+<script>
+    // Mảng dữ liệu tính Can Chi
+    const CAN = ["Canh", "Tân", "Nhâm", "Quý", "Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ"];
+    const CHI = ["Thân", "Dậu", "Tuất", "Hợi", "Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi"];
+
+    // Hàm lấy Can Chi
+    function layCanChi(nam) {
+        let can = CAN[nam % 10];
+        let chi = CHI[nam % 12];
+        return can + " " + chi;
+    }
+
+    // Hàm tính tổng các chữ số để tìm Cung Phi
+    function tinhSoRutGon(nam) {
+        let sum = 0;
+        while(nam > 0 || sum > 9) {
+            if(nam === 0) { nam = sum; sum = 0; }
+            sum += nam % 10;
+            nam = Math.floor(nam / 10);
+        }
+        return sum; 
+    }
+
+    // Hàm lấy Cung Phi Bát Trạch
+    function layCungPhi(nam, isNam) {
+        let x = tinhSoRutGon(nam);
+        let cungNum;
+        if (nam < 2000) {
+            cungNum = isNam ? (11 - x) % 9 : (4 + x) % 9;
+        } else {
+            cungNum = isNam ? (10 - x) % 9 : (5 + x) % 9;
+        }
+        if (cungNum === 0) cungNum = 9;
+        
+        if (cungNum === 5) {
+            return isNam ? "Khôn" : "Cấn"; 
+        }
+        
+        const mapCung = {1:"Khảm", 2:"Khôn", 3:"Chấn", 4:"Tốn", 6:"Càn", 7:"Đoài", 8:"Cấn", 9:"Ly"};
+        return mapCung[cungNum];
+    }
+
+    // Bảng tra Lữ Tài hiệp hôn
+    const bangTraCung = {
+        "Càn": {"Càn":"Phục Vị", "Khảm":"Lục Sát", "Cấn":"Thiên Y", "Chấn":"Ngũ Quỷ", "Tốn":"Họa Hại", "Ly":"Tuyệt Mệnh", "Khôn":"Diên Niên", "Đoài":"Sinh Khí"},
+        "Khảm": {"Càn":"Lục Sát", "Khảm":"Phục Vị", "Cấn":"Ngũ Quỷ", "Chấn":"Thiên Y", "Tốn":"Sinh Khí", "Ly":"Diên Niên", "Khôn":"Tuyệt Mệnh", "Đoài":"Họa Hại"},
+        "Cấn": {"Càn":"Thiên Y", "Khảm":"Ngũ Quỷ", "Cấn":"Phục Vị", "Chấn":"Lục Sát", "Tốn":"Tuyệt Mệnh", "Ly":"Họa Hại", "Khôn":"Sinh Khí", "Đoài":"Diên Niên"},
+        "Chấn": {"Càn":"Ngũ Quỷ", "Khảm":"Thiên Y", "Cấn":"Lục Sát", "Chấn":"Phục Vị", "Tốn":"Diên Niên", "Ly":"Sinh Khí", "Khôn":"Họa Hại", "Đoài":"Tuyệt Mệnh"},
+        "Tốn": {"Càn":"Họa Hại", "Khảm":"Sinh Khí", "Cấn":"Tuyệt Mệnh", "Chấn":"Diên Niên", "Tốn":"Phục Vị", "Ly":"Thiên Y", "Khôn":"Ngũ Quỷ", "Đoài":"Lục Sát"},
+        "Ly": {"Càn":"Tuyệt Mệnh", "Khảm":"Diên Niên", "Cấn":"Họa Hại", "Chấn":"Sinh Khí", "Tốn":"Thiên Y", "Ly":"Phục Vị", "Khôn":"Lục Sát", "Đoài":"Ngũ Quỷ"},
+        "Khôn": {"Càn":"Diên Niên", "Khảm":"Tuyệt Mệnh", "Cấn":"Sinh Khí", "Chấn":"Họa Hại", "Tốn":"Ngũ Quỷ", "Ly":"Lục Sát", "Khôn":"Phục Vị", "Đoài":"Thiên Y"},
+        "Đoài": {"Càn":"Sinh Khí", "Khảm":"Họa Hại", "Cấn":"Diên Niên", "Chấn":"Tuyệt Mệnh", "Tốn":"Lục Sát", "Ly":"Ngũ Quỷ", "Khôn":"Thiên Y", "Đoài":"Phục Vị"}
+    };
+
+    function luanDuyenPhatGiao(ketQuaHiepHon) {
+        let text = "";
+        let isThienDuyen = ["Sinh Khí", "Diên Niên", "Thiên Y", "Phục Vị"].includes(ketQuaHiepHon);
+
+        if (isThienDuyen) {
+            text += "<p><b>Luận giải:</b> Hai vợ chồng rơi vào cung <b>" + ketQuaHiepHon + "</b>, đây là một <b>Thiện Duyên</b> vô cùng tốt đẹp. Dưới góc nhìn Phật giáo, hai bạn trong nhiều kiếp quá khứ đã từng kết thiện duyên, gieo trồng phước báu cùng nhau nên kiếp này được gặp lại để chung sống hòa thuận.</p>";
+            text += "<p><b>Lời khuyên:</b> Tuy đã có duyên lành, nhưng phước báu nếu chỉ hưởng thụ thì cũng có ngày cạn kiệt. Hai vợ chồng nên tiếp tục đồng hành trong việc tu tâm, dưỡng tính, làm nhiều việc thiện để phước đức sinh sôi, che chở cho con cháu đời sau.</p>";
+        } else {
+            text += "<p><b>Luận giải:</b> Hai vợ chồng rơi vào cung <b>" + ketQuaHiepHon + "</b>. Theo lý số thì đây là hung tinh, nhưng dưới lăng kính Phật pháp, đây được gọi là <b>Nghiệp Duyên</b> hay Ác Duyên. Sự kết hợp này báo hiệu hai người ở kiếp trước có thể đã nợ nần, oán trách hoặc chưa trọn vẹn ân nghĩa, nên kiếp này chiêu cảm phải tìm đến nhau để trả nợ nghiệp lực.</p>";
+            text += "<p><b>Lời khuyên:</b> Không nên quá hoang mang bi lụy. Đạo Phật dạy <i>'Ái diệt thì sinh tử diệt'</i>, oán thù chỉ có thể giải bằng từ bi. Vợ chồng sống chung cần lấy chữ NHẪN làm đầu, biết hạ cái tôi xuống, thông cảm và thấu hiểu. Thường xuyên phóng sinh, tụng kinh, niệm Phật và nhường nhịn nhau thì dẫu là Tuyệt Mệnh hay Ngũ Quỷ cũng dần được hóa giải nhờ phước đức tự thân.</p>";
+        }
+        return text;
+    }
+
+    function xemKetQua() {
+        let nChong = parseInt(document.getElementById('namChong').value);
+        let nVo = parseInt(document.getElementById('namVo').value);
+        let nCuoi = parseInt(document.getElementById('namCuoi').value);
+
+        if (!nChong || !nVo || !nCuoi) {
+            alert("Vui lòng nhập đầy đủ năm sinh và năm cưới Âm Lịch!");
+            return;
+        }
+
+        let canChiChong = layCanChi(nChong);
+        let canChiVo = layCanChi(nVo);
+        let canChiCuoi = layCanChi(nCuoi);
+
+        // Tính Cung
+        let cungChong = layCungPhi(nChong, true);
+        let cungVo = layCungPhi(nVo, false);
+        let hiepHon = bangTraCung[cungChong][cungVo];
+
+        // Tính Kim Lâu của Nữ
+        let tuoiMu = nCuoi - nVo + 1;
+        let soDu = tuoiMu % 9;
+        let isKimLau = (soDu === 1 || soDu === 3 || soDu === 6 || soDu === 8);
+
+        // Hiển thị
+        document.getElementById('ketQua').style.display = 'block';
+
+        document.getElementById('cungMenh').innerHTML = 
+            "<div class='result-title'>1. Thông Tin Tuổi & Cung Mạng</div>" +
+            "<ul>" +
+            "<li>Chú rể sinh năm " + nChong + " (<b>" + canChiChong + "</b>) - Thuộc Cung <b>" + cungChong + "</b></li>" +
+            "<li>Cô dâu sinh năm " + nVo + " (<b>" + canChiVo + "</b>) - Thuộc Cung <b>" + cungVo + "</b></li>" +
+            "<li>Phối cung mạng: Rơi vào trạng thái <b>" + hiepHon + "</b></li>" +
+            "</ul>";
+
+        document.getElementById('duyenNghiep').innerHTML = 
+            "<div class='result-title'>2. Luận Bàn Duyên Nghiệp</div>" +
+            luanDuyenPhatGiao(hiepHon);
+
+        let luanNamCuoiText = "<div class='result-title'>3. Xét Năm Cưới: " + nCuoi + " (" + canChiCuoi + ")</div>";
+        luanNamCuoiText += "<p>Năm " + nCuoi + ", cô dâu được <b>" + tuoiMu + " tuổi</b> (tính theo tuổi mụ).</p>";
+
+        if (!isKimLau) {
+            luanNamCuoiText += "<p><b>Đánh giá: HỢP TUỔI.</b> Năm nay người nữ không phạm Kim Lâu, là một năm rất tốt để tiến hành hôn sự. Vạn sự hanh thông, gia đạo êm ấm.</p>";
+        } else {
+            luanNamCuoiText += "<p><b>Đánh giá: KHÔNG HỢP (Phạm Kim Lâu).</b> Theo phong tục, nữ giới cưới năm phạm Kim Lâu dễ đem lại sự trắc trở về đường sức khỏe, con cái hoặc công việc cho bản thân và gia đình.</p>";
+            
+            luanNamCuoiText += "<p><b>❖ Cách hóa giải nếu bắt buộc phải cưới chạy (cưới gấp):</b><br>";
+            luanNamCuoiText += "Đạo Phật không đặt nặng kiêng kỵ bằng việc 'Gieo nhân lành gặt quả thiện'. Nếu tình thế bắt buộc phải cưới vào năm nay, hai họ có thể áp dụng các cách sau để nương nhờ oai lực Tam Bảo, chuyển hóa chướng ngại:<br>";
+            luanNamCuoiText += "- <b>Tổ chức Lễ Hằng Thuận:</b> Vợ chồng có thể xin quy y và làm lễ cưới Phật giáo tại một ngôi chùa thân thuộc. Nhờ sư thầy chú nguyện và ánh sáng từ bi của chư Phật chứng minh, hai vợ chồng sẽ được gieo duyên lành, học được đạo lý làm vợ chồng.<br>";
+            luanNamCuoiText += "- <b>Hành thiện tích phước:</b> Trước thềm đám cưới, hai vợ chồng nên trích một khoản tiền nhỏ để làm từ thiện, cúng dường, in ấn kinh sách hoặc phóng sinh. Đem công đức đó hồi hướng để tháo gỡ chướng ngại.<br>";
+            luanNamCuoiText += "- <b>Xin rước dâu hai lần:</b> Về mặt phong tục dân gian, có thể áp dụng nghi thức rước dâu hai lần để giải trừ hung hiểm của Kim Lâu.</p>";
+
+            // Gợi ý năm tốt
+            luanNamCuoiText += "<div style='background-color:#f0eae1; padding: 10px; border-radius: 5px; margin-top: 15px;'>";
+            luanNamCuoiText += "<p style='margin-top:0;'><b>💡 Gợi ý các năm hợp tuổi (không phạm Kim Lâu) gần nhất để gia chủ tham khảo:</b></p><ul>";
+            let count = 0;
+            let year = nCuoi + 1;
+            while(count < 3) {
+                let tMu = year - nVo + 1;
+                let sDu = tMu % 9;
+                if (sDu !== 1 && sDu !== 3 && sDu !== 6 && sDu !== 8) {
+                    luanNamCuoiText += "<li>Năm <b>" + year + " (" + layCanChi(year) + ")</b> - Cô dâu " + tMu + " tuổi.</li>";
+                    count++;
+                }
+                year++;
+            }
+            luanNamCuoiText += "</ul></div>";
+        }
+        document.getElementById('luanNamCuoi').innerHTML = luanNamCuoiText;
+    }
+</script>
+
+</body>
+</html>

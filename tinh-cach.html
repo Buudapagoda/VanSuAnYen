@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra Cứu Bát Tự & Tính Cách (Theo Sách Đại Cương)</title>
+    <style>
+        :root {
+            --primary-color: #8B0000; /* Đỏ đô */
+            --accent-color: #D4AF37; /* Vàng kim */
+            --bg-color: #f9f4e6; /* Màu giấy cũ */
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            max-width: 900px;
+            width: 100%;
+            border: 2px solid var(--accent-color);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-style: italic;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+
+        .input-group {
+            background: #fff8e1;
+            padding: 20px;
+            border-radius: 10px;
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+        }
+
+        .input-wrapper { flex: 1; }
+        
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--primary-color); }
+        input[type="date"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        
+        button {
+            padding: 12px 25px; background-color: var(--primary-color); color: var(--accent-color);
+            border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s;
+            height: 46px;
+        }
+        button:hover { background-color: #a52a2a; }
+
+        #result { margin-top: 25px; padding: 0; display: none; }
+        
+        .pillars { display: flex; justify-content: space-between; margin-bottom: 20px; gap: 10px; }
+        .pillar-box { 
+            background: #fff; border: 1px solid #ddd; padding: 15px; border-radius: 8px; flex: 1; text-align: center; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .pillar-title { font-size: 13px; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .pillar-content { font-size: 20px; font-weight: bold; color: var(--primary-color); }
+
+        .book-content {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            margin-top: 20px;
+            font-family: 'Times New Roman', serif;
+            font-size: 1.15em;
+            line-height: 1.6;
+            text-align: justify;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        
+        .book-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+        
+        .book-icon { font-size: 24px; margin-right: 10px; }
+        .book-title { font-weight: bold; font-size: 1.3em; color: var(--primary-color); }
+        
+        .highlight-text { background-color: #fffde7; padding: 2px 5px; border-radius: 3px; }
+        
+        .analysis-section { 
+            margin-top: 20px; 
+            padding: 20px; 
+            background: #f0f4c3; 
+            border-radius: 8px; 
+            border-left: 5px solid #8bc34a; 
+        }
+
+        .footer-note {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Tra Cứu Tính Cách & Số Mệnh</h1>
+    
+    <div class="input-group">
+        <div class="input-wrapper">
+            <label for="birthdate">Nhập Ngày sinh Dương Lịch:</label>
+            <input type="date" id="birthdate" required>
+        </div>
+        <button onclick="analyzeFate()">Xem Luận Giải</button>
+    </div>
+
+    <div id="result">
+        </div>
+    
+    <div class="footer-note">
+        Công cụ được xây dựng dựa trên nguyên lý Bát Tự (Tử Bình) và dữ liệu sách phong thủy.
+    </div>
+</div>
+
+<script>
+    // --- DỮ LIỆU ĐẦY ĐỦ TỪ SÁCH (ĐÃ TRÍCH XUẤT) ---
+    const SACH_TINH_CACH = {
+        "Giáp": `
+            <p><strong>Biểu tượng:</strong> Cây cổ thụ, cây to lớn, vững chắc.</p>
+            <p>Người Giáp Mộc như một cây to lớn, vươn cao từ từ, biểu trưng cho tính chất nhẫn nại, luôn muốn đạt được những điều tốt hơn. Họ có tính kiên trì rất lớn.</p>
+            <p>Tính cách thẳng thắn, không ngại va chạm khi đụng đến vấn đề, dù có thể làm người khác đau lòng. Bản chất Giáp Mộc không uyển chuyển, không linh hoạt như Ất Mộc. Họ có tầm nhìn xa, suy nghĩ lớn, muốn làm việc lớn chứ không thích sự lòng vòng.</p>
+            <p>Họ thường đi theo con đường riêng, sẵn lòng làm việc mình cho là đúng chứ không chạy theo số đông. Tuy cứng rắn nhưng họ có lòng nhân từ, thích che chở bóng mát cho người yếu thế.</p>
+            <p><strong>Điểm yếu:</strong> Khá cứng đầu, sẵn sàng ngoan cố bảo vệ tư tưởng của mình đến cùng. Thiếu sự linh hoạt và cái nhìn khách quan. Cái tôi lớn, khó hạ mình lắng nghe. Người Giáp Mộc không nên làm người đứng đầu tối cao (dễ bị công kích như cây to đón gió) mà nên làm cố vấn hoặc phó tướng thì an toàn hơn.</p>
+        `,
+        "Ất": `
+            <p><strong>Biểu tượng:</strong> Cây cỏ, hoa lá, dây leo.</p>
+            <p>Người Ất Mộc có vẻ ngoài dịu dàng, bắt mắt, dễ gây thiện cảm. Họ như những bông hoa đẹp khiến người khác mở lòng. Họ rất giỏi thích nghi với môi trường sống, giao tiếp khôn ngoan, có khiếu hài hước và cư xử khéo léo (nhiều người làm MC, ngoại giao).</p>
+            <p>Khi tranh luận, họ thường nghe theo ý kiến người khác để giữ hòa khí ("dĩ hòa vi quý"). Họ biết uyển chuyển tùy tình thế để vượt qua nghịch cảnh: "Cây to thì đổ trước bão, nhưng cỏ mềm thì rạp xuống rồi lại vươn lên".</p>
+            <p><strong>Điểm yếu:</strong> Thường bị đánh giá là thiếu lập trường ("gió chiều nào theo chiều ấy") dù thực chất họ đang tìm giải pháp hài hòa. Họ dễ mất bình tĩnh khi gặp vấn đề bất ngờ và thường suy nghĩ giải pháp ngắn hạn hơn là dài hạn. Hay chú ý đến cảm xúc người khác nên đôi khi thiếu sự quyết đoán lạnh lùng cần thiết.</p>
+        `,
+        "Bính": `
+            <p><strong>Biểu tượng:</strong> Mặt trời, Hỏa dương.</p>
+            <p>Người Bính Hỏa như mặt trời, đem đến sự vui vẻ, nồng ấm và là điểm tựa cho người khác. Họ luôn tràn đầy năng lượng, nhiệt tình và hào phóng. Giống như mặt trời không bao giờ tắt, họ không bao giờ từ bỏ ước mơ và khao khát của mình.</p>
+            <p>Khi buồn, họ thường trốn tránh, tự gặm nhấm nỗi buồn để ngày mai lại tỏa sáng rạng ngời. Họ sống quang minh chính đại, không để bụng, giận đó rồi quên đó.</p>
+            <p><strong>Điểm yếu:</strong> Có cái tôi rất lớn, muốn mình là trung tâm vũ trụ. Đôi khi sự nhiệt tình thái quá của họ "thiêu đốt" người khác (gây áp lực). Họ thích làm theo công thức cũ, ngại thay đổi khi đang ở đỉnh cao. Vì tốt bụng và nghĩ ai cũng tốt như mình nên họ rất dễ bị lợi dụng. Cần học cách "rút lui" đúng lúc để bảo toàn năng lượng.</p>
+        `,
+        "Đinh": `
+            <p><strong>Biểu tượng:</strong> Ngọn nến, đống lửa, Hỏa âm.</p>
+            <p>Bề ngoài có vẻ lạnh lùng, điềm đạm, lễ độ nhưng bên trong lại ấm áp (như đưa tay gần ngọn nến mới thấy nóng). Họ là người tinh tế, lịch sự, hướng nội và có thiên hướng tâm linh, tôn giáo.</p>
+            <p>Người Đinh Hỏa thích sự học hỏi, nghiên cứu sâu sắc và thích truyền cảm hứng cho người khác (nhiều diễn giả nổi tiếng mang mệnh này). Họ quan tâm chăm sóc người xung quanh một cách thầm lặng.</p>
+            <p><strong>Điểm yếu:</strong> Rất nhạy cảm, hay lo lắng, sợ hãi và phức tạp hóa vấn đề. Tâm trạng dễ dao động như ngọn lửa trước gió. Khi mất tinh thần, họ khó tự đứng dậy mà cần người khác tiếp lửa. Dễ hành động theo cảm xúc dẫn đến sai lầm tài chính.</p>
+        `,
+        "Mậu": `
+            <p><strong>Biểu tượng:</strong> Ngọn núi, Thổ dương.</p>
+            <p>Tính cách vững chắc, uy tín, bao dung. Họ dễ tạo niềm tin cho người khác và là chỗ dựa vững chãi. Người Mậu Thổ cực kỳ kín tiếng, giỏi giữ bí mật (như lòng đất chôn giấu kho báu). Một khi đã hứa là giữ lời.</p>
+            <p>Họ sống hướng nội, có vẻ bí ẩn khiến người khác tò mò. Khi đã quyết định điều gì thì kiên định như núi, khó ai lay chuyển được.</p>
+            <p><strong>Điểm yếu:</strong> Thiếu sự linh hoạt, đôi khi rất bảo thủ và chậm chạp. Họ thường suy tư rất lâu mới đưa ra ý kiến. Ít chủ động thay đổi trừ khi gặp biến cố lớn. Sự lầm lì ít nói đôi khi khiến họ bỏ lỡ cơ hội thể hiện tài năng.</p>
+        `,
+        "Kỷ": `
+            <p><strong>Biểu tượng:</strong> Đất ruộng vườn, đất mềm, Thổ âm.</p>
+            <p>Tính cách mềm mại, tháo vác, có năng lực nuôi dưỡng (như đất mẹ nuôi cây cối). Họ rất giỏi che giấu tài năng, cần có người "đào xới" mới phát hiện ra. Họ có lòng bao dung, không ngại hạ mình để giúp người khác vươn lên.</p>
+            <p>Thích hợp các nghề phục vụ, chăm sóc, điều dưỡng vì họ sẵn sàng vì lợi ích chung hơn tư lợi. Họ đa tài, thích sưu tầm đồ cổ, thủ công mỹ nghệ.</p>
+            <p><strong>Điểm yếu:</strong> Quá khiêm tốn nên thường bị thiệt thòi trong xã hội hiện đại. Dễ rơi vào trạng thái bị động, cứ âm thầm làm và đợi người khác công nhận thay vì tự PR bản thân. Hay lo nghĩ vụn vặt.</p>
+        `,
+        "Canh": `
+            <p><strong>Biểu tượng:</strong> Quặng sắt, kiếm sắc, Kim dương.</p>
+            <p>Cứng rắn, chịu được áp lực cao. Họ như thanh kiếm cần được tôi rèn qua lửa đỏ và búa tạ mới thành khí cụ, nên cuộc đời họ thường nhiều thử thách và họ coi đó là chuyện bình thường.</p>
+            <p>Rất coi trọng nghĩa khí, tình bạn, sẵn sàng giúp người ("giữa đường thấy chuyện bất bình chẳng tha"). Thẳng thắn, ghét sự giả dối và bất công. Thích hợp làm luật sư, công an, thẩm phán.</p>
+            <p><strong>Điểm yếu:</strong> Nóng tính và cộc cằn. Khi giận dữ họ như sắt nung chảy, mất hết lý trí dẫn đến quyết định sai lầm. Hay ghen tị và hiếu thắng. Cần học cách điềm tĩnh và suy xét kỹ trước khi "chém".</p>
+        `,
+        "Tân": `
+            <p><strong>Biểu tượng:</strong> Trang sức, vàng bạc, Kim âm.</p>
+            <p>Thanh lịch, hào nhoáng, tinh tế. Họ thích sự sang trọng, ghét sự lam lũ. Có gu thẩm mỹ cao, chú ý đến từng chi tiết nhỏ. Lời nói sắc sảo, tư duy độc đáo, sáng tạo và thường đi trước thời đại.</p>
+            <p>Họ sống tình cảm nhưng cũng rất "để bụng". Nếu không thích ai, họ sẽ nhớ rất lâu. Họ có lòng tự trọng và sĩ diện cực cao ("chết vinh còn hơn sống nhục").</p>
+            <p><strong>Điểm yếu:</strong> Quá coi trọng thể diện nên đôi khi "cố tỏ ra mình ổn" dù đang khó khăn. Hay thù dai. Đôi khi tham lam những thứ ngoài tầm với. Dễ đưa ra quyết định sai lầm chỉ vì sợ mất mặt.</p>
+        `,
+        "Nhâm": `
+            <p><strong>Biểu tượng:</strong> Sông lớn, biển cả, Thủy dương.</p>
+            <p>Năng động, mạnh mẽ, không chịu ngồi yên. Như dòng sông luôn chảy, họ thích nghi với mọi khuôn khổ, mọi hoàn cảnh. Rất thông minh, khôn khéo và linh hoạt (thích hợp kinh doanh).</p>
+            <p>Tư duy logic, có hệ thống và trật tự rõ ràng. Họ thích sự tự do, ghét bị ràng buộc. Luôn tìm ra cơ hội trong khó khăn (nước chảy đá mòn, lách qua khe đá).</p>
+            <p><strong>Điểm yếu:</strong> Khó đoán, tâm tư sâu thẳm như đại dương. Đôi khi quá lý trí mà thiếu cảm xúc. Có xu hướng "cuốn phăng" mọi thứ cản đường. Ghét người lười biếng và chậm chạp.</p>
+        `,
+        "Quý": `
+            <p><strong>Biểu tượng:</strong> Sương mù, mưa rào, Thủy âm.</p>
+            <p>Nhẹ nhàng, bay bổng, có khuynh hướng nghệ sĩ. Họ nuôi dưỡng sự sống và niềm tin (như mưa tưới mát cây cối). Trực giác cực tốt, nhìn thấu tâm can người khác. Thích triết lý và những điều bí ẩn.</p>
+            <p>Họ rất nhạy cảm, luôn nghĩ cho cảm xúc của người khác để tránh gây tổn thương. Có nhiều ý tưởng sáng tạo độc đáo.</p>
+            <p><strong>Điểm yếu:</strong> Tâm trạng thất thường ("sáng nắng chiều mưa"). Thiếu sự kiên định, dễ thay đổi mục tiêu. Hay lo âu, suy nghĩ lòng vòng không đầu không đuôi. Dễ bị cảm xúc chi phối năng suất làm việc.</p>
+        `
+    };
+
+    // --- LOGIC TÍNH TOÁN BÁT TỰ ---
+    const THIEN_CAN = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"];
+    const DIA_CHI = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
+    const NGU_HANH = {
+        "Giáp": "Mộc", "Ất": "Mộc", "Bính": "Hỏa", "Đinh": "Hỏa", "Mậu": "Thổ", "Kỷ": "Thổ",
+        "Canh": "Kim", "Tân": "Kim", "Nhâm": "Thủy", "Quý": "Thủy"
+    };
+    const MUA_SINH = {
+        "Dần": "Mộc", "Mão": "Mộc", "Tỵ": "Hỏa", "Ngọ": "Hỏa", "Thân": "Kim", "Dậu": "Kim",
+        "Hợi": "Thủy", "Tý": "Thủy", "Thìn": "Thổ", "Tuất": "Thổ", "Sửu": "Thổ", "Mùi": "Thổ"
+    };
+
+    function analyzeFate() {
+        const inputDate = document.getElementById('birthdate').value;
+        if (!inputDate) { alert("Vui lòng chọn ngày sinh!"); return; }
+
+        const date = new Date(inputDate);
+        const day = date.getDate(); const month = date.getMonth() + 1; const year = date.getFullYear();
+
+        // 1. Tính Can Chi Năm
+        const canNamIdx = (year - 4) % 10;
+        const chiNamIdx = (year - 4) % 12;
+        const canNam = THIEN_CAN[canNamIdx < 0 ? canNamIdx + 10 : canNamIdx];
+        const chiNam = DIA_CHI[chiNamIdx < 0 ? chiNamIdx + 12 : chiNamIdx];
+
+        // 2. Tính Can Chi Tháng (Ước lượng theo Tiết Khí)
+        let lunarMonthIndex = month; 
+        if (day < 5) lunarMonthIndex -= 1; // Điều chỉnh ngày đầu tháng
+        if (lunarMonthIndex < 1) lunarMonthIndex = 12;
+        
+        const monthBranchMap = ["Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi", "Tý"];
+        let chiThangVal = monthBranchMap[lunarMonthIndex - 1];
+        let chiThangIdx = DIA_CHI.indexOf(chiThangVal);
+
+        const monthStemStart = [2, 4, 6, 8, 0]; // Bính, Mậu, Canh, Nhâm, Giáp (Ngũ Hổ Độn)
+        let startStemIdx = monthStemStart[canNamIdx % 5];
+        let offsetMonth = (chiThangIdx - 2 + 12) % 12; 
+        let canThangIdx = (startStemIdx + offsetMonth) % 10;
+        let canThang = THIEN_CAN[canThangIdx];
+
+        // 3. Tính Can Chi Ngày (Công thức chuẩn mốc 2000)
+        const baseDate = new Date(2000, 0, 1); // 01/01/2000 là Mậu Ngọ
+        const timeDiff = date.getTime() - baseDate.getTime();
+        const dayDiff = Math.floor(timeDiff / (1000 * 3600 * 24));
+        
+        let currentCanIdx = (4 + dayDiff) % 10; // 4 là Mậu
+        let currentChiIdx = (6 + dayDiff) % 12; // 6 là Ngọ
+        if (currentCanIdx < 0) currentCanIdx += 10; 
+        if (currentChiIdx < 0) currentChiIdx += 12;
+
+        const canNgay = THIEN_CAN[currentCanIdx];
+        const chiNgay = DIA_CHI[currentChiIdx];
+
+        const menhNhatChu = NGU_HANH[canNgay];
+        const menhThang = MUA_SINH[chiThangVal];
+
+        // 4. Logic Vượng Nhược (Sơ bộ)
+        let isStrong = false;
+        if (menhNhatChu === menhThang) isStrong = true;
+        if ((menhThang === "Mộc" && menhNhatChu === "Hỏa") || 
+            (menhThang === "Hỏa" && menhNhatChu === "Thổ") || 
+            (menhThang === "Thổ" && menhNhatChu === "Kim") || 
+            (menhThang === "Kim" && menhNhatChu === "Thủy") || 
+            (menhThang === "Thủy" && menhNhatChu === "Mộc")) isStrong = true;
+
+        let advice = getAdvice(menhNhatChu, isStrong);
+
+        // 5. Hiển thị
+        const resultDiv = document.getElementById('result');
+        resultDiv.style.display = 'block';
+        
+        // Lấy nội dung sách
+        const contentFromBook = SACH_TINH_CACH[canNgay] || "<p>Đang cập nhật...</p>";
+
+        resultDiv.innerHTML = `
+            <div class="pillars">
+                <div class="pillar-box">
+                    <div class="pillar-title">Năm Sinh</div>
+                    <div class="pillar-content">${canNam} ${chiNam}</div>
+                </div>
+                <div class="pillar-box">
+                    <div class="pillar-title">Tháng Sinh</div>
+                    <div class="pillar-content">${canThang} ${chiThangVal}</div>
+                </div>
+                <div class="pillar-box" style="border: 2px solid var(--primary-color); background-color: #fff8e1;">
+                    <div class="pillar-title">Chủ Mệnh (Ngày)</div>
+                    <div class="pillar-content">${canNgay} ${chiNgay}</div>
+                </div>
+            </div>
+
+            <div class="book-content">
+                <div class="book-header">
+                    <span class="book-icon">📖</span>
+                    <span class="book-title">Luận Tính Cách Người ${canNgay} ${menhNhatChu}</span>
+                </div>
+                ${contentFromBook}
+            </div>
+
+            <div class="analysis-section">
+                <h3 style="margin-top:0; color: #2e7d32;">🌱 Gợi Ý Cải Vận Phong Thủy:</h3>
+                <p>Bạn thuộc mệnh <strong>${menhNhatChu}</strong>, sinh vào tháng <strong>${chiThangVal} (${menhThang})</strong>.</p>
+                <p>Trạng thái năng lượng: <strong>${isStrong ? "Thân Vượng (Mạnh)" : "Thân Nhược (Yếu)"}</strong>.</p>
+                <p><strong>🎨 Màu sắc may mắn nên dùng:</strong> ${advice.color}</p>
+                <p><strong>🧭 Hướng tốt (Bàn làm việc/Giường ngủ):</strong> ${advice.direction}</p>
+            </div>
+        `;
+    }
+
+    function getAdvice(menh, isStrong) {
+        let c = "", d = "";
+        if (isStrong) {
+             // Vượng thì cần Khắc/Xả
+             if (menh === "Mộc") { c = "Trắng, Xám (Kim) hoặc Đỏ, Hồng (Hỏa)"; d = "Tây, Tây Bắc hoặc Nam"; }
+             else if (menh === "Hỏa") { c = "Đen, Xanh dương (Thủy) hoặc Vàng, Nâu (Thổ)"; d = "Bắc hoặc Đông Bắc, Tây Nam"; }
+             else if (menh === "Thổ") { c = "Xanh lá (Mộc) hoặc Trắng, Xám (Kim)"; d = "Đông, Đông Nam hoặc Tây, Tây Bắc"; }
+             else if (menh === "Kim") { c = "Đỏ, Hồng (Hỏa) hoặc Đen, Xanh dương (Thủy)"; d = "Nam hoặc Bắc"; }
+             else { c = "Vàng, Nâu (Thổ) hoặc Xanh lá (Mộc)"; d = "Đông Bắc, Tây Nam hoặc Đông, Đông Nam"; }
+        } else {
+             // Nhược thì cần Sinh/Trợ
+             if (menh === "Mộc") { c = "Đen, Xanh dương (Thủy) hoặc Xanh lá (Mộc)"; d = "Bắc hoặc Đông, Đông Nam"; }
+             else if (menh === "Hỏa") { c = "Xanh lá (Mộc) hoặc Đỏ, Hồng (Hỏa)"; d = "Đông, Đông Nam hoặc Nam"; }
+             else if (menh === "Thổ") { c = "Đỏ, Hồng (Hỏa) hoặc Vàng, Nâu (Thổ)"; d = "Nam hoặc Đông Bắc, Tây Nam"; }
+             else if (menh === "Kim") { c = "Vàng, Nâu (Thổ) hoặc Trắng, Xám (Kim)"; d = "Đông Bắc, Tây Nam hoặc Tây, Tây Bắc"; }
+             else { c = "Trắng, Xám (Kim) hoặc Đen, Xanh dương (Thủy)"; d = "Tây, Tây Bắc hoặc Bắc"; }
+        }
+        return { color: c, direction: d };
+    }
+</script>
+
+</body>
+</html>

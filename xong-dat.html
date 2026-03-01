@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra Cứu Xông Đất Vạn Niên</title>
+    <style>
+        :root {
+            --primary: #d32f2f;
+            --bg: #fff8e1;
+            --text: #333;
+            --accent: #ffeb3b;
+        }
+        body { font-family: sans-serif; background: var(--bg); color: var(--text); padding: 20px; line-height: 1.5; }
+        .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
+        
+        /* Header & Input */
+        .header { background: var(--primary); color: #fff; padding: 20px; text-align: center; }
+        .controls { padding: 20px; background: #ffebee; display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; align-items: flex-end; border-bottom: 1px solid #ddd; }
+        .input-group { display: flex; flex-direction: column; }
+        .input-group label { font-weight: bold; font-size: 0.9em; margin-bottom: 5px; }
+        input { padding: 10px; border: 1px solid #ccc; border-radius: 5px; text-align: center; font-size: 16px; }
+        button { padding: 10px 25px; background: var(--primary); color: #fff; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        button:hover { background: #b71c1c; }
+
+        /* Kết quả chi tiết */
+        #specificResult { display: none; padding: 20px; background: #e8f5e9; border-bottom: 2px solid #4caf50; }
+        .match-item { background: #fff; padding: 10px 15px; margin: 10px 0; border-radius: 5px; border: 1px solid #c8e6c9; display: flex; justify-content: space-between; }
+        .score { background: #4caf50; color: #fff; padding: 2px 10px; border-radius: 10px; font-size: 0.9em; }
+
+        /* Bảng tổng quát */
+        .general-section { padding: 20px; }
+        h3 { text-align: center; color: var(--primary); margin-top: 0; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: #ef9a9a; color: #fff; padding: 12px; text-align: left; font-weight: bold; color: #b71c1c; }
+        td { border: 1px solid #eee; padding: 10px; }
+        tr:nth-child(even) { background: #fafafa; }
+        .zodiac-icon { font-weight: bold; color: var(--primary); width: 120px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1 style="margin:0">🧧 TRA CỨU TUỔI XÔNG ĐẤT</h1>
+        <div id="currentYearLabel" style="font-size: 0.9em; opacity: 0.9; margin-top: 5px;"></div>
+    </div>
+
+    <div class="controls">
+        <div class="input-group">
+            <label>Năm muốn xem (Dương lịch):</label>
+            <input type="number" id="targetYear" value="2026" oninput="updateGeneralView()">
+        </div>
+        <div class="input-group">
+            <label>Năm sinh Gia Chủ (Để xem chi tiết):</label>
+            <input type="number" id="hostYear" placeholder="VD: 1984">
+        </div>
+        <button onclick="calculateSpecific()">Xem Chi Tiết</button>
+    </div>
+
+    <div id="specificResult">
+        <h3 id="specificTitle">Kết Quả Chi Tiết</h3>
+        <ul id="specificList" style="list-style: none; padding: 0;"></ul>
+    </div>
+
+    <div class="general-section">
+        <h3 id="tableTitle">Bảng Tổng Quát 12 Con Giáp Năm 2026</h3>
+        <p style="text-align: center; font-style: italic; font-size: 0.9em; color: #666;">
+            (Các tuổi bên dưới là Nhị Hợp/Tam Hợp và <b>ĐÃ LỌC BỎ</b> người phạm Tam Tai, Thái Tuế của năm hiện tại)
+        </p>
+        <table>
+            <thead>
+                <tr>
+                    <th>Tuổi Gia Chủ</th>
+                    <th>Các Tuổi Xông Đất Tốt (Con Giáp)</th>
+                </tr>
+            </thead>
+            <tbody id="generalTableBody">
+                </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // --- DỮ LIỆU & HÀM CƠ BẢN ---
+    const CAN = ["Canh", "Tân", "Nhâm", "Quý", "Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ"];
+    const CHI = ["Thân", "Dậu", "Tuất", "Hợi", "Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi"];
+    const MENH = ["Kim", "Mộc", "Thủy", "Hỏa", "Thổ"];
+
+    function getCan(y) { return y % 10; }
+    function getChi(y) { return y % 12; }
+    function getName(y) { return CAN[getCan(y)] + " " + CHI[getChi(y)]; }
+    
+    // Tính Mệnh (0:Kim, 1:Mộc, 2:Thủy, 3:Hỏa, 4:Thổ)
+    function getMenhID(y) {
+        let can = getCan(y); let chi = getChi(y);
+        let cVal = [4,4,5,5,1,1,2,2,3,3][can];
+        let chVal = 0;
+        if ([0,1,6,7].includes(chi)) chVal = 1;
+        if ([2,3,8,9].includes(chi)) chVal = 2;
+        if ([4,5,10,11].includes(chi)) chVal = 0;
+        let sum = cVal + chVal;
+        if (sum > 5) sum -= 5;
+        if (sum === 1) return 0; if (sum === 2) return 2; if (sum === 3) return 3; if (sum === 4) return 4; return 1;
+    }
+
+    // --- LOGIC LỌC (TAM TAI & THÁI TUẾ) ---
+    
+    // Kiểm tra một người (personChi) có bị Tam Tai trong năm (targetChi) không
+    function isTamTai(personChi, targetChi) {
+        // Nhóm Tam Tai:
+        // Thân-Tý-Thìn (0,4,8) bị tại Dần-Mão-Thìn (6,7,8)
+        // Dần-Ngọ-Tuất (6,10,2) bị tại Thân-Dậu-Tuất (0,1,2)
+        // Tỵ-Dậu-Sửu (9,1,5) bị tại Hợi-Tý-Sửu (3,4,5)
+        // Hợi-Mão-Mùi (3,7,11) bị tại Tỵ-Ngọ-Mùi (9,10,11)
+
+        let badYears = [];
+        if ([0, 4, 8].includes(personChi)) badYears = [6, 7, 8];
+        else if ([6, 10, 2].includes(personChi)) badYears = [0, 1, 2];
+        else if ([9, 1, 5].includes(personChi)) badYears = [3, 4, 5];
+        else if ([3, 7, 11].includes(personChi)) badYears = [9, 10, 11];
+
+        return badYears.includes(targetChi);
+    }
+
+    // Kiểm tra Thái Tuế (Trực + Xung)
+    function isThaiTue(personChi, targetChi) {
+        if (personChi === targetChi) return true; // Trực
+        if (Math.abs(personChi - targetChi) === 6) return true; // Lục Xung
+        return false;
+    }
+
+    // --- TẠO BẢNG TỔNG QUÁT (LOGIC MỚI) ---
+    function updateGeneralView() {
+        const tYear = parseInt(document.getElementById('targetYear').value);
+        if (!tYear) return;
+
+        const tName = getName(tYear);
+        const tChi = getChi(tYear); // Chi của năm hiện tại
+        
+        document.getElementById('currentYearLabel').innerText = `Năm đang chọn: ${tYear} (${tName})`;
+        document.getElementById('tableTitle').innerText = `Bảng Tổng Quát 12 Con Giáp Năm ${tYear} (${tName})`;
+
+        let html = "";
+        
+        // Duyệt qua 12 con giáp gia chủ (Thân -> Mùi)
+        // Thứ tự trong mảng CHI: 0:Thân, 1:Dậu, 2:Tuất...
+        // Để hiển thị đẹp, ta nên bắt đầu từ Tý (Index 4)
+        const displayOrder = [4, 5, 6, 7, 8, 9, 10, 11, 0, 1, 2, 3]; // Tý -> Hợi
+
+        displayOrder.forEach(hostChi => {
+            let goodGuests = [];
+
+            // 1. Tìm các chi hợp (Tam Hợp, Nhị Hợp)
+            // Tam Hợp: +4, +8
+            const tri1 = (hostChi + 4) % 12;
+            const tri2 = (hostChi + 8) % 12;
+            
+            // Nhị hợp (Thủ công)
+            const mapNhiHop = {4:5, 5:4, 6:3, 3:6, 7:2, 2:7, 8:1, 1:8, 9:0, 0:9, 10:11, 11:10};
+            const nhi = mapNhiHop[hostChi];
+
+            let candidates = [tri1, tri2, nhi];
+            // Loại bỏ trùng
+            candidates = [...new Set(candidates)];
+
+            // 2. LỌC: Kiểm tra các candidate này có bị Tam Tai/Thái Tuế với năm tYear không?
+            candidates.forEach(guestChi => {
+                let isBad = false;
+                // Người xông đất kỵ năm hiện tại?
+                if (isTamTai(guestChi, tChi)) isBad = true;
+                if (isThaiTue(guestChi, tChi)) isBad = true;
+                
+                // (Tùy chọn) Người xông đất xung chính gia chủ? (Thường Tam hợp thì ko xung, nhưng check cho chắc)
+                if (Math.abs(guestChi - hostChi) === 6) isBad = true;
+
+                if (!isBad) {
+                    goodGuests.push(CHI[guestChi]);
+                }
+            });
+
+            if (goodGuests.length === 0) goodGuests.push("Năm nay ít tuổi hợp, cần xem kỹ");
+
+            html += `<tr>
+                <td class="zodiac-icon">Tuổi ${CHI[hostChi]}</td>
+                <td>${goodGuests.join(", ")}</td>
+            </tr>`;
+        });
+
+        document.getElementById('generalTableBody').innerHTML = html;
+        
+        // Ẩn kết quả chi tiết nếu đổi năm
+        document.getElementById('specificResult').style.display = 'none';
+    }
+
+    // --- TÍNH CHI TIẾT (KHI NHẬP NĂM SINH) ---
+    function calculateSpecific() {
+        const tYear = parseInt(document.getElementById('targetYear').value);
+        const hYear = parseInt(document.getElementById('hostYear').value);
+
+        if (!tYear || !hYear) { alert("Vui lòng nhập năm sinh gia chủ!"); return; }
+
+        // Logic tính điểm (Copy từ phiên bản trước)
+        let candidates = [];
+        const minAge = tYear - 75; const maxAge = tYear - 16;
+        
+        // Lấy thông tin năm hiện tại
+        const tChi = getChi(tYear);
+        const tMenh = getMenhID(tYear);
+
+        for (let y = minAge; y <= maxAge; y++) {
+            if (y === hYear) continue;
+            
+            // LỌC CỨNG:
+            const gChi = getChi(y);
+            if (isTamTai(gChi, tChi)) continue;
+            if (isThaiTue(gChi, tChi)) continue;
+
+            // TÍNH ĐIỂM
+            let score = 0;
+            const gMenh = getMenhID(y); const hMenh = getMenhID(hYear);
+            const gCan = getCan(y); const hCan = getCan(hYear);
+            const hChi = getChi(hYear);
+
+            // Ngũ hành (Khách vs Năm, Khách vs Chủ)
+            const pairGT = gMenh + "-" + tMenh;
+            if (["0-2", "2-1", "1-3", "3-4", "4-0"].includes(pairGT)) score += 1;
+            else if (gMenh === tMenh) score += 0.5;
+            else if (["4-2", "0-1", "1-4", "2-3", "3-0"].includes(pairGT)) score -= 1;
+
+            const pairGH = gMenh + "-" + hMenh;
+            if (["0-2", "2-1", "1-3", "3-4", "4-0"].includes(pairGH)) score += 4;
+            else if (gMenh === hMenh) score += 2;
+            else if (["2-0", "1-2", "3-1", "4-3", "0-4"].includes(pairGH)) score += 0.5;
+            else score -= 2;
+
+            // Địa chi (Khách vs Chủ)
+            const diff = (gChi - hChi + 12) % 12;
+            if ([4, 8].includes(diff)) score += 2;
+            const mapNhiHop = {4:5, 5:4, 6:3, 3:6, 7:2, 2:7, 8:1, 1:8, 9:0, 0:9, 10:11, 11:10};
+            if (mapNhiHop[gChi] === hChi) score += 1.5;
+            if (Math.abs(gChi - hChi) === 6) score -= 3;
+
+            // Thiên can
+            const hopCan = [[4,9],[5,0],[6,1],[7,2],[8,3]].some(p => p.includes(gCan) && p.includes(hCan));
+            if (hopCan) score += 1.5;
+            if (Math.abs(gCan - hCan) === 5) score -= 1;
+
+            if (score > 0) {
+                candidates.push({year: y, name: getName(y), menh: MENH[gMenh], score: score});
+            }
+        }
+
+        candidates.sort((a,b) => b.score - a.score);
+        const top5 = candidates.slice(0, 5);
+
+        // Render kết quả
+        const resultDiv = document.getElementById('specificResult');
+        const list = document.getElementById('specificList');
+        document.getElementById('specificTitle').innerText = `Gia Chủ ${hYear} (${getName(hYear)}) chọn người xông đất năm ${tYear}`;
+        
+        list.innerHTML = "";
+        if (top5.length === 0) {
+            list.innerHTML = "<li style='color:red'>Không tìm thấy tuổi hợp hoàn hảo trong phạm vi tìm kiếm.</li>";
+        } else {
+            top5.forEach(c => {
+                list.innerHTML += `
+                <li class="match-item">
+                    <div>
+                        <strong>${c.year} ${c.name}</strong> (${c.menh})
+                    </div>
+                    <div class="score">${c.score.toFixed(1)} điểm</div>
+                </li>`;
+            });
+        }
+        resultDiv.style.display = 'block';
+    }
+
+    // Chạy lần đầu
+    updateGeneralView();
+
+</script>
+
+</body>
+</html>

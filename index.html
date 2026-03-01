@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Vạn Sự An Yên - Ứng Dụng Tổng Hợp</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden; /* Ngăn cuộn toàn trang, chỉ cuộn iframe và menu */
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #e5e7eb;
+    }
+    
+    /* Ẩn thanh cuộn của menu ngang trên điện thoại cho đẹp nhưng vẫn vuốt được */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .tab-btn {
+      transition: 0.2s;
+      white-space: nowrap; /* Giữ chữ không bị rớt dòng */
+    }
+    .tab-btn:hover {
+      transform: translateY(-1px);
+    }
+    .tab-btn.active {
+      background: #111827; /* Màu nền khi nút được chọn */
+      color: #facc15;      /* Màu chữ vàng */
+      border-color: #facc15;
+    }
+    #appFrame {
+      width: 100%;
+      border: none;
+      display: block;
+      background-color: #ffffff;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header id="topHeader" class="bg-slate-900 text-amber-100 px-4 md:px-8 py-4 border-b border-slate-800">
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold tracking-wide flex items-center gap-2">
+          <span class="text-2xl">☯</span>
+          <span>Vạn Sự An Yên</span>
+        </h1>
+        <p class="text-xs text-slate-300 mt-1">
+          Ứng dụng tổng hợp: Phong thủy – Tang lễ – Sao hạn
+        </p>
+      </div>
+      <div class="text-[11px] text-slate-300 bg-slate-800 px-3 py-1 rounded-full text-center">
+        Dùng tham khảo – Quan trọng nhất là giữ tâm an, làm việc thiện.
+      </div>
+    </div>
+  </header>
+
+  <nav id="topNav" class="bg-slate-800 text-slate-100 px-3 md:px-8 py-3 flex overflow-x-auto hide-scrollbar gap-2 md:gap-3 border-b border-slate-700 items-center">
+    
+    <button class="tab-btn active shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700 border border-transparent" data-src="lich-dung-su.html">
+      📅 Lịch Dụng Sự
+    </button>
+    
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="cung-that.html">
+      🕯️ Cúng Thất
+    </button>
+
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="tuoi-xay-nha.html">
+      🏗️ Xây Nhà
+    </button>
+
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="hon-nhan.html">
+      💍 Hôn Nhân
+    </button>
+
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="tinh-cach.html">
+      🧠 Tính Cách
+    </button>
+
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="sao-han.html">
+      ⏳ Sao Hạn
+    </button>
+
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="xong-dat.html">
+      🏠 Xông Đất
+    </button>
+
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="van-khan.html">
+      📜 Văn Khấn
+    </button>
+
+  </nav>
+
+  <iframe id="appFrame" src="Lich.html"></iframe>
+
+  <script>
+    const buttons = document.querySelectorAll(".tab-btn");
+    const frame = document.getElementById("appFrame");
+    const header = document.getElementById("topHeader");
+    const nav = document.getElementById("topNav");
+
+    // Tính toán chiều cao iframe khít với màn hình
+    function resizeFrame() {
+      const hHeader = header.offsetHeight || 0;
+      const hNav = nav.offsetHeight || 0;
+      const total = window.innerHeight;
+      const frameHeight = total - hHeader - hNav;
+      frame.style.height = frameHeight + "px";
+    }
+
+    // Xử lý sự kiện khi bấm nút
+    buttons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        // Trả lại trạng thái bình thường cho tất cả các nút
+        buttons.forEach(b => {
+            b.classList.remove("active", "bg-slate-700");
+            b.classList.add("bg-slate-700/60");
+        });
+        
+        // Làm nổi bật nút được bấm
+        btn.classList.add("active", "bg-slate-700");
+        btn.classList.remove("bg-slate-700/60");
+
+        // Cuộn nút vừa bấm vào giữa màn hình (rất tiện cho mobile)
+        btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+
+        // Đổi nội dung iframe
+        const src = btn.getAttribute("data-src");
+        frame.src = src;
+      });
+    });
+
+    // Kích hoạt tính năng tự động đổi kích thước
+    window.addEventListener("resize", resizeFrame);
+    // Chạy thử lần đầu để lấy kích thước chuẩn
+    setTimeout(resizeFrame, 100); 
+  </script>
+
+</body>
+</html>

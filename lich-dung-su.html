@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lịch Trạch Nhật (Giao Diện Thập Nhị Dạ Xoa Tối Ưu)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&display=swap');
+    body { font-family: 'Noto Serif', serif; }
+    
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background: #a8a29e; border-radius: 3px; }
+
+    .paper-table { width: 100%; border-collapse: collapse; border: 2px solid #000; background: #fff; color: #000; }
+    .paper-table td, .paper-table th { border: 1px solid #555; padding: 6px; vertical-align: middle; }
+    .header-cell { background-color: #e5e7eb; font-weight: bold; text-align: center; text-transform: uppercase; font-size: 0.75rem; border-bottom: 1px solid #999; padding: 4px; }
+    .hour-cell { font-size: 11px; text-align: center; padding: 4px 2px !important; }
+    .text-red-print { color: #cc0000; }
+
+    /* LÀM TRONG SUỐT BẢNG LỊCH THÁNG */
+    .calendar-grid-container { 
+        display: grid; 
+        grid-template-columns: repeat(7, 1fr); 
+        background-color: rgba(255, 255, 255, 0.2); 
+        gap: 1px; 
+    }
+    .calendar-cell { 
+        background-color: rgba(0, 0, 0, 0.45); 
+        min-height: 50px; 
+        padding: 4px; 
+        display: flex; 
+        flex-direction: column; 
+        justify-content: space-between; 
+        cursor: pointer; 
+        transition: all 0.2s; 
+        position: relative; 
+    }
+    .calendar-cell:hover { background-color: rgba(255, 255, 255, 0.1); }
+    .calendar-cell.selected { 
+        background-color: rgba(217, 119, 6, 0.85); 
+        color: white; 
+        box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    }
+    .calendar-cell.selected .lunar-text { color: #fef3c7; font-weight: bold; }
+    
+    .day-number { font-size: 1.1rem; font-weight: bold; text-align: right; line-height: 1; }
+    .lunar-text { font-size: 0.7rem; text-align: center; color: #d6d3d1; margin-top: 2px; }
+    
+    .good-day-dot { position: absolute; bottom: 4px; right: 4px; width: 10px; height: 10px; background-color: #4ade80; border-radius: 50%; box-shadow: 0 0 8px #4ade80; border: 1px solid #fff; }
+  </style>
+</head>
+<body class="bg-stone-300 h-screen flex flex-col overflow-hidden">
+
+  <header class="bg-stone-900 text-white h-14 flex items-center px-4 justify-between shadow-md z-20 flex-none text-xs">
+    <div class="flex items-center gap-2">
+        <i class="fa-solid fa-calendar-check text-lg text-amber-500"></i>
+        <h1 class="font-bold uppercase tracking-wider text-sm hidden md:block">Lịch Vạn Sự & Trạch Nhật</h1>
+    </div>
+    
+    <div class="flex gap-3 items-center">
+        <div class="flex items-center bg-stone-800 px-2 py-1.5 rounded border border-stone-600 shadow-inner">
+            <label class="text-stone-400 font-bold mr-2 uppercase text-[10px]">Tuổi (ÂL):</label>
+            <input type="number" id="birthYear" placeholder="Vd: 1993" onchange="render()" class="bg-transparent text-white w-20 font-bold outline-none text-center placeholder-stone-600">
+        </div>
+
+        <div class="flex items-center bg-stone-800 px-2 py-1.5 rounded border border-stone-600 shadow-inner">
+            <label class="text-stone-400 font-bold mr-2 uppercase text-[10px]">Lọc việc:</label>
+            <select id="taskFilter" onchange="render()" class="bg-transparent text-amber-400 font-bold outline-none cursor-pointer">
+                <option value="ALL">-- Khảo sát chung --</option>
+                <option value="XAY_NHA">Xây Dựng / Sửa Nhà</option>
+                <option value="CUOI_HOI">Đám Cưới / Giá Thú</option>
+                <option value="KHAI_TRUONG">Khai Trương / Kinh Doanh</option>
+                <option value="TANG_SU">Tang Sự / An Táng</option>
+            </select>
+        </div>
+
+        <button onclick="goToday()" class="px-3 py-1.5 bg-stone-700 rounded hover:bg-stone-600 border border-stone-500 font-bold hidden sm:block">Hôm Nay</button>
+        <input type="date" id="dateInput" class="text-black px-1.5 py-1 rounded font-bold font-sans">
+    </div>
+  </header>
+
+  <div class="flex-1 flex w-full overflow-hidden">
+    
+    <aside class="w-[35%] flex flex-col relative z-10 shadow-2xl border-r-2 border-stone-500 text-white overflow-hidden">
+        
+        <div id="yakshaBg" class="absolute inset-0 bg-cover bg-top transition-all duration-700 opacity-100" style="background-image: url('https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang1.JPG');"></div>
+        
+        <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none"></div>
+
+        <div class="relative z-10 h-[45%] flex flex-col justify-end p-5 pb-3">
+            <div class="flex items-end justify-between w-full border-b border-white/30 pb-2 mb-2">
+                <div class="flex flex-col items-start">
+                    <div class="text-[70px] font-bold leading-none font-serif drop-shadow-[0_4px_6px_rgba(0,0,0,0.9)] text-white" id="leftDay">01</div>
+                    <span class="text-lg font-bold uppercase tracking-widest text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mt-1" id="leftWDay">Thứ ...</span>
+                </div>
+                <div class="text-right flex flex-col items-end">
+                    <span class="text-[10px] text-stone-300 uppercase tracking-widest drop-shadow-md mb-1">Tháng Âm Lịch</span>
+                    <span class="text-2xl font-bold text-red-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" id="leftLunarDate">...</span>
+                    <span class="text-[11px] font-bold text-white uppercase tracking-widest drop-shadow-md mt-2" id="leftMonthYear">Năm Dương Lịch ...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative z-10 h-[55%] flex flex-col backdrop-blur-[2px] bg-black/20 border-t border-amber-600/50">
+            <div class="flex justify-between p-3 items-center text-sm font-bold font-sans border-b border-white/30 bg-black/40">
+                <button id="prevMonth" class="w-8 h-8 hover:bg-white/20 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-chevron-left"></i></button>
+                <span class="uppercase text-amber-400 tracking-wider text-base drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]" id="calTitle">THÁNG ...</span>
+                <button id="nextMonth" class="w-8 h-8 hover:bg-white/20 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+            <div class="grid grid-cols-7 bg-black/60 py-2 text-[12px] font-bold text-center text-stone-300 uppercase border-b border-white/30">
+                <div class="drop-shadow-md">T2</div><div class="drop-shadow-md">T3</div><div class="drop-shadow-md">T4</div><div class="drop-shadow-md">T5</div><div class="drop-shadow-md">T6</div><div class="text-blue-300 drop-shadow-md">T7</div><div class="text-red-400 drop-shadow-md">CN</div>
+            </div>
+            <div id="grid" class="calendar-grid-container overflow-y-auto custom-scroll flex-1 relative"></div>
+        </div>
+    </aside>
+
+    <main class="w-[65%] bg-stone-300 p-2 md:p-6 overflow-y-auto custom-scroll flex flex-col items-center">
+        <div id="paper" class="w-full max-w-[850px] bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] p-4 md:p-8 text-sm"></div>
+    </main>
+  </div>
+
+  <script>
+    /* =========================================
+       1. DATA & DANH SÁCH ẢNH DẠ XOA CHUẨN
+       ========================================= */
+    const TASK_RULES = {
+        XAY_NHA: { name: "Xây Dựng / Sửa Nhà", goodTruc: ["Kiến", "Mãn", "Bình", "Thành"], badTruc: ["Phá", "Bế", "Nguy"], badDays: ["Tam Nương", "Nguyệt Kỵ", "Trung Nhật", "Tam Tang", "Sát Chủ", "Thọ Tử"], goodStars: "Thiên Đức, Nguyệt Đức" },
+        CUOI_HOI: { name: "Đám Cưới / Giá Thú", goodTruc: ["Định", "Thành", "Thu"], badTruc: ["Phá", "Nguy", "Chấp"], badDays: ["Tam Nương", "Nguyệt Kỵ", "Trung Nhật", "Tam Tang", "Trùng Tang", "Sát Chủ", "Thọ Tử"], goodStars: "Tục Thế, Thiên Hỷ" },
+        KHAI_TRUONG: { name: "Khai Trương / Kinh Doanh", goodTruc: ["Khai", "Mãn", "Thành"], badTruc: ["Bế", "Phá"], badDays: ["Tam Nương", "Nguyệt Kỵ", "Tam Tang", "Sát Chủ", "Thọ Tử"], goodStars: "Nguyệt Tài, Lộc Mã" },
+        TANG_SU: { name: "Tang Sự / An Táng", goodTruc: ["Chấp", "Nguy", "Thu"], badTruc: ["Kiến", "Phá"], badDays: ["Trùng Tang", "Tam Tang", "Trung Nhật", "Thọ Tử"], goodStars: "Thiên Ân, Tục Thế" }
+    };
+
+    const CAL_DATA = {
+        YAKSHA_IMAGES: {
+            1: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang1.JPG", 
+            2: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang2.JPG", 
+            3: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang3.JPG", 
+            4: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang4.JPG", 
+            5: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang5.JPG",
+            6: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang6.JPG",
+            7: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang7.JPG",
+            8: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang8.JPG",
+            9: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang9.JPG",
+            10: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang10.JPG",
+            11: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang11.JPG",
+            12: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang12.JPG"
+        },
+        CAN: ["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"], CHI: ["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"],
+        TRUC: ["Kiến","Trừ","Mãn","Bình","Định","Chấp","Phá","Nguy","Thành","Thu","Khai","Bế"], LUC_DIEU: ["Đại An","Lưu Niên","Tốc Hỷ","Xích Khẩu","Tiểu Cát","Không Vong"],
+        ELEMENTS: { CAN: [1,1,3,3,4,4,0,0,2,2], CHI: [2,4,1,1,4,3,3,4,0,0,4,2] },
+        DIRECTIONS: { TAI_THAN: ["Đông Nam","Đông Nam","Chính Đông","Chính Đông","Chính Bắc","Chính Bắc","Tây Nam","Tây Nam","Chính Tây","Tây Bắc"], HAC_THAN: "Đông Nam" },
+        TRUNG_NHAT_MAP: {1:11, 2:11, 3:11, 4:2, 5:2, 6:2, 7:5, 8:5, 9:5, 10:8, 11:8, 12:8}, TAM_TANG_MAP: {1:4, 2:4, 3:4, 4:7, 5:7, 6:7, 7:10, 8:10, 9:10, 10:1, 11:1, 12:1},
+        TRUNG_TANG_MAP: {1:[0], 2:[1], 3:[4,5], 4:[2], 5:[3], 6:[4,5], 7:[6], 8:[7], 9:[4,5], 10:[8], 11:[9], 12:[4,5]},
+        SAT_CHU_MAP: {1:0, 2:5, 3:7, 4:3, 5:8, 6:10, 7:11, 8:1, 9:6, 10:9, 11:2, 12:4}, THO_TU_MAP: {1:10, 2:4, 3:11, 4:5, 5:0, 6:6, 7:1, 8:7, 9:2, 10:8, 11:3, 12:9},
+        GIO_SAT_CHU_MAP: {1:2, 2:5, 3:8, 4:4, 5:9, 6:3, 7:2, 8:5, 9:8, 10:4, 11:9, 12:3}, GIO_THO_TU_MAP: [1, 6, 6, 5, 5, 6, 7, 6, 9, 5, 7, 6],
+        SOLAR_TERMS_FIXED: [{ d: 4, m: 2, name: "Lập xuân", chiMonth: 2 }, { d: 18, m: 2, name: "Vũ thủy", chiMonth: 2 }, { d: 5, m: 3, name: "Kinh trập", chiMonth: 3 }, { d: 20, m: 3, name: "Xuân phân", chiMonth: 3 }, { d: 4, m: 4, name: "Thanh minh", chiMonth: 4 }, { d: 20, m: 4, name: "Cốc vũ", chiMonth: 4 }, { d: 5, m: 5, name: "Lập hạ", chiMonth: 5 }, { d: 21, m: 5, name: "Tiểu mãn", chiMonth: 5 }, { d: 5, m: 6, name: "Mang chủng", chiMonth: 6 }, { d: 21, m: 6, name: "Hạ chí", chiMonth: 6 }, { d: 7, m: 7, name: "Tiểu thử", chiMonth: 7 }, { d: 22, m: 7, name: "Đại thử", chiMonth: 7 }, { d: 7, m: 8, name: "Lập thu", chiMonth: 8 }, { d: 23, m: 8, name: "Xử thử", chiMonth: 8 }, { d: 7, m: 9, name: "Bạch lộ", chiMonth: 9 }, { d: 23, m: 9, name: "Thu phân", chiMonth: 9 }, { d: 8, m: 10, name: "Hàn lộ", chiMonth: 10 }, { d: 23, m: 10, name: "Sương giáng", chiMonth: 10 }, { d: 7, m: 11, name: "Lập đông", chiMonth: 11 }, { d: 22, m: 11, name: "Tiểu tuyết", chiMonth: 11 }, { d: 7, m: 12, name: "Đại tuyết", chiMonth: 0 }, { d: 21, m: 12, name: "Đông chí", chiMonth: 0 }, { d: 5, m: 1, name: "Tiểu hàn", chiMonth: 1 }, { d: 20, m: 1, name: "Đại hàn", chiMonth: 1 }]
+    };
+
+    /* =========================================
+       2. THUẬT TOÁN XỬ LÝ
+       ========================================= */
+    function getJulianDay(d, m, y) { if (m <= 2) { m += 12; y -= 1; } let A = Math.floor(y / 100); let B = 2 - A + Math.floor(A / 4); return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5; }
+    function getSolarInfo(d, m) { let currentVal = m * 100 + d; let foundTerm = CAL_DATA.SOLAR_TERMS_FIXED[CAL_DATA.SOLAR_TERMS_FIXED.length - 1]; let sortedTerms = [...CAL_DATA.SOLAR_TERMS_FIXED].sort((a, b) => (a.m * 100 + a.d) - (b.m * 100 + b.d)); for (let i = 0; i < sortedTerms.length; i++) { let term = sortedTerms[i]; if (currentVal >= (term.m * 100 + term.d)) foundTerm = term; else break; } if (m === 1 && d < 5) return { name: "Đông chí", chiMonth: 0 }; return { name: foundTerm.name, chiMonth: foundTerm.chiMonth }; }
+    function getCanChiDay(d, m, y) { let jd = getJulianDay(d, m, y); let jdn = Math.floor(jd + 0.5); let dayCanIdx = (jdn + 9) % 10; let dayChiIdx = (jdn + 1) % 12; return { full: `${CAL_DATA.CAN[dayCanIdx]} ${CAL_DATA.CHI[dayChiIdx]}`, canIdx: dayCanIdx, chiIdx: dayChiIdx }; }
+    function getTruc(dayChiIdx, solarInfo) { return CAL_DATA.TRUC[(dayChiIdx - solarInfo.chiMonth + 12) % 12]; }
+    function getDayRating(cIdx, chIdx) { let ec = CAL_DATA.ELEMENTS.CAN[cIdx]; let ech = CAL_DATA.ELEMENTS.CHI[chIdx]; if (ec === ech) return { name: "Bát Chuyên (Đồng Khí)", color: "text-stone-600", desc: "Ngày bình hòa." }; if ((ec===0&&ech===2)||(ec===2&&ech===1)||(ec===1&&ech===3)||(ec===3&&ech===4)||(ec===4&&ech===0)) return { name: "Bảo Nhật (Đại Cát)", color: "text-green-700", desc: "Rất tốt cho mọi việc." }; if ((ech===0&&ec===2)||(ech===2&&ec===1)||(ech===1&&ec===3)||(ech===3&&ec===4)||(ech===4&&ec===0)) return { name: "Thoa Nhật (Tiểu Cát)", color: "text-blue-700", desc: "Tốt vừa, có thể dùng." }; if ((ec===0&&ec===1)||(ec===1&&ech===4)||(ec===4&&ech===2)||(ec===2&&ech===3)||(ec===3&&ech===0)) return { name: "Chế Nhật (Tiểu Hung)", color: "text-amber-600", desc: "Xấu nhẹ, thận trọng." }; return { name: "Phạt Nhật (Đại Hung)", color: "text-red-600 font-bold", desc: "Can khắc Chi. Dễ gây mâu thuẫn. Kỵ xây cất, cưới hỏi. Chỉ hợp dùng cho việc dỡ bỏ, triệt tiêu." }; }
+    function getTuoiXungTrongNgay(dayCanIdx, dayChiIdx) { let xungChiIdx = (dayChiIdx + 6) % 12; let badAges = []; let canXung1 = (dayCanIdx + 4) % 10; badAges.push(CAL_DATA.CAN[canXung1] + " " + CAL_DATA.CHI[xungChiIdx]); let canXung2 = (dayCanIdx + 6) % 10; badAges.push(CAL_DATA.CAN[canXung2] + " " + CAL_DATA.CHI[xungChiIdx]); badAges.push(CAL_DATA.CAN[canXung2] + " " + CAL_DATA.CHI[dayChiIdx]); return badAges.join(", "); }
+    function checkXungTuoi(dayChiIdx) { const uYear = document.getElementById("birthYear").value; if(!uYear || uYear === "") return false; const uChiIdx = (uYear - 4) % 12; return Math.abs(uChiIdx - dayChiIdx) === 6; }
+    function getBadDaysInfo(lMonth, lDay, dCanIdx, dChiIdx) { let notes = []; if ([3, 7, 13, 18, 22, 27].includes(lDay)) notes.push({ name: "Tam Nương", desc: "Kỵ khai trương, xuất hành, cưới hỏi, động thổ." }); if ([5, 14, 23].includes(lDay)) notes.push({ name: "Nguyệt Kỵ", desc: "Kỵ xuất hành đi xa, khởi công." }); if (dChiIdx === CAL_DATA.TAM_TANG_MAP[lMonth]) notes.push({ name: "Tam Tang", desc: "Đại kỵ khởi công, cưới hỏi và an táng." }); if (CAL_DATA.TRUNG_TANG_MAP[lMonth] && CAL_DATA.TRUNG_TANG_MAP[lMonth].includes(dCanIdx)) notes.push({ name: "Trùng Tang", desc: "Đại kỵ trong việc tang sự, an táng." }); if (dChiIdx === CAL_DATA.TRUNG_NHAT_MAP[lMonth]) notes.push({ name: "Trung Nhật", desc: "Kỵ làm các việc đại sự đất đai hoặc di chuyển linh cữu." }); if (dChiIdx === CAL_DATA.SAT_CHU_MAP[lMonth]) notes.push({ name: "Sát Chủ", desc: "Đại kỵ khởi công, xây dựng, giá thú, xuất hành." }); if (dChiIdx === CAL_DATA.THO_TU_MAP[lMonth]) notes.push({ name: "Thọ Tử", desc: "Ngày trăm sự đều kỵ. Tuyệt đối tránh làm việc lớn." }); return notes; }
+    function evaluateTaskDetailed(task, truc, badDaysList, isXungTuoiCaNhan) { if (task === "ALL") return { isGood: false }; const rules = TASK_RULES[task]; let isGood = true; let successReasons = []; let failReasons = []; if (isXungTuoiCaNhan) { isGood = false; failReasons.push("Ngày Xung với tuổi bản mệnh (Đại Hung)."); } const activeBadDays = badDaysList.filter(b => rules.badDays.includes(b.name)); if (activeBadDays.length > 0) { isGood = false; failReasons.push(`Phạm ngày kỵ đại sự: <b>${activeBadDays.map(b=>b.name).join(", ")}</b>.`); } else { successReasons.push(`Không phạm các ngày kỵ đại sự của việc ${rules.name}.`); } if (rules.badTruc.includes(truc)) { isGood = false; failReasons.push(`Có Trực <b>${truc}</b> là trực xấu.`); } else if (rules.goodTruc.length > 0 && !rules.goodTruc.includes(truc)) { isGood = false; failReasons.push(`Có Trực <b>${truc}</b> không nằm trong nhóm trực Cát ưu tiên.`); } else if (rules.goodTruc.length > 0 && rules.goodTruc.includes(truc)) { successReasons.push(`Có Trực <b>${truc}</b> vô cùng thuận lợi.`); } else if (rules.goodTruc.length === 0 && !rules.badTruc.includes(truc)) { successReasons.push(`Trực <b>${truc}</b> ở mức độ bình hòa, có thể dùng được.`); } return { isGood, successReasons, failReasons, taskName: rules.name, goodStars: rules.goodStars }; }
+
+    function getCalendarData(solarDate) {
+        const d = new Date(solarDate);
+        const formatter = new Intl.DateTimeFormat("fr-CA-u-ca-chinese", { day: "numeric", month: "numeric", year: "numeric" });
+        const parts = formatter.formatToParts(d);
+        let lDay=1, lMonth=1, lYear=d.getFullYear();
+        parts.forEach(p => { if(p.type==="day") lDay=parseInt(p.value); if(p.type==="month") lMonth=parseInt(p.value); if(p.type==="relatedYear") lYear=parseInt(p.value); });
+        if (lMonth >= 11 && d.getMonth() < 3 && lYear === d.getFullYear()) lYear -= 1;
+
+        const dayInfo = getCanChiDay(d.getDate(), d.getMonth()+1, d.getFullYear());
+        const solarInfo = getSolarInfo(d.getDate(), d.getMonth()+1);
+        const truc = getTruc(dayInfo.chiIdx, solarInfo);
+        const rating = getDayRating(dayInfo.canIdx, dayInfo.chiIdx);
+        
+        const tuoiXungNgay = getTuoiXungTrongNgay(dayInfo.canIdx, dayInfo.chiIdx);
+        const isXungTuoiCaNhan = checkXungTuoi(dayInfo.chiIdx);
+        const badDaysList = getBadDaysInfo(lMonth, lDay, dayInfo.canIdx, dayInfo.chiIdx);
+
+        let hourDetails = [];
+        const checkGioHoangDao = (dChi, hChi) => { const map = {0:[0,1,3,6,8,9],1:[2,3,5,8,10,11],2:[0,1,4,5,7,10],3:[0,2,3,6,7,9],4:[2,4,5,8,9,11],5:[1,4,6,7,10,11],6:[0,1,3,6,8,9],7:[2,3,5,8,10,11],8:[0,1,4,5,7,10],9:[0,2,3,6,7,9],10:[2,4,5,8,9,11],11:[1,4,6,7,10,11]}; return map[dChi].includes(hChi); };
+
+        for(let i=0; i<12; i++) {
+            const canGio = CAL_DATA.CAN[((dayInfo.canIdx % 5) * 2 + i) % 10]; const chiGio = CAL_DATA.CHI[i];
+            const ldIdx = (lMonth + lDay + i - 2) % 6; let lucDieuStr = CAL_DATA.LUC_DIEU[ldIdx < 0 ? ldIdx + 6 : ldIdx];
+            let isThoTu = (i === CAL_DATA.GIO_THO_TU_MAP[dayInfo.chiIdx]); let isSatChu = (i === CAL_DATA.GIO_SAT_CHU_MAP[lMonth]); let isKhongVong = (lucDieuStr === "Không Vong");
+
+            hourDetails.push({ can: canGio, chi: chiGio, chiIdx: i, str: `${canGio} ${chiGio}<br><span class="text-[9px] text-gray-500">(${(i*2-1+24)%24}h-${(i*2+1)%24}h)</span>`, isGood: checkGioHoangDao(dayInfo.chiIdx, i), lucDieu: lucDieuStr, isThoTu: isThoTu, isSatChu: isSatChu, isKhongVong: isKhongVong });
+        }
+        
+        return { solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() }, lunar: { day: lDay, month: lMonth, year: lYear }, text: { day: dayInfo.full }, extra: { truc, tietKhi: solarInfo.name, taiThan: CAL_DATA.DIRECTIONS.TAI_THAN[dayInfo.canIdx], badDaysList, isXungTuoiCaNhan, tuoiXungNgay }, hourDetails, rating };
+    }
+
+    /* =========================================
+       3. UI RENDERING
+       ========================================= */
+    let selDate = new Date();
+    const els = { grid: document.getElementById("grid"), paper: document.getElementById("paper"), title: document.getElementById("calTitle"), inp: document.getElementById("dateInput"), yakshaBg: document.getElementById("yakshaBg") };
+
+    function init() { render(); document.getElementById("prevMonth").onclick = () => { selDate.setMonth(selDate.getMonth()-1); render(); }; document.getElementById("nextMonth").onclick = () => { selDate.setMonth(selDate.getMonth()+1); render(); }; els.inp.onchange = (e) => { if(e.target.value) { selDate = new Date(e.target.value); render(); } }; }
+    function goToday() { selDate = new Date(); render(); }
+
+    function render() {
+        const offset = selDate.getTimezoneOffset(); const local = new Date(selDate.getTime() - (offset*60*1000));
+        els.inp.value = local.toISOString().split('T')[0];
+
+        let y = selDate.getFullYear(), m = selDate.getMonth();
+        els.title.innerText = `THÁNG ${m+1} NĂM ${y}`;
+        const filterTask = document.getElementById("taskFilter").value;
+        const uYear = document.getElementById("birthYear").value;
+
+        // Xử lý dữ liệu ngày đang chọn
+        let dData = getCalendarData(selDate);
+        let wd = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"][dData.solar.weekday];
+
+        // 1. CẬP NHẬT GIAO DIỆN KHỐI BÊN TRÁI (Lịch ảnh)
+        document.getElementById("leftDay").innerText = dData.solar.day < 10 ? '0'+dData.solar.day : dData.solar.day;
+        document.getElementById("leftWDay").innerText = wd;
+       let canNam = CAL_DATA.CAN[(dData.lunar.year + 6) % 10];
+        let chiNam = CAL_DATA.CHI[(dData.lunar.year + 8) % 12];
+        document.getElementById("leftMonthYear").innerText = `Năm ${canNam} ${chiNam}`;
+        document.getElementById("leftLunarDate").innerText = `${dData.lunar.day} / ${dData.lunar.month}`;
+
+        // Đổi ảnh nền động theo tháng Âm lịch
+        let currentMonthImage = CAL_DATA.YAKSHA_IMAGES[dData.lunar.month] || CAL_DATA.YAKSHA_IMAGES[1];
+        els.yakshaBg.style.backgroundImage = `url('${currentMonthImage}')`;
+
+        // Vẽ lưới lịch tháng
+        let d1 = new Date(y, m, 1), days = new Date(y, m+1, 0).getDate(); let start = d1.getDay()===0?6:d1.getDay()-1;
+        let html = ""; for(let i=0; i<start; i++) html+=`<div class="bg-black/20"></div>`;
+        for(let d=1; d<=days; d++) {
+            let cur = new Date(y, m, d); let isSel = cur.toDateString()===selDate.toDateString();
+            let data = getCalendarData(cur); 
+            let dayClass = "text-white drop-shadow-md"; // Text trắng mặc định
+            if (cur.getDay()===0) dayClass = "text-red-400 drop-shadow-md";
+            else if (cur.getDay()===6) dayClass = "text-blue-300 drop-shadow-md";
+            if (isSel) dayClass = "text-white drop-shadow-lg";
+            
+            let evalDetail = evaluateTaskDetailed(filterTask, data.extra.truc, data.extra.badDaysList, data.extra.isXungTuoiCaNhan);
+            let dotIndicator = evalDetail.isGood ? `<div class="good-day-dot" title="Ngày Đạt Chuẩn!"></div>` : "";
+
+            html += `<div class="calendar-cell ${isSel ? 'selected' : ''}" onclick="selDate=new Date(${y},${m},${d});render()">
+                <div class="day-number ${dayClass}">${d}</div>
+                <div class="lunar-text">${data.lunar.day}/${data.lunar.month}</div>
+                ${dotIndicator}
+            </div>`;
+        }
+        els.grid.innerHTML = html;
+        
+        // 2. CẬP NHẬT BẢNG CHI TIẾT BÊN PHẢI
+        let r1="", r2="", r3="";
+        dData.hourDetails.forEach(h => {
+            let kyTags = [];
+            if(h.isThoTu) kyTags.push("Thọ Tử"); if(h.isSatChu) kyTags.push("Sát Chủ");
+            let kyHtml = kyTags.length > 0 ? `<br><span class="text-[9px] text-red-600 font-bold block leading-tight mt-1">${kyTags.join(", ")}</span>` : "";
+            let lucDieuClass = h.isKhongVong ? "text-red-600 font-bold" : "";
+
+            r1 += `<td class="hour-cell bg-gray-100 font-bold border border-gray-400">${h.str}</td>`;
+            r2 += `<td class="hour-cell font-bold border border-gray-400 ${h.isGood?'text-red-print':''}">${h.isGood?'Hoàng<br>Đạo':'Hắc<br>Đạo'}${kyHtml}</td>`;
+            r3 += `<td class="hour-cell border border-gray-400 ${lucDieuClass}">${h.lucDieu.replace(" ","<br>")}</td>`;
+        });
+
+        let hourSuggestionHtml = "";
+        if (uYear && uYear !== "") {
+            let uChiIdx = (uYear - 4) % 12; let recommendedHours = [];
+            dData.hourDetails.forEach(h => {
+                let isXungGio = Math.abs(uChiIdx - h.chiIdx) === 6; 
+                if (h.isGood && !isXungGio && !h.isThoTu && !h.isSatChu && !h.isKhongVong) {
+                    let isLucDieuTot = ["Đại An", "Tốc Hỷ", "Tiểu Cát"].includes(h.lucDieu);
+                    let badgeClass = isLucDieuTot ? "bg-green-100 text-green-900 border-green-400 shadow-sm" : "bg-blue-50 text-blue-800 border-blue-300";
+                    let title = isLucDieuTot ? "Đại Cát" : "Thứ Cát";
+                    let timeText = `(${(h.chiIdx*2-1+24)%24}h-${(h.chiIdx*2+1)%24}h)`;
+                    recommendedHours.push(`<div class="inline-block border ${badgeClass} px-2 py-1 rounded m-1 text-xs text-center"><b class="uppercase">${h.can} ${h.chi}</b> <span class="text-[10px] text-gray-600">${timeText}</span><br><span class="text-[10px] italic font-bold">${title}: Hoàng Đạo + ${h.lucDieu}</span></div>`);
+                }
+            });
+            if (recommendedHours.length > 0) { hourSuggestionHtml = recommendedHours.join(''); } 
+            else { hourSuggestionHtml = `<span class="text-red-600 font-bold text-xs italic">Không có giờ nào trong ngày đạt chuẩn (Tất cả Giờ Hoàng Đạo đều phạm Xung Tuổi, Sát Chủ, Thọ Tử hoặc Không Vong). Tuyệt đối thận trọng!</span>`; }
+        } else { hourSuggestionHtml = `<span class="text-stone-500 italic text-xs">Vui lòng nhập Năm Sinh ở thanh menu phía trên để hệ thống tự động loại bỏ Giờ Xung Khắc, Không Vong, Sát Chủ và chọn ra Giờ Đại Cát cho bạn!</span>`; }
+
+        let badDaysHtml = "";
+        if (dData.extra.badDaysList.length > 0) { badDaysHtml = `<ul class="list-disc pl-5 space-y-1.5 pt-1">` + dData.extra.badDaysList.map(b => `<li><b class="text-red-700 uppercase">${b.name}:</b> <span class="text-stone-800">${b.desc}</span></li>`).join('') + `</ul>`; } 
+        else { badDaysHtml = `<div class="text-green-700 font-bold text-center py-2 bg-green-50 border border-green-200 rounded">Ngày Tốt Chung! Không phạm bất kỳ ngày kỵ đại sự nào.</div>`; }
+
+        let taskAnalysisHtml = "";
+        if (filterTask !== "ALL") {
+            let evalResult = evaluateTaskDetailed(filterTask, dData.extra.truc, dData.extra.badDaysList, dData.extra.isXungTuoiCaNhan);
+            if (evalResult.isGood) {
+                taskAnalysisHtml = `<table class="paper-table mt-[-2px]"><tr><td class="align-top p-0 bg-green-50 border-2 border-green-600 shadow-inner"><div class="header-cell border-b border-green-600 p-2 bg-green-200 text-green-900 tracking-wider"><i class="fa-solid fa-circle-check"></i> NGÀY ĐẠI CÁT CHO VIỆC: ${evalResult.taskName.toUpperCase()}</div><div class="p-4 text-sm leading-relaxed text-green-900"><div class="font-bold mb-2">Vì sao ngày này được chọn?</div><ul class="list-disc pl-5 space-y-1.5">${evalResult.successReasons.map(r => `<li>${r}</li>`).join('')}</ul><div class="mt-3 pt-2 border-t border-green-300 text-[11px] italic">* Hãy kết hợp với <b>Gợi Ý Giờ Đại Cát</b> ở bên trên và tìm thêm các sao tốt: <b>${evalResult.goodStars}</b> để mọi sự hanh thông.</div></div></td></tr></table>`;
+            } else {
+                taskAnalysisHtml = `<table class="paper-table mt-[-2px]"><tr><td class="align-top p-0 bg-red-50 border-2 border-red-400"><div class="header-cell border-b border-red-400 p-2 bg-red-100 text-red-900 tracking-wider"><i class="fa-solid fa-circle-xmark"></i> KHÔNG NÊN DÙNG CHO VIỆC: ${evalResult.taskName.toUpperCase()}</div><div class="p-4 text-sm leading-relaxed text-red-900"><div class="font-bold mb-2">Lý do bị loại bỏ:</div><ul class="list-disc pl-5 space-y-1.5 font-bold">${evalResult.failReasons.map(r => `<li>${r}</li>`).join('')}</ul></div></td></tr></table>`;
+            }
+        }
+
+        els.paper.innerHTML = `
+            <table class="paper-table"><tr>
+                <td class="w-[30%] text-center align-top p-4">
+                    <div class="text-xs font-bold uppercase mb-1 border-b border-black pb-1 inline-block">${wd}</div>
+                    <div class="text-9xl font-bold leading-none mt-2 font-serif">${dData.solar.day}</div>
+                    <div class="text-sm font-bold mt-4 uppercase tracking-widest">Tháng ${dData.solar.month} Năm ${dData.solar.year}</div>
+                    <div class="mt-4 pt-2 border-t-2 border-black"><div class="text-xs mt-1 grid grid-cols-1 text-left pl-4 space-y-1"><div>Ngày: <b>${dData.text.day}</b></div></div></div>
+                </td>
+                <td class="w-[25%] text-center bg-stone-50 align-top p-0">
+                    <div class="pt-2"><div class="header-cell">Tiết khí</div><div class="py-2 font-bold text-blue-800 text-sm">${dData.extra.tietKhi}</div></div>
+                    <div class="border-t border-black pt-1"><div class="header-cell">Trực ${dData.extra.truc} ${dData.extra.truc==='Thu'?'(Thâu)':''}</div><div class="text-[10px] text-red-700 font-bold mt-2">${['Phá','Bế','Nguy'].includes(dData.extra.truc) ? 'TRỰC XẤU CẦN LƯU Ý' : ''}</div></div>
+                </td>
+                <td class="align-top p-2 text-xs">
+                    <div class="header-cell border-b-2 border-black mb-2 py-1 bg-amber-100 text-amber-900">NHẬN XÉT TRẠCH NHẬT</div>
+                    <div class="text-center font-bold ${dData.rating.color} uppercase text-base mb-2 border-2 border-dashed border-stone-400 p-2 bg-white rounded shadow-sm">${dData.rating.name}</div>
+                    <div class="text-[10px] text-stone-600 italic text-center mb-2 px-1">${dData.rating.desc}</div>
+                    
+                    ${uYear && uYear !== "" ? 
+                        (dData.extra.isXungTuoiCaNhan ? `<div class="bg-red-600 text-white font-bold text-center p-1.5 mb-2 rounded shadow">ĐẠI HUNG: XUNG TUỔI ${uYear}</div>` : `<div class="bg-green-600 text-white font-bold text-center p-1.5 mb-2 rounded shadow">Tuổi ${uYear} Không Xung Ngày</div>`) 
+                        : `<div class="bg-stone-500 text-white font-bold text-center p-1.5 mb-2 rounded border border-stone-600">Nhập Năm Sinh Để Kiểm Tra Xung Khắc</div>`}
+                    
+                    <table class="w-full border-t border-black text-xs">
+                         <tr class="border-b border-gray-300"><td class="bg-gray-100 font-bold p-1 border-r border-gray-300 w-[35%]">Tuổi Xung Ngày</td><td class="p-1 text-red-700 font-bold">${dData.extra.tuoiXungNgay}</td></tr>
+                         <tr class="border-b border-gray-300"><td class="bg-gray-100 font-bold p-1 border-r border-gray-300">Tài Thần</td><td class="p-1 text-red-700">${dData.extra.taiThan}</td></tr>
+                    </table>
+                </td>
+            </tr></table>
+
+            <table class="paper-table mt-[-2px]"><tr><td class="align-top p-0 bg-yellow-50 border-2 border-yellow-500"><div class="header-cell border-b border-yellow-500 p-2 bg-yellow-200 text-yellow-900 tracking-wider"><i class="fa-solid fa-clock"></i> GỢI Ý GIỜ XUẤT HÀNH/KHỞI SỰ TỐT NHẤT CHO TUỔI ${uYear || '...'}</div><div class="p-3 text-sm leading-relaxed text-stone-800 text-center">${hourSuggestionHtml}</div></td></tr></table>
+            <table class="paper-table mt-[-2px]"><tr><td class="hour-cell bg-gray-200 font-bold w-10 border border-gray-400">Giờ</td>${r1}</tr><tr><td class="hour-cell font-bold border border-gray-400">Đạo</td>${r2}</tr><tr><td class="hour-cell font-bold border border-gray-400">Lục Diệu</td>${r3}</tr></table>
+            ${taskAnalysisHtml}
+            <table class="paper-table mt-[-2px]"><tr><td class="align-top p-0 bg-stone-50"><div class="header-cell border-b border-black p-1 bg-stone-200 text-stone-900 tracking-wider">CÁC NGÀY KỴ TỔNG QUAN TRONG NGÀY NÀY</div><div class="p-3 text-xs leading-relaxed min-h-[60px]">${badDaysHtml}</div></td></tr></table>
+        `;
+    }
+
+    init();
+  </script>
+</body>
+</html>

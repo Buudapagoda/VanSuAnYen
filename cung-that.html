@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lịch Cúng & Lời Khuyên (A4 Chuẩn)</title>
+    <style>
+        :root {
+            --primary: #4a3b32;
+            --paper-width: 210mm;
+            --paper-height: 296mm; /* Khổ A4 chuẩn */
+        }
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            background-color: #555;
+            margin: 0; padding: 0;
+        }
+
+        /* --- MENU --- */
+        .control-panel {
+            background: #fff; padding: 20px; width: 260px;
+            position: fixed; left: 0; top: 0; bottom: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.3); z-index: 999;
+            display: flex; flex-direction: column;
+        }
+        .control-panel h3 { color: var(--primary); text-align: center; border-bottom: 2px solid var(--primary); margin: 0 0 15px 0; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { font-weight: bold; font-family: Arial, sans-serif; font-size: 13px; display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: Arial, sans-serif; }
+        
+        .btn {
+            display: block; width: 100%; padding: 10px; margin-top: 15px;
+            border: none; border-radius: 4px; cursor: pointer;
+            font-weight: bold; text-transform: uppercase; color: white;
+            font-family: Arial, sans-serif;
+        }
+        .btn-update { background-color: #e67e22; }
+        .btn-print { background-color: #27ae60; }
+        .btn:hover { opacity: 0.9; }
+
+        /* --- PREVIEW --- */
+        .preview-area {
+            margin-left: 280px; padding: 30px;
+            display: flex; flex-direction: column; align-items: center;
+        }
+
+        .a4-page {
+            background: white;
+            width: var(--paper-width);
+            height: var(--paper-height);
+            /* Căn lề chuẩn in ấn: Trên/Dưới 2cm, Trái/Phải 2cm */
+            padding: 20mm 20mm; 
+            box-sizing: border-box;
+            margin-bottom: 30px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.4);
+            position: relative;
+            overflow: hidden; /* Ẩn phần thừa nếu có */
+        }
+        
+        .editable:hover { outline: 1px dashed #bbb; cursor: text; }
+
+        /* --- STYLE CHUNG --- */
+        h1.page-title { 
+            text-align: center; text-transform: uppercase; 
+            border-bottom: 2px solid #000; padding-bottom: 8px; 
+            font-size: 22pt; margin: 0 0 20px 0; color: #222; 
+        }
+
+        /* --- TRANG 1: LỊCH CÚNG --- */
+        .info-header { text-align:center; font-size: 16pt; margin-bottom: 25px; line-height: 1.4; }
+        .name-display { font-size: 20pt; font-weight: bold; text-transform: uppercase; display: block; margin: 8px 0; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14pt; }
+        th, td { border: 1px solid #000; padding: 8px 4px; text-align: center; }
+        th { background-color: #eee; font-weight: bold; text-transform: uppercase; height: 35px; }
+        td { height: 35px; }
+
+        .note-box {
+            margin-top: 25px; font-style: italic; font-size: 13.5pt; 
+            background: #fcfcfc; padding: 15px; border: 1px solid #ddd; line-height: 1.4;
+        }
+
+        /* --- TRANG 2: LỜI KHUYÊN (Tối ưu để vừa 1 trang) --- */
+        .advice-header { text-align: center; font-weight: bold; font-size: 14pt; margin-bottom: 12px; color: #444; }
+        
+        /* Font size 13pt và line-height 1.25 là tỉ lệ vàng để nhét nhiều chữ vào A4 mà vẫn đọc tốt */
+        .advice-content p { 
+            font-size: 13pt; 
+            text-align: justify; 
+            line-height: 1.25; 
+            margin-bottom: 10px; 
+            text-indent: 30px; 
+        }
+        /* Kéo giãn đoạn cuối nếu trang còn trống */
+        .advice-content { display: flex; flex-direction: column; justify-content: flex-start; height: 100%; }
+
+        /* --- IN ẤN --- */
+        @media print {
+            @page { size: A4; margin: 0; }
+            body { background: white; margin: 0; }
+            .control-panel { display: none !important; }
+            .preview-area { margin: 0; padding: 0; width: 100%; display: block; }
+            .a4-page {
+                width: 100%; height: 297mm;
+                margin: 0; box-shadow: none; border: none;
+                page-break-after: always; /* Bắt buộc ngắt trang sau mỗi phần */
+                print-color-adjust: exact;
+            }
+            .a4-page:last-child { page-break-after: auto; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="control-panel">
+    <h3>NHẬP THÔNG TIN</h3>
+    <div class="form-group"><label>1. Họ tên người mất:</label><input type="text" id="inpName" placeholder="Viết Hoa"></div>
+    <div class="form-group">
+        <label>2. Ngày Mất (Dương Lịch):</label>
+        <input type="date" id="inpDeath" onchange="updateInstantLunar()">
+        <div id="instantLunarDisplay" style="margin-top: 5px; font-size: 13px; color: #d35400; font-weight: bold; font-style: italic;"></div>
+    </div>
+    <div style="margin-top: auto;">
+        <button class="btn btn-update" onclick="updatePreview()">XEM TRƯỚC</button>
+        <button class="btn btn-print" onclick="window.print()">IN (PDF)</button>
+    </div>
+</div>
+
+<div class="preview-area">
+
+    <div class="a4-page editable" contenteditable="true">
+        <h1 class="page-title">LỊCH CÚNG 7 THẤT & 100 NGÀY</h1>
+        
+        <div class="info-header">
+            Nam Mô Tiếp Dẫn Đạo Sư A Di Đà Phật<br>
+            Hương linh: <span class="name-display" id="calName">...</span>
+            Mất ngày: <span id="calDeathDate">...</span>
+        </div>
+
+        <table id="scheduleTable">
+            <thead>
+                <tr>
+                    <th width="10%">STT</th>
+                    <th width="35%">LỄ CÚNG</th>
+                    <th width="15%">THỨ</th>
+                    <th width="20%">DƯƠNG LỊCH</th>
+                    <th width="20%">ÂM LỊCH</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td colspan="5" style="padding:20px;">Vui lòng nhập thông tin...</td></tr>
+            </tbody>
+        </table>
+        
+        <div class="note-box">
+            <strong>Ghi chú:</strong><br>
+            - Ngày mất là ngày thứ 1. Tuần Thất tính là ngày thứ 7.<br>
+            (Ví dụ: Mất Thứ 7 thì cúng Thất thường vào Thứ 6 hằng tuần sau).<br>
+            - Bách nhật (100 ngày) tính từ ngày mất cộng thêm 99 ngày.<br>
+            - Nếu cúng tại chùa, gia đình nên có mặt trước 30 phút (lúc 9h00) để chuẩn bị.<br>
+            - Lúc 9h30 sẽ bắt đầu cúng Phật cầu siêu (Trên chánh điện lầu 2).<br>
+            - Lúc 10h00 bắt đầu cúng cơm cho hương linh tại nhà Linh tầng trệt.
+        </div>
+    </div>
+
+    <div class="a4-page editable" contenteditable="true">
+        <h1 class="page-title">ĐÔI DÒNG KHUYẾN NHỦ</h1>
+        <div class="advice-header">Hương linh: <span id="adviceName" style="text-transform: uppercase;">...</span></div>
+        
+        <div class="advice-content">
+            <p>Theo quan điểm Phật giáo, ngoại trừ hai hạng người chí thiện và cực ác khi mất sẽ được tái sinh ngay; còn lại, thông thường một người sau khi chết thần thức phải trải qua giai đoạn thân trung ấm (tối đa là 49 ngày) sau đó sẽ tái sanh vào một cảnh giới tương ứng với nghiệp lực mà họ đã gây tạo. Nếu hiện đời tạo nhiều điều lành, thì sẽ thọ sanh về cảnh giới an lành; ngược lại, thì thọ sanh vào cảnh khổ trong lục đạo luân hồi.</p>
+
+            <p>Trong thời gian thọ thân trung ấm, hương linh vẫn có ấn tượng mạnh mẽ về kiếp sống vừa qua và thọ dụng những vật phẩm mà người thân dâng cúng (thường là cơm, nước, hương, hoa) nhưng chỉ hưởng mùi vị của thức ăn. Vì thế, thân trung ấm còn được gọi là hương ấm (thọ dụng mùi hương của thực phẩm). Cho nên trong vòng 49 ngày, người thân cần dâng cúng hương đèn, cơm nước hàng ngày để hương linh được no đủ. Đặc biệt, vào những ngày tuần thất thì cúng kính trang trọng hơn (như đến chùa hoặc thỉnh chư Tăng về nhà làm lễ cầu siêu). Về cách sắp đặt cúng kính, rất kỵ việc sát sinh, vì sát sinh sẽ làm liên lụy khổ quả cho người chết. Tốt nhất là cúng chay. Người sắp đặt cúng kính cần phải cẩn thận lưu ý điều này.</p>
+
+            <p>Đồng thời, trong 49 ngày này người thân nên nỗ lực làm các phước thiện để hồi hướng, giúp chuyển hóa tâm trạng người chết khiến cho thần thức của họ hòa nhập được vào các cõi an lành. Kinh Địa Tạng dạy, nếu một người chết trong 49 ngày được người thân làm phước hồi hướng thì hương linh thoát đường dữ sinh lên cảnh giới an lành. Đối với việc làm phước thiện, trước cần lấy việc tụng kinh, niệm Phật để thức tỉnh hương linh; tiếp theo thì bố thí, cúng dường, phóng sanh, ăn chay, từ thiện, giúp người,… thì phước báu lại càng lớn hơn. Hương linh nhờ tiếp nhận được năng lượng từ bi, giải thoát của Phật, năng lượng an vui của việc tốt lành, nên nghiệp thức của hương linh được chuyển hóa, lắng yên, thanh tịnh, nhờ đó tội diệt phước sanh mà siêu sanh.</p>
+
+            <p>Trong tuần thất thứ 3 hay thứ 7, những gia đình có điều kiện nên thỉnh Tăng Ni về tư gia, hoặc về chùa tụng Kinh Địa Tạng, cúng dường Trai Tăng cầu siêu. Tam bảo là ruộng phước, nên cúng Trai Tăng vừa là để nương nhờ oai lực của Phật tiếp độ, vừa là để tạo phước. Rồi đem phước lành đó hồi hướng cho hương linh cùng gia đình. Nhờ đó, hương linh sẽ được phước báo, nương theo phước báo ấy cùng sự khai thị của chư Tăng Ni thông qua lời kinh tiếng kệ mà thức tỉnh, xả ly tham ái, chấp thủ, xa lìa đường dữ, sanh về Cực lạc, hoặc cảnh giới an lành. Tuy nhiên, điều quan trọng khi tụng kinh hay tổ chức Trai Tăng là gia quyến phải thành tâm tha thiết, vận hết lòng thành. Được như thế, thì gia quyến được lợi lạc mà hương linh cũng được lợi lạc.</p>
+
+            <p>Thiết nghĩ, trên đây là những việc làm có ý nghĩa thiết thực nhất cho cả kẻ mất lẫn người còn sống, khiến âm siêu dương thái. Vì thế, gia đình quyến thuộc phải hiểu rõ nghĩa lý để cả hai đều được lợi ích.</p>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // --- HÀM HỖ TRỢ ---
+    function getDayName(d) {
+        return ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'][d.getDay()];
+    }
+    
+    function formatDateOnly(d) {
+        return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
+    }
+
+    function getLunarShort(d) {
+        try { 
+            const f = new Intl.DateTimeFormat('vi-VN-u-ca-chinese', {day:'numeric', month:'numeric'});
+            const parts = f.formatToParts(d);
+            return `${parts.find(p=>p.type=='day').value}/${parts.find(p=>p.type=='month').value}`;
+        } catch(e) { return ""; }
+    }
+
+    // --- HÀM HIỂN THỊ ÂM LỊCH NGAY LẬP TỨC ---
+    function updateInstantLunar() {
+        const dateVal = document.getElementById('inpDeath').value;
+        const displayDiv = document.getElementById('instantLunarDisplay');
+        if (!dateVal) {
+            displayDiv.innerText = "";
+            return;
+        }
+        const d = new Date(dateVal);
+        try {
+            // Lấy ngày tháng năm âm lịch
+            const f = new Intl.DateTimeFormat('vi-VN-u-ca-chinese', {day:'numeric', month:'numeric', year:'numeric'});
+            displayDiv.innerText = "=> Âm lịch: " + f.format(d);
+        } catch(e) {
+            displayDiv.innerText = "";
+        }
+    }
+
+    // --- CẬP NHẬT DỮ LIỆU BẢNG ---
+    function updatePreview() {
+        const name = (document.getElementById('inpName').value || "Hương Linh").toUpperCase();
+        const dDeath = new Date(document.getElementById('inpDeath').value);
+
+        // Điền tên
+        document.getElementById('calName').innerText = name;
+        document.getElementById('adviceName').innerText = name;
+
+        // Xử lý bảng
+        const tbody = document.querySelector('#scheduleTable tbody');
+        tbody.innerHTML = ""; 
+
+        if (!isNaN(dDeath)) {
+            // Header ngày mất (đã bỏ phần giờ)
+            document.getElementById('calDeathDate').innerText = `ngày ${formatDateOnly(dDeath)}`;
+
+            // 7 Thất
+            for(let i=1; i<=7; i++) {
+                let d = new Date(dDeath);
+                d.setDate(dDeath.getDate() + (i*7) - 1); // Logic tính ngày
+                
+                tbody.innerHTML += `
+                <tr>
+                    <td>${i}</td>
+                    <td style="text-align:left; padding-left:15px; font-weight:bold;">Tuần Thất ${i} ${i===7?'(Chung Thất)':''}</td>
+                    <td>${getDayName(d)}</td>
+                    <td>${formatDateOnly(d)}</td>
+                    <td>${getLunarShort(d)}</td>
+                </tr>`;
+            }
+            
+            // 100 ngày
+            let d100 = new Date(dDeath);
+            d100.setDate(dDeath.getDate() + 99);
+            
+            tbody.innerHTML += `
+            <tr style="background-color: #f7f7f7;">
+                <td>8</td>
+                <td style="text-align:left; padding-left:15px; font-weight:bold;">Lễ Bách Nhật (100 ngày)</td>
+                <td>${getDayName(d100)}</td>
+                <td>${formatDateOnly(d100)}</td>
+                <td>${getLunarShort(d100)}</td>
+            </tr>`;
+        } else {
+            tbody.innerHTML = `<tr><td colspan="5" style="color:red; padding:15px;">Vui lòng chọn Ngày Mất!</td></tr>`;
+        }
+    }
+    
+    // Enter key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter') updatePreview();
+    });
+</script>
+
+</body>
+</html>
