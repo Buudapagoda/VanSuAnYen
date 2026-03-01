@@ -54,14 +54,21 @@
     
     .good-day-dot { position: absolute; bottom: 4px; right: 4px; width: 10px; height: 10px; background-color: #4ade80; border-radius: 50%; box-shadow: 0 0 8px #4ade80; border: 1px solid #fff; }
 
-    /* TỐI ƯU CỐ ĐỊNH CHIỀU CAO CHO MOBILE ĐỂ KHÔNG BỊ TRÀN LỊCH */
+   /* ========================================================
+       TỐI ƯU HIỂN THỊ TRÊN ĐIỆN THOẠI (KHÔNG BỊ CHE LỊCH)
+       ======================================================== */
     @media (max-width: 768px) {
         .text-9xl { font-size: 4.5rem !important; line-height: 1 !important; }
         #leftDay { font-size: 3.5rem !important; }
         .calendar-cell { padding: 2px; }
         .day-number { font-size: 0.9rem; }
-        /* Cố định cột lịch trái 520px để lịch tự dàn đều bên trong mà ko cần cuộn */
-        aside { height: 520px !important; flex: none; }
+        
+        /* 1. Tăng chiều cao của toàn bộ khung lịch trái lên 580px */
+        aside { height: 580px !important; flex: none; }
+        
+        /* 2. Ép phần ảnh nền (số ngày to) ngắn lại còn 35%, nhường 65% chỗ cho lưới lịch */
+        aside > div:nth-child(3) { height: 35% !important; } 
+        aside > div:nth-child(4) { height: 65% !important; } 
     }
   </style>
 </head>
@@ -436,3 +443,4 @@
   </script>
 </body>
 </html>
+
