@@ -12,6 +12,11 @@
             --text-color: #333;
         }
 
+        /* Thêm box-sizing để phần tử không bị tràn viền */
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--bg-color);
@@ -62,13 +67,24 @@
 
         .input-wrapper { flex: 1; }
         
-        label { display: block; margin-bottom: 5px; font-weight: bold; color: var(--primary-color); }
-        input[type="date"] { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: var(--primary-color); }
+        
+        /* Chỉnh lại CSS cho ô nhập ngày tháng năm dạng text */
+        .date-inputs { display: flex; gap: 10px; }
+        input[type="text"] { 
+            width: 100%; 
+            padding: 12px; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            font-size: 16px; 
+            text-align: center;
+        }
         
         button {
             padding: 12px 25px; background-color: var(--primary-color); color: var(--accent-color);
             border: none; border-radius: 5px; font-size: 16px; font-weight: bold; cursor: pointer; transition: background 0.3s;
             height: 46px;
+            white-space: nowrap;
         }
         button:hover { background-color: #a52a2a; }
 
@@ -124,6 +140,40 @@
             border-top: 1px solid #eee;
             padding-top: 10px;
         }
+
+        /* =========================================
+           TỐI ƯU HÓA CHO MÀN HÌNH ĐIỆN THOẠI
+           ========================================= */
+        @media screen and (max-width: 600px) {
+            body { padding: 10px; }
+            .container { padding: 15px; }
+            h1 { font-size: 22px; }
+            
+            /* Khu vực nhập liệu tự động xếp dọc xuống */
+            .input-group { 
+                flex-direction: column; 
+                align-items: stretch; 
+                padding: 15px; 
+            }
+            .date-inputs { gap: 5px; } /* Thu hẹp khoảng cách 3 ô nhập */
+            input[type="text"] { padding: 10px; font-size: 15px; }
+            
+            button { 
+                width: 100%; 
+                margin-top: 10px; 
+                height: auto; 
+                padding: 14px 10px; 
+                white-space: normal; 
+            }
+            
+            /* 3 khối kết quả Tự động xếp chồng lên nhau thay vì ép ngang */
+            .pillars { flex-direction: column; }
+            .pillar-box { margin-bottom: 5px; }
+            
+            .book-content { padding: 15px; font-size: 1.05em; }
+            .book-title { font-size: 1.1em; }
+            .analysis-section { padding: 15px; }
+        }
     </style>
 </head>
 <body>
@@ -133,14 +183,18 @@
     
     <div class="input-group">
         <div class="input-wrapper">
-            <label for="birthdate">Nhập Ngày sinh Dương Lịch:</label>
-            <input type="date" id="birthdate" required>
+            <label>Nhập Ngày sinh Dương Lịch:</label>
+            <div class="date-inputs">
+                <input type="text" id="inpDay" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Ngày">
+                <input type="text" id="inpMonth" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="Tháng">
+                <input type="text" id="inpYear" inputmode="numeric" pattern="[0-9]*" maxlength="4" placeholder="Năm">
+            </div>
         </div>
         <button onclick="analyzeFate()">Xem Luận Giải</button>
     </div>
 
     <div id="result">
-        </div>
+    </div>
     
     <div class="footer-note">
         Công cụ được xây dựng dựa trên nguyên lý Bát Tự (Tử Bình) và dữ liệu sách phong thủy.
@@ -148,7 +202,7 @@
 </div>
 
 <script>
-    // --- DỮ LIỆU ĐẦY ĐỦ TỪ SÁCH (ĐÃ TRÍCH XUẤT) ---
+    // --- DỮ LIỆU ĐẦY ĐỦ TỪ SÁCH ---
     const SACH_TINH_CACH = {
         "Giáp": `
             <p><strong>Biểu tượng:</strong> Cây cổ thụ, cây to lớn, vững chắc.</p>
@@ -226,11 +280,27 @@
     };
 
     function analyzeFate() {
-        const inputDate = document.getElementById('birthdate').value;
-        if (!inputDate) { alert("Vui lòng chọn ngày sinh!"); return; }
+        // Đọc dữ liệu từ 3 ô nhập
+        const dayVal = document.getElementById('inpDay').value;
+        const monthVal = document.getElementById('inpMonth').value;
+        const yearVal = document.getElementById('inpYear').value;
 
-        const date = new Date(inputDate);
-        const day = date.getDate(); const month = date.getMonth() + 1; const year = date.getFullYear();
+        if (!dayVal || !monthVal || !yearVal) { 
+            alert("Vui lòng nhập đầy đủ Ngày, Tháng, Năm sinh!"); 
+            return; 
+        }
+
+        const day = parseInt(dayVal);
+        const month = parseInt(monthVal);
+        const year = parseInt(yearVal);
+
+        if (day < 1 || day > 31 || month < 1 || month > 12 || year < 1000) {
+            alert("Ngày tháng năm không hợp lệ!");
+            return;
+        }
+
+        // Tạo object Date dựa trên input (Lưu ý: Month trong JS bắt đầu từ 0)
+        const date = new Date(year, month - 1, day);
 
         // 1. Tính Can Chi Năm
         const canNamIdx = (year - 4) % 10;
