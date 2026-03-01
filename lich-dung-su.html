@@ -16,7 +16,6 @@
     .paper-table { width: 100%; border-collapse: collapse; border: 2px solid #000; background: #fff; color: #000; table-layout: fixed; }
     .paper-table td, .paper-table th { border: 1px solid #555; padding: 6px; vertical-align: top; word-wrap: break-word; }
     
-    /* Bảng giờ cần cuộn ngang trên điện thoại */
     .hour-table { min-width: 600px; table-layout: auto; }
     .hour-table td { vertical-align: middle; }
 
@@ -24,16 +23,16 @@
     .hour-cell { font-size: 11px; text-align: center; padding: 4px 2px !important; }
     .text-red-print { color: #cc0000; }
 
-    /* LÀM TRONG SUỐT BẢNG LỊCH THÁNG */
+    /* LƯỚI LỊCH: XÓA CHẾ ĐỘ CUỘN VÀ TỰ ĐỘNG CHIA ĐỀU CHIỀU CAO */
     .calendar-grid-container { 
         display: grid; 
         grid-template-columns: repeat(7, 1fr); 
+        grid-auto-rows: 1fr; /* Tự động chia đều chiều cao cho các tuần */
         background-color: rgba(255, 255, 255, 0.2); 
         gap: 1px; 
     }
     .calendar-cell { 
         background-color: rgba(0, 0, 0, 0.45); 
-        min-height: 50px; 
         padding: 4px; 
         display: flex; 
         flex-direction: column; 
@@ -55,16 +54,14 @@
     
     .good-day-dot { position: absolute; bottom: 4px; right: 4px; width: 10px; height: 10px; background-color: #4ade80; border-radius: 50%; box-shadow: 0 0 8px #4ade80; border: 1px solid #fff; }
 
-    /* ========================================================
-       TỐI ƯU HIỂN THỊ TRÊN ĐIỆN THOẠI (DỄ NHÌN HƠN RẤT NHIỀU)
-       ======================================================== */
+    /* TỐI ƯU CỐ ĐỊNH CHIỀU CAO CHO MOBILE ĐỂ KHÔNG BỊ TRÀN LỊCH */
     @media (max-width: 768px) {
         .text-9xl { font-size: 4.5rem !important; line-height: 1 !important; }
         #leftDay { font-size: 3.5rem !important; }
-        .calendar-cell { min-height: 40px; padding: 2px; }
+        .calendar-cell { padding: 2px; }
         .day-number { font-size: 0.9rem; }
-        /* Cho phép lịch bên trái ngắn lại để lấy chỗ cho nội dung */
-        aside { height: 380px !important; flex: none; }
+        /* Cố định cột lịch trái 520px để lịch tự dàn đều bên trong mà ko cần cuộn */
+        aside { height: 520px !important; flex: none; }
     }
   </style>
 </head>
@@ -126,10 +123,14 @@
                 <span class="uppercase text-amber-400 tracking-wider text-base drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)]" id="calTitle">THÁNG ...</span>
                 <button id="nextMonth" class="w-8 h-8 hover:bg-white/20 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
-            <div class="grid grid-cols-7 bg-black/60 py-2 text-[12px] font-bold text-center text-stone-300 uppercase border-b border-white/30">
+            <div class="grid grid-cols-7 bg-black/60 py-2 text-[12px] font-bold text-center text-stone-300 uppercase border-b border-white/30 shrink-0">
                 <div class="drop-shadow-md">T2</div><div class="drop-shadow-md">T3</div><div class="drop-shadow-md">T4</div><div class="drop-shadow-md">T5</div><div class="drop-shadow-md">T6</div><div class="text-blue-300 drop-shadow-md">T7</div><div class="text-red-400 drop-shadow-md">CN</div>
             </div>
-            <div id="grid" class="calendar-grid-container overflow-y-auto custom-scroll flex-1 relative"></div>
+            <div id="grid" class="calendar-grid-container flex-1 relative"></div>
+            <div class="flex justify-center items-center gap-4 text-[10px] md:text-xs font-bold bg-black/80 text-stone-300 py-1.5 border-t border-white/30 shrink-0">
+                <div class="flex items-center gap-1"><div class="w-2.5 h-2.5 bg-green-400 rounded-full shadow-[0_0_5px_#4ade80]"></div> Tạm Ổn</div>
+                <div class="flex items-center gap-1 text-yellow-400"><i class="fa-solid fa-star drop-shadow-md text-sm"></i> Cực Kỳ Tốt</div>
+            </div>
         </div>
     </aside>
 
@@ -139,9 +140,6 @@
   </div>
 
   <script>
-    /* =========================================
-       1. DATA & LOGIC: ĐÃ NỚI LỎNG ĐIỀU KIỆN 
-       ========================================= */
     const TASK_RULES = {
         XAY_NHA: { name: "Xây Dựng / Sửa Nhà", goodTruc: ["Kiến", "Mãn", "Bình", "Thành"], badTruc: ["Phá", "Bế", "Nguy"], badDays: ["Tam Tang", "Sát Chủ", "Thọ Tử", "Trung Nhật"], goodStars: "Thiên Đức, Nguyệt Đức" },
         CUOI_HOI: { name: "Đám Cưới / Giá Thú", goodTruc: ["Định", "Thành", "Thu"], badTruc: ["Phá", "Nguy", "Chấp"], badDays: ["Trung Nhật", "Tam Tang", "Trùng Tang", "Sát Chủ", "Thọ Tử"], goodStars: "Tục Thế, Thiên Hỷ" },
@@ -150,33 +148,17 @@
     };
 
     const CAL_DATA = {
-        YAKSHA_IMAGES: {
-            1: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang1.JPG", 2: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang2.JPG", 3: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang3.JPG", 4: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang4.JPG", 5: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang5.JPG", 6: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang6.JPG", 7: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang7.JPG", 8: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang8.JPG", 9: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang9.JPG", 10: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang10.JPG", 11: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang11.JPG", 12: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang12.JPG"
-        },
+        YAKSHA_IMAGES: { 1: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang1.JPG", 2: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang2.JPG", 3: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang3.JPG", 4: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang4.JPG", 5: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang5.JPG", 6: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang6.JPG", 7: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang7.JPG", 8: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang8.JPG", 9: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang9.JPG", 10: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang10.JPG", 11: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang11.JPG", 12: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang12.JPG" },
         CAN: ["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"], CHI: ["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"],
         TRUC: ["Kiến","Trừ","Mãn","Bình","Định","Chấp","Phá","Nguy","Thành","Thu","Khai","Bế"], LUC_DIEU: ["Đại An","Lưu Niên","Tốc Hỷ","Xích Khẩu","Tiểu Cát","Không Vong"],
-        ELEMENTS: { CAN: [1,1,3,3,4,4,0,0,2,2], CHI: [2,4,1,1,4,3,3,4,0,0,4,2] },
-        DIRECTIONS: { TAI_THAN: ["Đông Nam","Đông Nam","Chính Đông","Chính Đông","Chính Bắc","Chính Bắc","Tây Nam","Tây Nam","Chính Tây","Tây Bắc"], HAC_THAN: "Đông Nam" },
+        ELEMENTS: { CAN: [1,1,3,3,4,4,0,0,2,2], CHI: [2,4,1,1,4,3,3,4,0,0,4,2] }, DIRECTIONS: { TAI_THAN: ["Đông Nam","Đông Nam","Chính Đông","Chính Đông","Chính Bắc","Chính Bắc","Tây Nam","Tây Nam","Chính Tây","Tây Bắc"], HAC_THAN: "Đông Nam" },
         TRUNG_NHAT_MAP: {1:11, 2:11, 3:11, 4:2, 5:2, 6:2, 7:5, 8:5, 9:5, 10:8, 11:8, 12:8}, TAM_TANG_MAP: {1:4, 2:4, 3:4, 4:7, 5:7, 6:7, 7:10, 8:10, 9:10, 10:1, 11:1, 12:1},
         TRUNG_TANG_MAP: {1:[0], 2:[1], 3:[4,5], 4:[2], 5:[3], 6:[4,5], 7:[6], 8:[7], 9:[4,5], 10:[8], 11:[9], 12:[4,5]},
         SAT_CHU_MAP: {1:0, 2:5, 3:7, 4:3, 5:8, 6:10, 7:11, 8:1, 9:6, 10:9, 11:2, 12:4}, THO_TU_MAP: {1:10, 2:4, 3:11, 4:5, 5:0, 6:6, 7:1, 8:7, 9:2, 10:8, 11:3, 12:9},
         GIO_SAT_CHU_MAP: {1:2, 2:5, 3:8, 4:4, 5:9, 6:3, 7:2, 8:5, 9:8, 10:4, 11:9, 12:3}, GIO_THO_TU_MAP: [1, 6, 6, 5, 5, 6, 7, 6, 9, 5, 7, 6],
         SOLAR_TERMS_FIXED: [{ d: 4, m: 2, name: "Lập xuân", chiMonth: 2 }, { d: 18, m: 2, name: "Vũ thủy", chiMonth: 2 }, { d: 5, m: 3, name: "Kinh trập", chiMonth: 3 }, { d: 20, m: 3, name: "Xuân phân", chiMonth: 3 }, { d: 4, m: 4, name: "Thanh minh", chiMonth: 4 }, { d: 20, m: 4, name: "Cốc vũ", chiMonth: 4 }, { d: 5, m: 5, name: "Lập hạ", chiMonth: 5 }, { d: 21, m: 5, name: "Tiểu mãn", chiMonth: 5 }, { d: 5, m: 6, name: "Mang chủng", chiMonth: 6 }, { d: 21, m: 6, name: "Hạ chí", chiMonth: 6 }, { d: 7, m: 7, name: "Tiểu thử", chiMonth: 7 }, { d: 22, m: 7, name: "Đại thử", chiMonth: 7 }, { d: 7, m: 8, name: "Lập thu", chiMonth: 8 }, { d: 23, m: 8, name: "Xử thử", chiMonth: 8 }, { d: 7, m: 9, name: "Bạch lộ", chiMonth: 9 }, { d: 23, m: 9, name: "Thu phân", chiMonth: 9 }, { d: 8, m: 10, name: "Hàn lộ", chiMonth: 10 }, { d: 23, m: 10, name: "Sương giáng", chiMonth: 10 }, { d: 7, m: 11, name: "Lập đông", chiMonth: 11 }, { d: 22, m: 11, name: "Tiểu tuyết", chiMonth: 11 }, { d: 7, m: 12, name: "Đại tuyết", chiMonth: 0 }, { d: 21, m: 12, name: "Đông chí", chiMonth: 0 }, { d: 5, m: 1, name: "Tiểu hàn", chiMonth: 1 }, { d: 20, m: 1, name: "Đại hàn", chiMonth: 1 }],
-        
-        // --- BỔ SUNG LUẬN GIẢI 12 TRỰC (THẬP NHỊ KIẾN TRỪ) ---
         TRUC_DESC: {
-            "Kiến": "<b class='text-green-700'>Nên:</b> Xuất hành, nhậm chức.<br><b class='text-red-700'>Kỵ:</b> Động thổ, đào ao, đóng thuyền.",
-            "Trừ": "<b class='text-green-700'>Nên:</b> Chữa bệnh, dọn dẹp, giải xui.<br><b class='text-red-700'>Kỵ:</b> Khai trương, giá thú, nhậm chức.",
-            "Mãn": "<b class='text-green-700'>Nên:</b> Cầu tài, khai trương, cưới hỏi.<br><b class='text-red-700'>Kỵ:</b> Uống thuốc, nhậm chức.",
-            "Bình": "<b class='text-green-700'>Nên:</b> San lấp, sửa đường, việc bình thường.<br><b class='text-red-700'>Kỵ:</b> Kiện cáo, tranh chấp.",
-            "Định": "<b class='text-green-700'>Nên:</b> Cưới hỏi, giao dịch, động thổ.<br><b class='text-red-700'>Kỵ:</b> Chữa bệnh, thưa kiện.",
-            "Chấp": "<b class='text-green-700'>Nên:</b> Xây cất, trồng trọt, bắt trộm.<br><b class='text-red-700'>Kỵ:</b> Xuất hành, chuyển nhà, khai trương.",
-            "Phá": "<b class='text-green-700'>Nên:</b> Dỡ nhà, phá vách, chữa bệnh.<br><b class='text-red-700'>Kỵ:</b> Khởi công, cưới hỏi, khai trương.",
-            "Nguy": "<b class='text-green-700'>Nên:</b> Tế tự, cầu an, kết lưới.<br><b class='text-red-700'>Kỵ:</b> Đi thuyền, mạo hiểm, xuất hành.",
-            "Thành": "<b class='text-green-700'>Nên:</b> Khai trương, giá thú, xây cất.<br><b class='text-red-700'>Kỵ:</b> Kiện tụng, thưa kiện.",
-            "Thu": "<b class='text-green-700'>Nên:</b> Thu hoạch, cất giữ, an táng.<br><b class='text-red-700'>Kỵ:</b> Khởi công, xuất hành.",
-            "Khai": "<b class='text-green-700'>Nên:</b> Khai trương, mở cửa, giá thú.<br><b class='text-red-700'>Kỵ:</b> An táng, chôn cất, động thổ.",
-            "Bế": "<b class='text-green-700'>Nên:</b> Lấp hang, đắp đập, vá víu.<br><b class='text-red-700'>Kỵ:</b> Khai trương, mở cửa, chữa bệnh."
+            "Kiến": "<b class='text-green-700'>Nên:</b> Xuất hành, nhậm chức.<br><b class='text-red-700'>Kỵ:</b> Động thổ, đào ao, đóng thuyền.", "Trừ": "<b class='text-green-700'>Nên:</b> Chữa bệnh, dọn dẹp, giải xui.<br><b class='text-red-700'>Kỵ:</b> Khai trương, giá thú, nhậm chức.", "Mãn": "<b class='text-green-700'>Nên:</b> Cầu tài, khai trương, cưới hỏi.<br><b class='text-red-700'>Kỵ:</b> Uống thuốc, nhậm chức.", "Bình": "<b class='text-green-700'>Nên:</b> San lấp, sửa đường, việc bình thường.<br><b class='text-red-700'>Kỵ:</b> Kiện cáo, tranh chấp.", "Định": "<b class='text-green-700'>Nên:</b> Cưới hỏi, giao dịch, động thổ.<br><b class='text-red-700'>Kỵ:</b> Chữa bệnh, thưa kiện.", "Chấp": "<b class='text-green-700'>Nên:</b> Xây cất, trồng trọt, bắt trộm.<br><b class='text-red-700'>Kỵ:</b> Xuất hành, chuyển nhà, khai trương.", "Phá": "<b class='text-green-700'>Nên:</b> Dỡ nhà, phá vách, chữa bệnh.<br><b class='text-red-700'>Kỵ:</b> Khởi công, cưới hỏi, khai trương.", "Nguy": "<b class='text-green-700'>Nên:</b> Tế tự, cầu an, kết lưới.<br><b class='text-red-700'>Kỵ:</b> Đi thuyền, mạo hiểm, xuất hành.", "Thành": "<b class='text-green-700'>Nên:</b> Khai trương, giá thú, xây cất.<br><b class='text-red-700'>Kỵ:</b> Kiện tụng, thưa kiện.", "Thu": "<b class='text-green-700'>Nên:</b> Thu hoạch, cất giữ, an táng.<br><b class='text-red-700'>Kỵ:</b> Khởi công, xuất hành.", "Khai": "<b class='text-green-700'>Nên:</b> Khai trương, mở cửa, giá thú.<br><b class='text-red-700'>Kỵ:</b> An táng, chôn cất, động thổ.", "Bế": "<b class='text-green-700'>Nên:</b> Lấp hang, đắp đập, vá víu.<br><b class='text-red-700'>Kỵ:</b> Khai trương, mở cửa, chữa bệnh."
         }
     };
 
@@ -200,21 +182,28 @@
         return notes; 
     }
 
-    // THUẬT TOÁN ĐÁNH GIÁ ĐÃ ĐƯỢC CHỈNH LẠI MỀM DẺO HƠN
+    /* TÍNH TOÁN ĐÁNH GIÁ 2 CẤP ĐỘ: CỰC KỲ TỐT VÀ TẠM ỔN */
     function evaluateTaskDetailed(task, truc, badDaysList, isXungTuoiCaNhan) { 
-        if (task === "ALL") return { isGood: false }; 
-        const rules = TASK_RULES[task]; 
         let isGood = true; 
+        let isVeryGood = false;
         let successReasons = []; 
         let failReasons = []; 
         let warningReasons = [];
 
+        // Nếu KHÔNG lọc việc (Khảo sát chung)
+        if (task === "ALL") {
+            let fatal = badDaysList.filter(b => ["Sát Chủ", "Thọ Tử", "Tam Tang", "Trung Nhật", "Trùng Tang"].includes(b.name));
+            isGood = !isXungTuoiCaNhan && fatal.length === 0 && !["Phá", "Bế"].includes(truc);
+            isVeryGood = isGood && badDaysList.length === 0 && ["Kiến", "Mãn", "Bình", "Định", "Thành", "Khai"].includes(truc);
+            return { isGood, isVeryGood, successReasons, failReasons, warningReasons, taskName: "Khảo Sát Chung", goodStars: "" };
+        }
+
+        const rules = TASK_RULES[task]; 
         if (isXungTuoiCaNhan) { 
             isGood = false; 
             failReasons.push("Ngày Xung với tuổi bản mệnh (Đại Hung)."); 
         } 
 
-        // Phân loại ngày kỵ: Chỉ những ngày thuộc rules.badDays mới bị cấm tuyệt đối
         const fatalBadDays = badDaysList.filter(b => rules.badDays.includes(b.name));
         const minorBadDays = badDaysList.filter(b => !rules.badDays.includes(b.name));
 
@@ -229,7 +218,6 @@
             successReasons.push(`Ngày hoàn toàn sạch, không phạm bất kỳ ngày Kỵ nào của việc ${rules.name}.`);
         }
 
-        // Đánh giá Trực: Nếu KHÔNG nằm trong badTruc thì đều xài được
         if (rules.badTruc.includes(truc)) { 
             isGood = false; 
             failReasons.push(`Có Trực <b>${truc}</b> là trực Đại Kỵ, cấm dùng cho việc này.`); 
@@ -239,7 +227,12 @@
             successReasons.push(`Trực <b>${truc}</b> ở mức độ bình hòa, dùng tạm ổn (Thứ Cát).`);
         } 
         
-        return { isGood, successReasons, failReasons, warningReasons, taskName: rules.name, goodStars: rules.goodStars }; 
+        // Xét điều kiện lên Đại Cát (Sao Vàng)
+        if (isGood && minorBadDays.length === 0 && rules.goodTruc.includes(truc)) {
+            isVeryGood = true;
+        }
+
+        return { isGood, isVeryGood, successReasons, failReasons, warningReasons, taskName: rules.name, goodStars: rules.goodStars }; 
     }
 
     function getCalendarData(solarDate) {
@@ -279,14 +272,11 @@
     function init() { render(); document.getElementById("prevMonth").onclick = () => { selDate.setMonth(selDate.getMonth()-1); render(); }; document.getElementById("nextMonth").onclick = () => { selDate.setMonth(selDate.getMonth()+1); render(); }; els.inp.onchange = (e) => { if(e.target.value) { selDate = new Date(e.target.value); render(); } }; }
     function goToday() { selDate = new Date(); render(); }
 
-    // Tính năng cuộn mượt xuống khi bấm chọn ngày trên điện thoại
     function onSelectDate(y, m, d) {
         selDate = new Date(y, m, d);
         render();
         if (window.innerWidth <= 768) {
-            setTimeout(() => {
-                document.getElementById('paper').scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }, 100);
+            setTimeout(() => { document.getElementById('paper').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100);
         }
     }
 
@@ -323,9 +313,17 @@
             if (isSel) dayClass = "text-white drop-shadow-lg";
             
             let evalDetail = evaluateTaskDetailed(filterTask, data.extra.truc, data.extra.badDaysList, data.extra.isXungTuoiCaNhan);
-            let dotIndicator = evalDetail.isGood ? `<div class="good-day-dot" title="Ngày Đạt Chuẩn!"></div>` : "";
+            let dotIndicator = "";
+            
+            // TẠO BIỂU TƯỢNG ĐÁNH GIÁ (SAO VÀNG HAY CHẤM XANH)
+            if (evalDetail.isGood) {
+                if (evalDetail.isVeryGood) {
+                    dotIndicator = `<div class="absolute bottom-1 right-1 text-yellow-400 text-[10px] md:text-xs drop-shadow-[0_0_5px_rgba(0,0,0,0.8)]" title="Ngày Đại Cát!"><i class="fa-solid fa-star"></i></div>`;
+                } else {
+                    dotIndicator = `<div class="good-day-dot" title="Ngày Tạm Ổn (Thứ Cát)"></div>`;
+                }
+            }
 
-            // Gọi hàm onSelectDate thay vì gán thẳng biến để thêm hiệu ứng cuộn
             html += `<div class="calendar-cell ${isSel ? 'selected' : ''}" onclick="onSelectDate(${y},${m},${d})">
                 <div class="day-number ${dayClass}">${d}</div>
                 <div class="lunar-text">${data.lunar.day}/${data.lunar.month}</div>
@@ -372,13 +370,17 @@
             let evalResult = evaluateTaskDetailed(filterTask, dData.extra.truc, dData.extra.badDaysList, dData.extra.isXungTuoiCaNhan);
             if (evalResult.isGood) {
                 let warnings = evalResult.warningReasons.length > 0 ? `<div class="mt-3 pt-2 border-t border-green-300"><ul class="list-disc pl-5 text-amber-700 font-bold">${evalResult.warningReasons.map(r => `<li>${r}</li>`).join('')}</ul></div>` : "";
-                taskAnalysisHtml = `<table class="paper-table mt-[-2px]"><tr><td class="align-top p-0 bg-green-50 border-2 border-green-600 shadow-inner"><div class="header-cell border-b border-green-600 p-2 bg-green-200 text-green-900 tracking-wider"><i class="fa-solid fa-circle-check"></i> CÓ THỂ TIẾN HÀNH VIỆC: ${evalResult.taskName.toUpperCase()}</div><div class="p-3 text-sm leading-relaxed text-green-900"><ul class="list-disc pl-5 space-y-1.5">${evalResult.successReasons.map(r => `<li>${r}</li>`).join('')}</ul>${warnings}<div class="mt-2 text-[11px] italic text-stone-600">* Kết hợp với <b>Gợi Ý Giờ Đại Cát</b> ở bên trên và tìm thêm sao tốt: <b>${evalResult.goodStars}</b> để bề thế hanh thông.</div></div></td></tr></table>`;
+                
+                let rankNote = evalResult.isVeryGood ? 
+                    `<div class="mt-2 text-[12px] font-bold text-yellow-600"><i class="fa-solid fa-star"></i> ĐÁNH GIÁ: ĐẠI CÁT (Hiện Sao Vàng trên lịch)</div>` : 
+                    `<div class="mt-2 text-[12px] font-bold text-green-700"><div class="inline-block w-2.5 h-2.5 bg-green-500 rounded-full mr-1"></div> ĐÁNH GIÁ: TẠM ỔN / THỨ CÁT (Hiện Chấm Xanh trên lịch)</div>`;
+                
+                taskAnalysisHtml = `<table class="paper-table mt-[-2px]"><tr><td class="align-top p-0 bg-green-50 border-2 border-green-600 shadow-inner"><div class="header-cell border-b border-green-600 p-2 bg-green-200 text-green-900 tracking-wider"><i class="fa-solid fa-circle-check"></i> CÓ THỂ TIẾN HÀNH VIỆC: ${evalResult.taskName.toUpperCase()}</div><div class="p-3 text-sm leading-relaxed text-green-900">${rankNote}<ul class="list-disc pl-5 space-y-1.5 mt-2">${evalResult.successReasons.map(r => `<li>${r}</li>`).join('')}</ul>${warnings}<div class="mt-2 text-[11px] italic text-stone-600">* Kết hợp với <b>Gợi Ý Giờ Đại Cát</b> ở bên trên và tìm thêm sao tốt: <b>${evalResult.goodStars}</b> để bề thế hanh thông.</div></div></td></tr></table>`;
             } else {
                 taskAnalysisHtml = `<table class="paper-table mt-[-2px]"><tr><td class="align-top p-0 bg-red-50 border-2 border-red-400"><div class="header-cell border-b border-red-400 p-2 bg-red-100 text-red-900 tracking-wider"><i class="fa-solid fa-circle-xmark"></i> KHÔNG NÊN DÙNG CHO VIỆC: ${evalResult.taskName.toUpperCase()}</div><div class="p-3 text-sm leading-relaxed text-red-900"><div class="font-bold mb-1">Lý do bị loại bỏ:</div><ul class="list-disc pl-5 space-y-1.5 font-bold">${evalResult.failReasons.map(r => `<li>${r}</li>`).join('')}</ul></div></td></tr></table>`;
             }
         }
 
-        // --- TÍNH TOÁN HIỂN THỊ PHẦN MÔ TẢ TRỰC ---
         let trucDescHtml = CAL_DATA.TRUC_DESC[dData.extra.truc];
 
         els.paper.innerHTML = `
@@ -393,7 +395,7 @@
                     <div class="pt-2"><div class="header-cell">Tiết khí</div><div class="py-2 font-bold text-blue-800 text-sm">${dData.extra.tietKhi}</div></div>
                     <div class="border-t border-black pt-1 pb-2 flex flex-col h-full">
                         <div class="header-cell">Trực ${dData.extra.truc} ${dData.extra.truc==='Thu'?'(Thâu)':''}</div>
-                        <div class="text-[10px] text-red-700 font-bold mt-1">${['Phá','Bế','Nguy'].includes(dData.extra.truc) ? 'TRỰC XẤU CẦN LƯU Ý' : ''}</div>
+                        <div class="text-[10px] text-red-700 font-bold mt-1">${['Phá','Bế','Nguy'].includes(dData.extra.truc) ? 'TRỰC XẤU' : ''}</div>
                         <div class="text-[10px] text-stone-800 mt-2 leading-relaxed text-left px-2 font-medium">
                             ${trucDescHtml}
                         </div>
