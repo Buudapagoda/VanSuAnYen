@@ -10,7 +10,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Noto+Serif:wght@400;700&display=swap');
     body { font-family: 'Noto Serif', serif; }
     
-    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
     .custom-scroll::-webkit-scrollbar-thumb { background: #a8a29e; border-radius: 3px; }
 
     .paper-table { width: 100%; border-collapse: collapse; border: 2px solid #000; background: #fff; color: #000; }
@@ -49,20 +49,33 @@
     .lunar-text { font-size: 0.7rem; text-align: center; color: #d6d3d1; margin-top: 2px; }
     
     .good-day-dot { position: absolute; bottom: 4px; right: 4px; width: 10px; height: 10px; background-color: #4ade80; border-radius: 50%; box-shadow: 0 0 8px #4ade80; border: 1px solid #fff; }
+
+    /* ========================================================
+       CHỈ THÊM CSS ĐỂ ÉP KHUNG HIỂN THỊ ĐẸP TRÊN ĐIỆN THOẠI 
+       ======================================================== */
+    @media (max-width: 768px) {
+        /* Ép bảng chi tiết không bị bóp méo chữ, tạo thanh cuộn ngang */
+        .paper-table { min-width: 600px; }
+        /* Thu nhỏ các font chữ quá khổ để vừa màn hình */
+        .text-9xl { font-size: 4.5rem !important; line-height: 1 !important; }
+        #leftDay { font-size: 3.5rem !important; }
+        /* Giảm chiều cao các ô lịch cho gọn */
+        .calendar-cell { min-height: 40px; padding: 2px; }
+    }
   </style>
 </head>
 <body class="bg-stone-300 h-screen flex flex-col overflow-hidden">
 
-  <header class="bg-stone-900 text-white h-14 flex items-center px-4 justify-between shadow-md z-20 flex-none text-xs">
-    <div class="flex items-center gap-2">
+  <header class="bg-stone-900 text-white min-h-[56px] flex flex-wrap md:flex-nowrap items-center px-2 md:px-4 py-2 justify-between shadow-md z-20 flex-none text-xs gap-2 overflow-x-auto custom-scroll">
+    <div class="flex items-center gap-2 shrink-0">
         <i class="fa-solid fa-calendar-check text-lg text-amber-500"></i>
         <h1 class="font-bold uppercase tracking-wider text-sm hidden md:block">Lịch Vạn Sự & Trạch Nhật</h1>
     </div>
     
-    <div class="flex gap-3 items-center">
+    <div class="flex gap-2 items-center shrink-0">
         <div class="flex items-center bg-stone-800 px-2 py-1.5 rounded border border-stone-600 shadow-inner">
             <label class="text-stone-400 font-bold mr-2 uppercase text-[10px]">Tuổi (ÂL):</label>
-            <input type="number" id="birthYear" placeholder="Vd: 1993" onchange="render()" class="bg-transparent text-white w-20 font-bold outline-none text-center placeholder-stone-600">
+            <input type="number" id="birthYear" placeholder="Vd: 1993" onchange="render()" class="bg-transparent text-white w-16 md:w-20 font-bold outline-none text-center placeholder-stone-600">
         </div>
 
         <div class="flex items-center bg-stone-800 px-2 py-1.5 rounded border border-stone-600 shadow-inner">
@@ -81,9 +94,9 @@
     </div>
   </header>
 
-  <div class="flex-1 flex w-full overflow-hidden">
+  <div class="flex-1 flex flex-col md:flex-row w-full overflow-y-auto md:overflow-hidden custom-scroll">
     
-    <aside class="w-[35%] flex flex-col relative z-10 shadow-2xl border-r-2 border-stone-500 text-white overflow-hidden">
+    <aside class="w-full md:w-[35%] h-[480px] md:h-full flex flex-col relative z-10 shadow-2xl border-b-2 md:border-b-0 md:border-r-2 border-stone-500 text-white overflow-hidden flex-none">
         
         <div id="yakshaBg" class="absolute inset-0 bg-cover bg-top transition-all duration-700 opacity-100" style="background-image: url('https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang1.JPG');"></div>
         
@@ -116,8 +129,8 @@
         </div>
     </aside>
 
-    <main class="w-[65%] bg-stone-300 p-2 md:p-6 overflow-y-auto custom-scroll flex flex-col items-center">
-        <div id="paper" class="w-full max-w-[850px] bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] p-4 md:p-8 text-sm"></div>
+    <main class="w-full md:w-[65%] bg-stone-300 p-2 md:p-6 md:overflow-y-auto custom-scroll flex flex-col items-center flex-1">
+        <div id="paper" class="w-full max-w-[850px] bg-white shadow-[0_10px_40px_-10px_rgba(0,0,0,0.5)] p-2 md:p-8 text-xs md:text-sm overflow-x-auto custom-scroll"></div>
     </main>
   </div>
 
