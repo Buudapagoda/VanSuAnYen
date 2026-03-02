@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<style>
+    /* CSS cho khung Tra Cứu Tuổi Kỵ */
+    .ky-tuoi-wrapper {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #fcfcfc;
+        border: 2px solid #8b0000;
+        border-radius: 8px;
+        padding: 20px;
+        max-width: 650px;
+        margin: 20px auto;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    .ky-tuoi-wrapper h3 {
+        text-align: center;
+        color: #8b0000;
+        margin-top: 0;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+    }
+    .subtitle-phat {
+        text-align: center; font-style: italic; color: #666; font-size: 13px; margin-bottom: 20px;
+        border-bottom: 1px dashed #d4af37; padding-bottom: 15px;
+    }
+    
+    /* Box hiển thị 6 tuổi của năm */
+    .nam-hien-tai-box {
+        background-color: #fffde7; border: 1px solid #d4af37; border-radius: 6px; padding: 15px; margin-bottom: 20px;
+    }
+    .nam-hien-tai-box h4 { margin: 0 0 10px 0; color: #8b4513; font-size: 15px; }
+    .tag-6tuoi { 
+        background-color: #8b0000; color: #fff; padding: 4px 8px; border-radius: 4px; 
+        font-weight: bold; display: inline-block; margin: 3px; font-size: 14px;
+    }
+    
+    .form-row { margin-bottom: 15px; }
+    .form-row label { display: block; font-weight: bold; color: #4a3b32; margin-bottom: 5px; font-size: 14px; }
+    .form-row input, .form-row select {
+        width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; box-sizing: border-box;
+    }
+    .form-row-inline { display: flex; gap: 10px; align-items: flex-end; }
+    .form-row-inline > div { flex: 1; }
+
+    .btn-xem {
+        width: 100%; background-color: #8b0000; color: white; border: none; padding: 12px; font-size: 16px; font-weight: bold;
+        border-radius: 4px; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-top: 10px;
+    }
+    .btn-xem:hover { background-color: #a52a2a; }
+    
+    #ketQuaKy {
+        margin-top: 20px; padding: 15px; background-color: #fff; border: 1px solid #eee; border-radius: 5px; display: none;
+    }
+    .ky-item { margin-bottom: 10px; font-size: 15px; color: #333; line-height: 1.5; }
+    .tag-daiky { background-color: #ffcccc; color: #b30000; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    .tag-thuky { background-color: #fff3cd; color: #827717; padding: 2px 6px; border-radius: 4px; font-weight: bold; }
+    
+    .khuyen-nhu {
+        margin-top: 15px; padding: 15px; background-color: #e8f5e9; border-radius: 6px;
+        border-left: 5px solid #4caf50; font-size: 14px; color: #2e7d32; line-height: 1.5;
+    }
+</style>
+</head>
+<body>
+
+<div class="ky-tuoi-wrapper">
+    <h3>Tiện Ích Tra Cứu Tuổi Kỵ Tang Lễ</h3>
+    <div class="subtitle-phat">"Sinh tử là lẽ vô thường. Tránh kỵ để an tâm, niệm Phật để an lạc."</div>
+    
+    <div class="nam-hien-tai-box">
+        <div class="form-row-inline" style="margin-bottom: 10px;">
+            <div>
+                <label>Năm diễn ra tang lễ (Dương lịch):</label>
+                <input type="text" id="inpNamTangLe" inputmode="numeric" maxlength="4" onchange="capNhat6TuoiNamNay()">
+            </div>
+        </div>
+        <h4 id="tieuDeNamNay">Sáu (6) tuổi có vận khí yếu trong năm ...</h4>
+        <div id="danhSach6Tuoi" style="text-align: center; margin-bottom: 10px;"></div>
+        <div style="font-size: 13px; color: #555; text-align: justify; line-height: 1.5;">
+            <b>🙏 Lời khuyên:</b> Theo triết lý Âm Dương Ngũ Hành, đây là 6 tuổi bị suy giảm năng lượng (phạm Thái Tuế) trong năm nay. Để tránh nhiễm trược khí (hơi lạnh), người mang 6 tuổi này khi đi viếng nên <b>tránh mặt lúc Nhập Liệm và Động Quan</b>. Không nhất thiết phải thắp nhang, chỉ cần đứng từ xa chắp tay xá lạy và niệm thầm <i>"Nam Mô A Di Đà Phật"</i> là trọn vẹn tình nghĩa mà vẫn bình an vô sự.
+        </div>
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #e0e0e0; margin: 25px 0;">
+
+    <h4 style="color: #8b0000; text-align: center; margin-bottom: 15px;">TRA CỨU XUNG KHẮC VỚI NGƯỜI MẤT</h4>
+    
+    <div class="form-row">
+        <label>Năm sinh Âm Lịch người mất:</label>
+        <input type="text" id="inpNamMat" inputmode="numeric" maxlength="4" placeholder="Ví dụ: 1950">
+    </div>
+    
+    <div class="form-row">
+        <label>Giờ Khâm Liệm (Tùy chọn):</label>
+        <select id="selGioLiem">
+            <option value="-1">-- Không rõ / Chưa chọn --</option>
+            <option value="0">Giờ Tý (23h - 01h)</option>
+            <option value="1">Giờ Sửu (01h - 03h)</option>
+            <option value="2">Giờ Dần (03h - 05h)</option>
+            <option value="3">Giờ Mão (05h - 07h)</option>
+            <option value="4">Giờ Thìn (07h - 09h)</option>
+            <option value="5">Giờ Tỵ (09h - 11h)</option>
+            <option value="6">Giờ Ngọ (11h - 13h)</option>
+            <option value="7">Giờ Mùi (13h - 15h)</option>
+            <option value="8">Giờ Thân (15h - 17h)</option>
+            <option value="9">Giờ Dậu (17h - 19h)</option>
+            <option value="10">Giờ Tuất (19h - 21h)</option>
+            <option value="11">Giờ Hợi (21h - 23h)</option>
+        </select>
+    </div>
+
+    <div class="form-row">
+        <label>Giờ Động Quan (Tùy chọn):</label>
+        <select id="selGioDongQuan">
+            <option value="-1">-- Không rõ / Chưa chọn --</option>
+            <option value="0">Giờ Tý (23h - 01h)</option>
+            <option value="1">Giờ Sửu (01h - 03h)</option>
+            <option value="2">Giờ Dần (03h - 05h)</option>
+            <option value="3">Giờ Mão (05h - 07h)</option>
+            <option value="4">Giờ Thìn (07h - 09h)</option>
+            <option value="5">Giờ Tỵ (09h - 11h)</option>
+            <option value="6">Giờ Ngọ (11h - 13h)</option>
+            <option value="7">Giờ Mùi (13h - 15h)</option>
+            <option value="8">Giờ Thân (15h - 17h)</option>
+            <option value="9">Giờ Dậu (17h - 19h)</option>
+            <option value="10">Giờ Tuất (19h - 21h)</option>
+            <option value="11">Giờ Hợi (21h - 23h)</option>
+        </select>
+    </div>
+
+    <button class="btn-xem" onclick="tinhTuoiKyNguoiMat()">Xem Tuổi Khắc Người Mất</button>
+
+    <div id="ketQuaKy"></div>
+</div>
+
+<script>
+    const CAN = ["Canh", "Tân", "Nhâm", "Quý", "Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ"];
+    const CHI = ["Thân", "Dậu", "Tuất", "Hợi", "Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi"];
+    const DANH_SACH_CHI = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
+    
+    // Thuật toán: Can lùi 1, Chi lùi 3 lặp 6 lần để tìm 6 tuổi kỵ trong năm
+    function tinh6TuoiKyThapNhang(nam) {
+        let canIdx = nam % 10;
+        let chiIdx = nam % 12;
+        let ketQua = [];
+        
+        for (let i = 0; i < 6; i++) {
+            canIdx = (canIdx + 9) % 10; // Tương đương lùi 1
+            chiIdx = (chiIdx + 9) % 12; // Tương đương lùi 3
+            ketQua.push(CAN[canIdx] + " " + CHI[chiIdx]);
+        }
+        return ketQua;
+    }
+
+    // Tự động chạy khi tải trang
+    function init() {
+        let currentYear = new Date().getFullYear();
+        document.getElementById("inpNamTangLe").value = currentYear;
+        capNhat6TuoiNamNay();
+    }
+
+    // Cập nhật Box 6 Tuổi Mặc định của năm
+    function capNhat6TuoiNamNay() {
+        let nam = parseInt(document.getElementById("inpNamTangLe").value);
+        if (!nam || nam < 1900) return;
+
+        let canNam = CAN[nam % 10];
+        let chiNam = CHI[nam % 12];
+        
+        document.getElementById("tieuDeNamNay").innerText = `Sáu (6) tuổi vận khí yếu trong năm ${canNam} ${chiNam} (${nam}):`;
+        
+        let mang6Tuoi = tinh6TuoiKyThapNhang(nam);
+        let html6Tuoi = mang6Tuoi.map(t => `<span class="tag-6tuoi">${t}</span>`).join(" ");
+        document.getElementById("danhSach6Tuoi").innerHTML = html6Tuoi;
+    }
+
+    // Tìm tuổi Lục Xung & Tứ Hành Xung
+    function layTuoiXung(chiIndex) {
+        let daiKy = (chiIndex + 6) % 12;
+        let thuKy1 = (chiIndex + 3) % 12;
+        let thuKy2 = (chiIndex + 9) % 12;
+        return {
+            daiKyTxt: DANH_SACH_CHI[daiKy],
+            thuKyTxt: DANH_SACH_CHI[thuKy1] + ", " + DANH_SACH_CHI[thuKy2]
+        };
+    }
+
+    // Xử lý nút Tra Cứu Người Mất
+    function tinhTuoiKyNguoiMat() {
+        let namSinh = parseInt(document.getElementById("inpNamMat").value);
+        let gioLiemIdx = parseInt(document.getElementById("selGioLiem").value);
+        let gioDongQuanIdx = parseInt(document.getElementById("selGioDongQuan").value);
+
+        if (!namSinh || isNaN(namSinh) || namSinh < 1900) {
+            alert("Vui lòng nhập đúng Năm Sinh Âm Lịch (VD: 1950)!");
+            return;
+        }
+
+        let canMat = CAN[namSinh % 10];
+        let chiMat = CHI[namSinh % 12];
+        let tuoiMat = canMat + " " + chiMat;
+        let chiMatIdx = DANH_SACH_CHI.indexOf(chiMat);
+        let xungTuoi = layTuoiXung(chiMatIdx);
+        
+        let html = `<div style="text-align:center; font-weight:bold; margin-bottom:10px; font-size:16px;">Người mất tuổi: <span style="color:#8b0000; font-size:18px;">${tuoiMat}</span></div>`;
+        html += `<div style="border-top: 1px dashed #ddd; margin-bottom:15px;"></div>`;
+
+        html += `<div class="ky-item"><b>1. Xung khắc bản mệnh:</b><br>- Tuổi <span class="tag-daiky">${xungTuoi.daiKyTxt}</span> (Đại Kỵ)<br>- Tuổi <span class="tag-thuky">${xungTuoi.thuKyTxt}</span> (Thứ Kỵ).</div>`;
+
+        if (gioLiemIdx !== -1) {
+            let xungLiem = layTuoiXung(gioLiemIdx);
+            html += `<div class="ky-item"><b>2. Tránh mặt lúc Khâm Liệm (Giờ ${DANH_SACH_CHI[gioLiemIdx]}):</b><br>- Cấm kỵ người tuổi <span class="tag-daiky">${xungLiem.daiKyTxt}</span> có mặt lúc đưa thi hài vào quan tài.</div>`;
+        }
+
+        if (gioDongQuanIdx !== -1) {
+            let xungDQ = layTuoiXung(gioDongQuanIdx);
+            html += `<div class="ky-item"><b>3. Tránh mặt lúc Động Quan (Giờ ${DANH_SACH_CHI[gioDongQuanIdx]}):</b><br>- Người tuổi <span class="tag-daiky">${xungDQ.daiKyTxt}</span> nên lùi lại phía sau, không nhìn trực tiếp lúc di quan và hạ huyệt.</div>`;
+        }
+
+        html += `<div class="khuyen-nhu">
+            <b>☸️ Lời khuyên Đạo Phật:</b><br>
+            Việc kiêng kỵ xung khắc tuổi tác không mang ý nghĩa trừng phạt hay xui rủi định mệnh, mà chỉ nhằm tránh những luồng năng lượng không phù hợp khi thân tâm đang yếu. Đạo Phật dạy <i>"Nhất thiết duy tâm tạo"</i>. Con cháu lỡ mang tuổi xung khắc không cần phải vắng mặt trong đám tang, chỉ cần lùi bước tại các thời khắc nhạy cảm, đồng thời giữ tâm thanh tịnh, hướng lòng từ bi niệm <b>Nam Mô A Di Đà Phật</b>. Ánh sáng của hồng danh sẽ phá tan mọi ác duyên, đem lại bình an cho người sống và siêu thoát cho người mất.
+        </div>`;
+
+        document.getElementById("ketQuaKy").innerHTML = html;
+        document.getElementById("ketQuaKy").style.display = "block";
+    }
+
+    // Chạy init khi load web
+    window.onload = init;
+</script>
+
+</body>
+</html>
