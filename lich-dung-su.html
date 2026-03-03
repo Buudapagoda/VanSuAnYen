@@ -23,11 +23,10 @@
     .hour-cell { font-size: 11px; text-align: center; padding: 4px 2px !important; }
     .text-red-print { color: #cc0000; }
 
-    /* LƯỚI LỊCH: XÓA CHẾ ĐỘ CUỘN VÀ TỰ ĐỘNG CHIA ĐỀU CHIỀU CAO */
     .calendar-grid-container { 
         display: grid; 
         grid-template-columns: repeat(7, 1fr); 
-        grid-auto-rows: 1fr; /* Tự động chia đều chiều cao cho các tuần */
+        grid-auto-rows: 1fr; 
         background-color: rgba(255, 255, 255, 0.2); 
         gap: 1px; 
     }
@@ -54,19 +53,13 @@
     
     .good-day-dot { position: absolute; bottom: 4px; right: 4px; width: 10px; height: 10px; background-color: #4ade80; border-radius: 50%; box-shadow: 0 0 8px #4ade80; border: 1px solid #fff; }
 
-   /* ========================================================
-       TỐI ƯU HIỂN THỊ TRÊN ĐIỆN THOẠI (KHÔNG BỊ CHE LỊCH)
-       ======================================================== */
     @media (max-width: 768px) {
         .text-9xl { font-size: 4.5rem !important; line-height: 1 !important; }
         #leftDay { font-size: 3.5rem !important; }
         .calendar-cell { padding: 2px; }
         .day-number { font-size: 0.9rem; }
         
-        /* 1. Tăng chiều cao của toàn bộ khung lịch trái lên 580px */
         aside { height: 580px !important; flex: none; }
-        
-        /* 2. Ép phần ảnh nền (số ngày to) ngắn lại còn 35%, nhường 65% chỗ cho lưới lịch */
         aside > div:nth-child(3) { height: 35% !important; } 
         aside > div:nth-child(4) { height: 65% !important; } 
     }
@@ -107,7 +100,6 @@
     <aside class="w-full md:w-[35%] h-[480px] md:h-full flex flex-col relative z-10 shadow-2xl border-b-2 md:border-b-0 md:border-r-2 border-stone-500 text-white overflow-hidden flex-none">
         
         <div id="yakshaBg" class="absolute inset-0 bg-cover bg-top transition-all duration-700 opacity-100" style="background-image: url('https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang1.JPG');"></div>
-        
         <div class="absolute inset-0 bg-gradient-to-t from-black/95 via-black/40 to-transparent pointer-events-none"></div>
 
         <div class="relative z-10 h-[45%] flex flex-col justify-end p-5 pb-3">
@@ -189,7 +181,6 @@
         return notes; 
     }
 
-    /* TÍNH TOÁN ĐÁNH GIÁ 2 CẤP ĐỘ: CỰC KỲ TỐT VÀ TẠM ỔN */
     function evaluateTaskDetailed(task, truc, badDaysList, isXungTuoiCaNhan) { 
         let isGood = true; 
         let isVeryGood = false;
@@ -197,7 +188,6 @@
         let failReasons = []; 
         let warningReasons = [];
 
-        // Nếu KHÔNG lọc việc (Khảo sát chung)
         if (task === "ALL") {
             let fatal = badDaysList.filter(b => ["Sát Chủ", "Thọ Tử", "Tam Tang", "Trung Nhật", "Trùng Tang"].includes(b.name));
             isGood = !isXungTuoiCaNhan && fatal.length === 0 && !["Phá", "Bế"].includes(truc);
@@ -234,7 +224,6 @@
             successReasons.push(`Trực <b>${truc}</b> ở mức độ bình hòa, dùng tạm ổn (Thứ Cát).`);
         } 
         
-        // Xét điều kiện lên Đại Cát (Sao Vàng)
         if (isGood && minorBadDays.length === 0 && rules.goodTruc.includes(truc)) {
             isVeryGood = true;
         }
@@ -301,8 +290,19 @@
 
         document.getElementById("leftDay").innerText = dData.solar.day < 10 ? '0'+dData.solar.day : dData.solar.day;
         document.getElementById("leftWDay").innerText = wd;
-        let canNam = CAL_DATA.CAN[(dData.lunar.year + 6) % 10];
+        
+        // --- BẮT ĐẦU TÍNH CAN CHI NĂM & THÁNG ---
+        let namCanIdx = (dData.lunar.year + 6) % 10;
+        let canNam = CAL_DATA.CAN[namCanIdx];
         let chiNam = CAL_DATA.CHI[(dData.lunar.year + 8) % 12];
+        
+        let thangChiIdx = (dData.lunar.month + 1) % 12;
+        let chiThang = CAL_DATA.CHI[thangChiIdx];
+        // Ngũ Hổ Độn Can cho Tháng
+        let canThangIdx = ([2, 4, 6, 8, 0][namCanIdx % 5] + dData.lunar.month - 1) % 10;
+        let canThang = CAL_DATA.CAN[canThangIdx];
+        // --- KẾT THÚC ---
+
         document.getElementById("leftMonthYear").innerText = `Năm ${canNam} ${chiNam}`;
         document.getElementById("leftLunarDate").innerText = `${dData.lunar.day} / ${dData.lunar.month}`;
 
@@ -322,7 +322,6 @@
             let evalDetail = evaluateTaskDetailed(filterTask, data.extra.truc, data.extra.badDaysList, data.extra.isXungTuoiCaNhan);
             let dotIndicator = "";
             
-            // TẠO BIỂU TƯỢNG ĐÁNH GIÁ (SAO VÀNG HAY CHẤM XANH)
             if (evalDetail.isGood) {
                 if (evalDetail.isVeryGood) {
                     dotIndicator = `<div class="absolute bottom-1 right-1 text-yellow-400 text-[10px] md:text-xs drop-shadow-[0_0_5px_rgba(0,0,0,0.8)]" title="Ngày Đại Cát!"><i class="fa-solid fa-star"></i></div>`;
@@ -396,7 +395,14 @@
                     <div class="text-xs font-bold uppercase mb-1 border-b border-black pb-1 inline-block">${wd}</div>
                     <div class="text-9xl font-bold leading-none mt-2 font-serif">${dData.solar.day}</div>
                     <div class="text-xs md:text-sm font-bold mt-4 uppercase tracking-widest">Tháng ${dData.solar.month} Năm ${dData.solar.year}</div>
-                    <div class="mt-4 pt-2 border-t border-black"><div class="text-[11px] md:text-xs mt-1 grid grid-cols-1 text-center font-bold"><div>Ngày: ${dData.text.day}</div></div></div>
+                    
+                    <div class="mt-4 pt-2 border-t border-black">
+                        <div class="text-[12px] md:text-sm mt-2 flex flex-col items-center justify-center font-bold leading-relaxed space-y-1">
+                            <div class="text-red-700 bg-red-50 w-full rounded py-0.5 border border-red-200 shadow-sm">Ngày ${dData.text.day}</div>
+                            <div class="text-blue-800 bg-blue-50 w-full rounded py-0.5 border border-blue-200 shadow-sm">Tháng ${canThang} ${chiThang}</div>
+                            <div class="text-stone-800 bg-stone-100 w-full rounded py-0.5 border border-stone-300 shadow-sm">Năm ${canNam} ${chiNam}</div>
+                        </div>
+                    </div>
                 </td>
                 <td class="w-[30%] text-center bg-stone-50 align-top p-0 border-r-2 border-black">
                     <div class="pt-2"><div class="header-cell">Tiết khí</div><div class="py-2 font-bold text-blue-800 text-sm">${dData.extra.tietKhi}</div></div>
@@ -443,4 +449,3 @@
   </script>
 </body>
 </html>
-
