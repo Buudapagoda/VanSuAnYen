@@ -14,6 +14,7 @@
             font-family: 'Times New Roman', Times, serif;
             background-color: #555;
             margin: 0; padding: 0;
+            box-sizing: border-box;
         }
 
         /* --- MENU BÊN TRÁI (CHO MÁY TÍNH) --- */
@@ -69,11 +70,12 @@
         .info-header { text-align:center; font-size: 16pt; margin-bottom: 25px; line-height: 1.4; }
         .name-display { font-size: 20pt; font-weight: bold; text-transform: uppercase; display: block; margin: 8px 0; }
         
-        .table-container { width: 100%; } /* Thêm bọc ngoài để điện thoại cuộn ngang */
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14pt; }
-        th, td { border: 1px solid #000; padding: 8px 4px; text-align: center; }
+        .table-container { width: 100%; } 
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14pt; table-layout: fixed;}
+        th, td { border: 1px solid #000; padding: 8px 4px; text-align: center; word-wrap: break-word; }
         th { background-color: #eee; font-weight: bold; text-transform: uppercase; height: 35px; }
         td { height: 35px; }
+        .le-cung-col { text-align: left; padding-left: 15px; font-weight: bold; }
 
         .note-box {
             margin-top: 25px; font-style: italic; font-size: 13.5pt; 
@@ -88,51 +90,40 @@
         .advice-content { display: flex; flex-direction: column; justify-content: flex-start; height: 100%; }
 
         /* ==============================================================
-           ĐOẠN MÃ MỚI: TỰ ĐỘNG THAY ĐỔI CẤU TRÚC KHI XEM TRÊN ĐIỆN THOẠI 
+           ĐOẠN MÃ MỚI: TỰ ĐỘNG ÉP BẢNG VỪA KHÍT ĐIỆN THOẠI (KHÔNG CUỘN)
            ============================================================== */
         @media screen and (max-width: 768px) {
             body { background-color: #f4f4f4; }
             
-            /* Đưa thanh menu từ bên trái lên nằm trên cùng */
             .control-panel {
-                position: relative; 
-                width: 100%; 
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                border-bottom: 3px solid var(--primary);
-                padding: 15px;
+                position: relative; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                border-bottom: 3px solid var(--primary); padding: 15px;
             }
+            .preview-area { margin-left: 0; padding: 10px; }
             
-            /* Xóa khoảng trống thừa bên trái */
-            .preview-area {
-                margin-left: 0; 
-                padding: 10px;
-            }
-            
-            /* Bóp tờ giấy A4 vừa khít màn hình điện thoại */
             .a4-page {
-                width: 100%; 
-                height: auto;
-                min-height: auto; 
-                padding: 15px;
-                margin-bottom: 15px;
+                width: 100%; height: auto; min-height: auto; 
+                padding: 12px; margin-bottom: 15px;
             }
 
-            /* Thu nhỏ chữ lại cho đỡ tràn dòng */
             h1.page-title { font-size: 16pt; margin-bottom: 15px; }
             .info-header { font-size: 12pt; margin-bottom: 15px; }
             .name-display { font-size: 14pt; }
             
-            /* Giúp bảng lịch cúng có thể vuốt ngang bằng tay */
-            .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-            table { min-width: 500px; font-size: 11pt; }
-            th, td { padding: 4px; }
+            /* Ép bảng 100%, bỏ cuộn ngang */
+            .table-container { overflow-x: hidden; width: 100%; }
+            table { width: 100%; min-width: unset; font-size: 9.5pt; }
+            th, td { padding: 4px 2px; }
+            th { font-size: 8.5pt; } /* Thu nhỏ header một chút để vừa chữ */
+            
+            .le-cung-col { padding-left: 5px !important; font-size: 10pt; }
             
             .note-box { font-size: 11pt; padding: 10px; margin-top: 15px; }
             .advice-header { font-size: 12pt; }
             .advice-content p { font-size: 11pt; text-indent: 20px; }
         }
 
-        /* --- IN ẤN CHUẨN (KHÔNG BỊ ẢNH HƯỞNG BỞI ĐIỆN THOẠI) --- */
+        /* --- IN ẤN CHUẨN --- */
         @media print {
             @page { size: A4; margin: 0; }
             body { background: white; margin: 0; }
@@ -141,8 +132,7 @@
             .a4-page {
                 width: 100%; height: 297mm;
                 margin: 0; box-shadow: none; border: none; padding: 20mm;
-                page-break-after: always; 
-                print-color-adjust: exact;
+                page-break-after: always; print-color-adjust: exact;
             }
             .a4-page:last-child { page-break-after: auto; }
             table { min-width: 100%; font-size: 14pt; }
@@ -181,11 +171,11 @@
             <table id="scheduleTable">
                 <thead>
                     <tr>
-                        <th width="10%">STT</th>
-                        <th width="35%">LỄ CÚNG</th>
-                        <th width="15%">THỨ</th>
-                        <th width="20%">DƯƠNG LỊCH</th>
-                        <th width="20%">ÂM LỊCH</th>
+                        <th width="8%">STT</th>
+                        <th width="32%">LỄ CÚNG</th>
+                        <th width="16%">THỨ</th>
+                        <th width="24%">D.LỊCH</th>
+                        <th width="20%">Â.LỊCH</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -257,10 +247,14 @@
             for(let i=1; i<=7; i++) {
                 let d = new Date(dDeath);
                 d.setDate(dDeath.getDate() + (i*7) - 1); 
+                
+                // Thêm <br> để chữ Chung Thất rớt xuống dòng, gọn bảng hơn
+                let extraText = i === 7 ? '<br><span style="font-size:0.8em; font-weight:normal;">(Chung Thất)</span>' : '';
+                
                 tbody.innerHTML += `
                 <tr>
                     <td>${i}</td>
-                    <td style="text-align:left; padding-left:15px; font-weight:bold;">Tuần Thất ${i} ${i===7?'(Chung Thất)':''}</td>
+                    <td class="le-cung-col">Tuần Thất ${i} ${extraText}</td>
                     <td>${getDayName(d)}</td>
                     <td>${formatDateOnly(d)}</td>
                     <td>${getLunarShort(d)}</td>
@@ -271,7 +265,7 @@
             tbody.innerHTML += `
             <tr style="background-color: #f7f7f7;">
                 <td>8</td>
-                <td style="text-align:left; padding-left:15px; font-weight:bold;">Lễ Bách Nhật (100 ngày)</td>
+                <td class="le-cung-col">Lễ Bách Nhật<br><span style="font-size:0.8em; font-weight:normal;">(100 ngày)</span></td>
                 <td>${getDayName(d100)}</td>
                 <td>${formatDateOnly(d100)}</td>
                 <td>${getLunarShort(d100)}</td>
