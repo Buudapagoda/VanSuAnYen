@@ -59,7 +59,7 @@
             height: var(--paper-height);
             padding: 20mm 20mm; 
             box-sizing: border-box;
-            margin-bottom: 30px;
+            margin-bottom: 30px; /* Khoảng cách giữa 2 trang trên màn hình */
             box-shadow: 0 0 15px rgba(0,0,0,0.4);
             position: relative;
             overflow: hidden; 
@@ -98,14 +98,14 @@
         .advice-content { display: flex; flex-direction: column; justify-content: flex-start; height: 100%; }
 
         /* ==============================================================
-           CHẾ ĐỘ ÉP KHUÔN A4 ĐỂ XUẤT FILE (LOẠI BỎ LỖI CẮT CHỮ)
+           CHẾ ĐỘ ÉP KHUÔN A4 ĐỂ XUẤT FILE (KHÔNG BỊ TRANG TRẮNG)
            ============================================================== */
         body.exporting-mode .control-panel { display: none !important; }
         body.exporting-mode .preview-area { margin: 0 !important; padding: 0 !important; align-items: flex-start !important; }
         body.exporting-mode .a4-page {
             width: 210mm !important;
             height: 297mm !important;
-            margin: 0 !important;
+            margin: 0 !important; /* XÓA KHOẢNG CÁCH DƯ ĐỂ KHÔNG TẠO TRANG TRẮNG */
             box-shadow: none !important;
             border: none !important;
             border-radius: 0 !important;
@@ -267,7 +267,7 @@
     }
     document.addEventListener('keydown', function(event) { if (event.key === 'Enter') updatePreview(); });
 
-    // HÀM XUẤT PDF CHUẨN TỪNG TRANG, KHÔNG BỊ TRÀN CHỮ
+    // HÀM XUẤT PDF CHUẨN TỪNG TRANG, LOẠI BỎ KHOẢNG TRẮNG DƯ THỪA
     function downloadPDF() {
         updatePreview();
         const dateVal = document.getElementById('inpDeath').value;
@@ -279,7 +279,7 @@
         document.getElementById('loadingOverlay').style.display = 'flex';
         document.getElementById('loadingText').innerText = "Đang tạo file PDF (2 trang)... Vui lòng đợi!";
 
-        // Bật chế độ ÉP KHUÔN A4
+        // Bật chế độ ÉP KHUÔN A4 (Đã thiết lập xóa margin trong CSS)
         document.body.classList.add('exporting-mode');
 
         setTimeout(() => {
@@ -290,9 +290,9 @@
                 filename:     fileName,
                 image:        { type: 'jpeg', quality: 0.98 },
                 html2canvas:  { scale: 2, useCORS: true },
-                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                // Lệnh then chốt: Ép hệ thống NGẮT TRANG ngay trước Trang 2
-                pagebreak:    { mode: 'css', before: '#page-2' } 
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                // Đã bỏ lệnh pagebreak ở đây vì việc xóa margin ở 2 khối A4 sẽ tự động làm 2 khối này dính sát nhau, 
+                // html2pdf sẽ tự động cắt chính xác khi hết khối 1 (đúng 297mm).
             };
 
             html2pdf().set(opt).from(elementToCapture).save().then(() => {
@@ -303,7 +303,7 @@
                 document.getElementById('loadingOverlay').style.display = 'none'; 
                 alert("Lỗi tạo PDF. Vui lòng thử lại!");
             });
-        }, 150); // Chờ 1 chút để trình duyệt kịp xếp lại giao diện
+        }, 150);
     }
 </script>
 
