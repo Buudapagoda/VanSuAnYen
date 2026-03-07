@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Lịch Cúng & Lời Khuyên (A4 Chuẩn)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
         :root {
             --primary: #4a3b32;
@@ -17,12 +19,13 @@
             box-sizing: border-box;
         }
 
-        /* --- MENU BÊN TRÁI (CHO MÁY TÍNH) --- */
+        /* --- MENU BÊN TRÁI --- */
         .control-panel {
             background: #fff; padding: 20px; width: 260px;
             position: fixed; left: 0; top: 0; bottom: 0;
             box-shadow: 2px 0 10px rgba(0,0,0,0.3); z-index: 999;
             display: flex; flex-direction: column;
+            overflow-y: auto;
         }
         .control-panel h3 { color: var(--primary); text-align: center; border-bottom: 2px solid var(--primary); margin: 0 0 15px 0; padding-bottom: 10px; }
         .form-group { margin-bottom: 15px; }
@@ -30,19 +33,25 @@
         input { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: Arial, sans-serif; }
         
         .btn {
-            display: block; width: 100%; padding: 10px; margin-top: 15px;
+            display: block; width: 100%; padding: 10px; margin-top: 10px;
             border: none; border-radius: 4px; cursor: pointer;
             font-weight: bold; text-transform: uppercase; color: white;
             font-family: Arial, sans-serif;
         }
         .btn-update { background-color: #e67e22; }
-        .btn-print { background-color: #27ae60; }
+        .btn-download-img { background-color: #2980b9; } 
+        .btn-download-pdf { background-color: #c0392b; } /* Nút Tải PDF màu đỏ */
         .btn:hover { opacity: 0.9; }
 
-        /* --- VÙNG HIỂN THỊ TRANG A4 --- */
+        /* --- VÙNG HIỂN THỊ --- */
         .preview-area {
             margin-left: 280px; padding: 30px;
             display: flex; flex-direction: column; align-items: center;
+        }
+
+        /* Vùng bọc 2 trang lại để dễ xuất PDF */
+        #pdf-wrapper {
+            display: flex; flex-direction: column; align-items: center; width: 100%;
         }
 
         .a4-page {
@@ -89,58 +98,42 @@
         }
         .advice-content { display: flex; flex-direction: column; justify-content: flex-start; height: 100%; }
 
-        /* ==============================================================
-           ĐOẠN MÃ MỚI: TỰ ĐỘNG ÉP BẢNG VỪA KHÍT ĐIỆN THOẠI (KHÔNG CUỘN)
-           ============================================================== */
+        /* --- RESPONSIVE MOBILE --- */
         @media screen and (max-width: 768px) {
             body { background-color: #f4f4f4; }
-            
-            .control-panel {
-                position: relative; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                border-bottom: 3px solid var(--primary); padding: 15px;
-            }
+            .control-panel { position: relative; width: 100%; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-bottom: 3px solid var(--primary); padding: 15px; }
             .preview-area { margin-left: 0; padding: 10px; }
-            
-            .a4-page {
-                width: 100%; height: auto; min-height: auto; 
-                padding: 12px; margin-bottom: 15px;
-            }
-
+            .a4-page { width: 100%; height: auto; min-height: auto; padding: 12px; margin-bottom: 15px; }
             h1.page-title { font-size: 16pt; margin-bottom: 15px; }
             .info-header { font-size: 12pt; margin-bottom: 15px; }
             .name-display { font-size: 14pt; }
-            
-            /* Ép bảng 100%, bỏ cuộn ngang */
             .table-container { overflow-x: hidden; width: 100%; }
             table { width: 100%; min-width: unset; font-size: 9.5pt; }
             th, td { padding: 4px 2px; }
-            th { font-size: 8.5pt; } /* Thu nhỏ header một chút để vừa chữ */
-            
+            th { font-size: 8.5pt; } 
             .le-cung-col { padding-left: 5px !important; font-size: 10pt; }
-            
             .note-box { font-size: 11pt; padding: 10px; margin-top: 15px; }
             .advice-header { font-size: 12pt; }
             .advice-content p { font-size: 11pt; text-indent: 20px; }
         }
 
-        /* --- IN ẤN CHUẨN --- */
-        @media print {
-            @page { size: A4; margin: 0; }
-            body { background: white; margin: 0; }
-            .control-panel { display: none !important; }
-            .preview-area { margin: 0; padding: 0; width: 100%; display: block; }
-            .a4-page {
-                width: 100%; height: 297mm;
-                margin: 0; box-shadow: none; border: none; padding: 20mm;
-                page-break-after: always; print-color-adjust: exact;
-            }
-            .a4-page:last-child { page-break-after: auto; }
-            table { min-width: 100%; font-size: 14pt; }
-            h1.page-title { font-size: 22pt; }
+        /* --- LOADING OVERLAY --- */
+        #loadingOverlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); color: white; z-index: 1000;
+            justify-content: center; align-items: center; flex-direction: column;
+            font-family: Arial, sans-serif; font-size: 18px; font-weight: bold; text-align: center;
         }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #e74c3c; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
+
+<div id="loadingOverlay">
+    <div class="spinner"></div>
+    <div id="loadingText">Đang xử lý... Vui lòng đợi!</div>
+</div>
 
 <div class="control-panel">
     <h3>NHẬP THÔNG TIN</h3>
@@ -152,62 +145,51 @@
     </div>
     <div style="margin-top: auto;">
         <button class="btn btn-update" onclick="updatePreview()">XEM TRƯỚC</button>
-        <button class="btn btn-print" onclick="window.print()">IN (PDF)</button>
+        <button class="btn btn-download-img" onclick="downloadImage()">ẢNH TRANG 1 (ZALO)</button>
+        <button class="btn btn-download-pdf" onclick="downloadPDF()">TẢI PDF (2 TRANG)</button>
     </div>
 </div>
 
 <div class="preview-area">
-
-    <div class="a4-page editable" contenteditable="true">
-        <h1 class="page-title">LỊCH CÚNG 7 THẤT & 100 NGÀY</h1>
-        
-        <div class="info-header">
-            Nam Mô Tiếp Dẫn Đạo Sư A Di Đà Phật<br>
-            Hương linh: <span class="name-display" id="calName">...</span>
-            Mất ngày: <span id="calDeathDate">...</span>
+    <div id="pdf-wrapper">
+        <div class="a4-page editable" id="page-1" contenteditable="true">
+            <h1 class="page-title">LỊCH CÚNG 7 THẤT & 100 NGÀY</h1>
+            <div class="info-header">
+                Nam Mô Tiếp Dẫn Đạo Sư A Di Đà Phật<br>
+                Hương linh: <span class="name-display" id="calName">...</span>
+                Mất ngày: <span id="calDeathDate">...</span>
+            </div>
+            <div class="table-container">
+                <table id="scheduleTable">
+                    <thead>
+                        <tr><th width="8%">STT</th><th width="32%">LỄ CÚNG</th><th width="16%">THỨ</th><th width="24%">D.LỊCH</th><th width="20%">Â.LỊCH</th></tr>
+                    </thead>
+                    <tbody><tr><td colspan="5" style="padding:20px;">Vui lòng nhập thông tin...</td></tr></tbody>
+                </table>
+            </div>
+            <div class="note-box">
+                <strong>Ghi chú:</strong><br>
+                - Ngày mất là ngày thứ 1. Tuần Thất tính là ngày thứ 7.<br>
+                (Ví dụ: Mất Thứ 7 thì cúng Thất thường vào Thứ 6 hằng tuần sau).<br>
+                - Bách nhật (100 ngày) tính từ ngày mất cộng thêm 99 ngày.<br>
+                - Nếu cúng tại chùa, gia đình nên có mặt trước 30 phút (lúc 9h00) để chuẩn bị.<br>
+                - Lúc 9h30 sẽ bắt đầu cúng Phật cầu siêu (Trên chánh điện lầu 2).<br>
+                - Lúc 10h00 bắt đầu cúng cơm cho hương linh tại nhà Linh tầng trệt.
+            </div>
         </div>
 
-        <div class="table-container">
-            <table id="scheduleTable">
-                <thead>
-                    <tr>
-                        <th width="8%">STT</th>
-                        <th width="32%">LỄ CÚNG</th>
-                        <th width="16%">THỨ</th>
-                        <th width="24%">D.LỊCH</th>
-                        <th width="20%">Â.LỊCH</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td colspan="5" style="padding:20px;">Vui lòng nhập thông tin...</td></tr>
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="note-box">
-            <strong>Ghi chú:</strong><br>
-            - Ngày mất là ngày thứ 1. Tuần Thất tính là ngày thứ 7.<br>
-            (Ví dụ: Mất Thứ 7 thì cúng Thất thường vào Thứ 6 hằng tuần sau).<br>
-            - Bách nhật (100 ngày) tính từ ngày mất cộng thêm 99 ngày.<br>
-            - Nếu cúng tại chùa, gia đình nên có mặt trước 30 phút (lúc 9h00) để chuẩn bị.<br>
-            - Lúc 9h30 sẽ bắt đầu cúng Phật cầu siêu (Trên chánh điện lầu 2).<br>
-            - Lúc 10h00 bắt đầu cúng cơm cho hương linh tại nhà Linh tầng trệt.
-        </div>
-    </div>
-
-    <div class="a4-page editable" contenteditable="true">
-        <h1 class="page-title">ĐÔI DÒNG KHUYẾN NHỦ</h1>
-        <div class="advice-header">Hương linh: <span id="adviceName" style="text-transform: uppercase;">...</span></div>
-        
-        <div class="advice-content">
-            <p>Theo quan điểm Phật giáo, ngoại trừ hai hạng người chí thiện và cực ác khi mất sẽ được tái sinh ngay; còn lại, thông thường một người sau khi chết thần thức phải trải qua giai đoạn thân trung ấm (tối đa là 49 ngày) sau đó sẽ tái sanh vào một cảnh giới tương ứng với nghiệp lực mà họ đã gây tạo. Nếu hiện đời tạo nhiều điều lành, thì sẽ thọ sanh về cảnh giới an lành; ngược lại, thì thọ sanh vào cảnh khổ trong lục đạo luân hồi.</p>
-            <p>Trong thời gian thọ thân trung ấm, hương linh vẫn có ấn tượng mạnh mẽ về kiếp sống vừa qua và thọ dụng những vật phẩm mà người thân dâng cúng (thường là cơm, nước, hương, hoa) nhưng chỉ hưởng mùi vị của thức ăn. Vì thế, thân trung ấm còn được gọi là hương ấm (thọ dụng mùi hương của thực phẩm). Cho nên trong vòng 49 ngày, người thân cần dâng cúng hương đèn, cơm nước hàng ngày để hương linh được no đủ. Đặc biệt, vào những ngày tuần thất thì cúng kính trang trọng hơn (như đến chùa hoặc thỉnh chư Tăng về nhà làm lễ cầu siêu). Về cách sắp đặt cúng kính, rất kỵ việc sát sinh, vì sát sinh sẽ làm liên lụy khổ quả cho người chết. Tốt nhất là cúng chay. Người sắp đặt cúng kính cần phải cẩn thận lưu ý điều này.</p>
-            <p>Đồng thời, trong 49 ngày này người thân nên nỗ lực làm các phước thiện để hồi hướng, giúp chuyển hóa tâm trạng người chết khiến cho thần thức của họ hòa nhập được vào các cõi an lành. Kinh Địa Tạng dạy, nếu một người chết trong 49 ngày được người thân làm phước hồi hướng thì hương linh thoát đường dữ sinh lên cảnh giới an lành. Đối với việc làm phước thiện, trước cần lấy việc tụng kinh, niệm Phật để thức tỉnh hương linh; tiếp theo thì bố thí, cúng dường, phóng sanh, ăn chay, từ thiện, giúp người,… thì phước báu lại càng lớn hơn. Hương linh nhờ tiếp nhận được năng lượng từ bi, giải thoát của Phật, năng lượng an vui của việc tốt lành, nên nghiệp thức của hương linh được chuyển hóa, lắng yên, thanh tịnh, nhờ đó tội diệt phước sanh mà siêu sanh.</p>
-            <p>Trong tuần thất thứ 3 hay thứ 7, những gia đình có điều kiện nên thỉnh Tăng Ni về tư gia, hoặc về chùa tụng Kinh Địa Tạng, cúng dường Trai Tăng cầu siêu. Tam bảo là ruộng phước, nên cúng Trai Tăng vừa là để nương nhờ oai lực của Phật tiếp độ, vừa là để tạo phước. Rồi đem phước lành đó hồi hướng cho hương linh cùng gia đình. Nhờ đó, hương linh sẽ được phước báo, nương theo phước báo ấy cùng sự khai thị của chư Tăng Ni thông qua lời kinh tiếng kệ mà thức tỉnh, xả ly tham ái, chấp thủ, xa lìa đường dữ, sanh về Cực lạc, hoặc cảnh giới an lành. Tuy nhiên, điều quan trọng khi tụng kinh hay tổ chức Trai Tăng là gia quyến phải thành tâm tha thiết, vận hết lòng thành. Được như thế, thì gia quyến được lợi lạc mà hương linh cũng được lợi lạc.</p>
-            <p>Thiết nghĩ, trên đây là những việc làm có ý nghĩa thiết thực nhất cho cả kẻ mất lẫn người còn sống, khiến âm siêu dương thái. Vì thế, gia đình quyến thuộc phải hiểu rõ nghĩa lý để cả hai đều được lợi ích.</p>
+        <div class="a4-page editable" id="page-2" contenteditable="true">
+            <h1 class="page-title">ĐÔI DÒNG KHUYẾN NHỦ</h1>
+            <div class="advice-header">Hương linh: <span id="adviceName" style="text-transform: uppercase;">...</span></div>
+            <div class="advice-content">
+                <p>Theo quan điểm Phật giáo, ngoại trừ hai hạng người chí thiện và cực ác khi mất sẽ được tái sinh ngay; còn lại, thông thường một người sau khi chết thần thức phải trải qua giai đoạn thân trung ấm (tối đa là 49 ngày) sau đó sẽ tái sanh vào một cảnh giới tương ứng với nghiệp lực mà họ đã gây tạo. Nếu hiện đời tạo nhiều điều lành, thì sẽ thọ sanh về cảnh giới an lành; ngược lại, thì thọ sanh vào cảnh khổ trong lục đạo luân hồi.</p>
+                <p>Trong thời gian thọ thân trung ấm, hương linh vẫn có ấn tượng mạnh mẽ về kiếp sống vừa qua và thọ dụng những vật phẩm mà người thân dâng cúng (thường là cơm, nước, hương, hoa) nhưng chỉ hưởng mùi vị của thức ăn. Vì thế, thân trung ấm còn được gọi là hương ấm (thọ dụng mùi hương của thực phẩm). Cho nên trong vòng 49 ngày, người thân cần dâng cúng hương đèn, cơm nước hàng ngày để hương linh được no đủ. Đặc biệt, vào những ngày tuần thất thì cúng kính trang trọng hơn (như đến chùa hoặc thỉnh chư Tăng về nhà làm lễ cầu siêu). Về cách sắp đặt cúng kính, rất kỵ việc sát sinh, vì sát sinh sẽ làm liên lụy khổ quả cho người chết. Tốt nhất là cúng chay. Người sắp đặt cúng kính cần phải cẩn thận lưu ý điều này.</p>
+                <p>Đồng thời, trong 49 ngày này người thân nên nỗ lực làm các phước thiện để hồi hướng, giúp chuyển hóa tâm trạng người chết khiến cho thần thức của họ hòa nhập được vào các cõi an lành. Kinh Địa Tạng dạy, nếu một người chết trong 49 ngày được người thân làm phước hồi hướng thì hương linh thoát đường dữ sinh lên cảnh giới an lành. Đối với việc làm phước thiện, trước cần lấy việc tụng kinh, niệm Phật để thức tỉnh hương linh; tiếp theo thì bố thí, cúng dường, phóng sanh, ăn chay, từ thiện, giúp người,… thì phước báu lại càng lớn hơn. Hương linh nhờ tiếp nhận được năng lượng từ bi, giải thoát của Phật, năng lượng an vui của việc tốt lành, nên nghiệp thức của hương linh được chuyển hóa, lắng yên, thanh tịnh, nhờ đó tội diệt phước sanh mà siêu sanh.</p>
+                <p>Trong tuần thất thứ 3 hay thứ 7, những gia đình có điều kiện nên thỉnh Tăng Ni về tư gia, hoặc về chùa tụng Kinh Địa Tạng, cúng dường Trai Tăng cầu siêu. Tam bảo là ruộng phước, nên cúng Trai Tăng vừa là để nương nhờ oai lực của Phật tiếp độ, vừa là để tạo phước. Rồi đem phước lành đó hồi hướng cho hương linh cùng gia đình. Nhờ đó, hương linh sẽ được phước báo, nương theo phước báo ấy cùng sự khai thị của chư Tăng Ni thông qua lời kinh tiếng kệ mà thức tỉnh, xả ly tham ái, chấp thủ, xa lìa đường dữ, sanh về Cực lạc, hoặc cảnh giới an lành. Tuy nhiên, điều quan trọng khi tụng kinh hay tổ chức Trai Tăng là gia quyến phải thành tâm tha thiết, vận hết lòng thành. Được như thế, thì gia quyến được lợi lạc mà hương linh cũng được lợi lạc.</p>
+                <p>Thiết nghĩ, trên đây là những việc làm có ý nghĩa thiết thực nhất cho cả kẻ mất lẫn người còn sống, khiến âm siêu dương thái. Vì thế, gia đình quyến thuộc phải hiểu rõ nghĩa lý để cả hai đều được lợi ích.</p>
+            </div>
         </div>
     </div>
-
 </div>
 
 <script>
@@ -238,46 +220,86 @@
 
         document.getElementById('calName').innerText = name;
         document.getElementById('adviceName').innerText = name;
-
         const tbody = document.querySelector('#scheduleTable tbody');
         tbody.innerHTML = ""; 
 
         if (!isNaN(dDeath)) {
             document.getElementById('calDeathDate').innerText = `ngày ${formatDateOnly(dDeath)}`;
             for(let i=1; i<=7; i++) {
-                let d = new Date(dDeath);
-                d.setDate(dDeath.getDate() + (i*7) - 1); 
-                
-                // Thêm <br> để chữ Chung Thất rớt xuống dòng, gọn bảng hơn
+                let d = new Date(dDeath); d.setDate(dDeath.getDate() + (i*7) - 1); 
                 let extraText = i === 7 ? '<br><span style="font-size:0.8em; font-weight:normal;">(Chung Thất)</span>' : '';
-                
-                tbody.innerHTML += `
-                <tr>
-                    <td>${i}</td>
-                    <td class="le-cung-col">Tuần Thất ${i} ${extraText}</td>
-                    <td>${getDayName(d)}</td>
-                    <td>${formatDateOnly(d)}</td>
-                    <td>${getLunarShort(d)}</td>
-                </tr>`;
+                tbody.innerHTML += `<tr><td>${i}</td><td class="le-cung-col">Tuần Thất ${i} ${extraText}</td><td>${getDayName(d)}</td><td>${formatDateOnly(d)}</td><td>${getLunarShort(d)}</td></tr>`;
             }
-            let d100 = new Date(dDeath);
-            d100.setDate(dDeath.getDate() + 99);
-            tbody.innerHTML += `
-            <tr style="background-color: #f7f7f7;">
-                <td>8</td>
-                <td class="le-cung-col">Lễ Bách Nhật<br><span style="font-size:0.8em; font-weight:normal;">(100 ngày)</span></td>
-                <td>${getDayName(d100)}</td>
-                <td>${formatDateOnly(d100)}</td>
-                <td>${getLunarShort(d100)}</td>
-            </tr>`;
+            let d100 = new Date(dDeath); d100.setDate(dDeath.getDate() + 99);
+            tbody.innerHTML += `<tr style="background-color: #f7f7f7;"><td>8</td><td class="le-cung-col">Lễ Bách Nhật<br><span style="font-size:0.8em; font-weight:normal;">(100 ngày)</span></td><td>${getDayName(d100)}</td><td>${formatDateOnly(d100)}</td><td>${getLunarShort(d100)}</td></tr>`;
         } else {
             tbody.innerHTML = `<tr><td colspan="5" style="color:red; padding:15px;">Vui lòng chọn Ngày Mất!</td></tr>`;
         }
     }
-    
-    document.addEventListener('keydown', function(event) {
-        if (event.key === 'Enter') updatePreview();
-    });
+    document.addEventListener('keydown', function(event) { if (event.key === 'Enter') updatePreview(); });
+
+    // HÀM TẢI ẢNH (CHỈ TRANG 1)
+    function downloadImage() {
+        updatePreview();
+        const dateVal = document.getElementById('inpDeath').value;
+        if (!dateVal) { alert("Vui lòng nhập Ngày Mất trước khi tải!"); return; }
+
+        let rawName = document.getElementById('inpName').value.trim();
+        let fileName = rawName ? `Lich_Cung_${rawName.replace(/\s+/g, '_')}.png` : "Lich_Cung_That.png";
+
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        document.getElementById('loadingText').innerText = "Đang tạo ảnh Lịch Cúng... Vui lòng đợi!";
+
+        const elementToCapture = document.getElementById('page-1');
+        const origWidth = elementToCapture.style.width; const origMaxW = elementToCapture.style.maxWidth; const origShadow = elementToCapture.style.boxShadow;
+        elementToCapture.style.width = '800px'; elementToCapture.style.maxWidth = 'none'; elementToCapture.style.boxShadow = 'none';
+
+        html2canvas(elementToCapture, { scale: 2, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+            elementToCapture.style.width = origWidth; elementToCapture.style.maxWidth = origMaxW; elementToCapture.style.boxShadow = origShadow;
+            let link = document.createElement('a'); link.href = canvas.toDataURL("image/png"); link.download = fileName;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }).catch(err => {
+            elementToCapture.style.width = origWidth; elementToCapture.style.maxWidth = origMaxW; elementToCapture.style.boxShadow = origShadow;
+            document.getElementById('loadingOverlay').style.display = 'none'; alert("Lỗi tạo ảnh. Vui lòng thử lại!");
+        });
+    }
+
+    // HÀM TẢI PDF (CẢ 2 TRANG)
+    function downloadPDF() {
+        updatePreview();
+        const dateVal = document.getElementById('inpDeath').value;
+        if (!dateVal) { alert("Vui lòng nhập Ngày Mất trước khi tải PDF!"); return; }
+
+        let rawName = document.getElementById('inpName').value.trim();
+        let fileName = rawName ? `Lich_Cung_${rawName.replace(/\s+/g, '_')}.pdf` : "Lich_Cung_That.pdf";
+
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        document.getElementById('loadingText').innerText = "Đang tạo file PDF (2 trang)... Vui lòng đợi!";
+
+        const elementToCapture = document.getElementById('pdf-wrapper');
+        const pages = document.querySelectorAll('.a4-page');
+        
+        // Tạm ẩn shadow và căn lề để in PDF ra đẹp và không bị lẹm trang
+        pages.forEach(p => { p.style.boxShadow = 'none'; p.style.marginBottom = '0'; });
+
+        const opt = {
+            margin:       0,
+            filename:     fileName,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(elementToCapture).save().then(() => {
+            // Khôi phục giao diện
+            pages.forEach(p => { p.style.boxShadow = ''; p.style.marginBottom = ''; });
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }).catch(err => {
+            pages.forEach(p => { p.style.boxShadow = ''; p.style.marginBottom = ''; });
+            document.getElementById('loadingOverlay').style.display = 'none'; alert("Lỗi tạo PDF. Vui lòng thử lại!");
+        });
+    }
 </script>
 
 </body>
