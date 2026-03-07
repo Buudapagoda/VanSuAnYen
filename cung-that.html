@@ -252,7 +252,7 @@
 
         const elementToCapture = document.getElementById('page-1');
         const origWidth = elementToCapture.style.width; const origMaxW = elementToCapture.style.maxWidth; const origShadow = elementToCapture.style.boxShadow;
-        elementToCapture.style.width = '800px'; elementToCapture.style.maxWidth = 'none'; elementToCapture.style.boxShadow = 'none';
+        elementToCapture.style.width = '794px'; elementToCapture.style.maxWidth = 'none'; elementToCapture.style.boxShadow = 'none';
 
         html2canvas(elementToCapture, { scale: 2, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
             elementToCapture.style.width = origWidth; elementToCapture.style.maxWidth = origMaxW; elementToCapture.style.boxShadow = origShadow;
@@ -265,7 +265,7 @@
         });
     }
 
-    // HÀM TẢI PDF (CẢ 2 TRANG)
+    // HÀM TẢI PDF (CẢ 2 TRANG) CHỐNG CẮT CHỮ TRÊN MOBILE
     function downloadPDF() {
         updatePreview();
         const dateVal = document.getElementById('inpDeath').value;
@@ -280,24 +280,55 @@
         const elementToCapture = document.getElementById('pdf-wrapper');
         const pages = document.querySelectorAll('.a4-page');
         
-        // Tạm ẩn shadow và căn lề để in PDF ra đẹp và không bị lẹm trang
-        pages.forEach(p => { p.style.boxShadow = 'none'; p.style.marginBottom = '0'; });
+        // Lưu lại thuộc tính cũ
+        const originalStyles = [];
+        
+        // CỐ ĐỊNH KÍCH THƯỚC TRANG LÀ KHỔ A4 (794px x 1122px) BẤT KỂ MÀN HÌNH ĐIỆN THOẠI
+        pages.forEach((p, index) => {
+            originalStyles.push({
+                width: p.style.width, height: p.style.height,
+                boxShadow: p.style.boxShadow, margin: p.style.margin
+            });
+            p.style.width = '794px'; 
+            p.style.height = '1122px'; // Chiều cao chuẩn A4 để không bị cắt chữ
+            p.style.boxShadow = 'none'; 
+            p.style.margin = '0'; 
+        });
+        
+        // Cố định wrapper để dàn trang chuẩn
+        const originalWrapperWidth = elementToCapture.style.width;
+        elementToCapture.style.width = '794px';
 
         const opt = {
             margin:       0,
             filename:     fileName,
             image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 }, // Giả lập cửa sổ hiển thị là 800px
+            jsPDF:        { unit: 'px', format: [794, 1122], orientation: 'portrait' }, // Khai báo rõ kích thước pixel trang A4
+            pagebreak:    { mode: 'css', before: '#page-2' } // Bắt buộc ngắt trang trước trang thứ 2
         };
 
         html2pdf().set(opt).from(elementToCapture).save().then(() => {
-            // Khôi phục giao diện
-            pages.forEach(p => { p.style.boxShadow = ''; p.style.marginBottom = ''; });
+            // Khôi phục lại giao diện như cũ
+            elementToCapture.style.width = originalWrapperWidth;
+            pages.forEach((p, index) => { 
+                p.style.width = originalStyles[index].width; 
+                p.style.height = originalStyles[index].height; 
+                p.style.boxShadow = originalStyles[index].boxShadow; 
+                p.style.margin = originalStyles[index].margin; 
+            });
             document.getElementById('loadingOverlay').style.display = 'none';
         }).catch(err => {
-            pages.forEach(p => { p.style.boxShadow = ''; p.style.marginBottom = ''; });
-            document.getElementById('loadingOverlay').style.display = 'none'; alert("Lỗi tạo PDF. Vui lòng thử lại!");
+            // Khôi phục giao diện nếu gặp lỗi
+            elementToCapture.style.width = originalWrapperWidth;
+            pages.forEach((p, index) => { 
+                p.style.width = originalStyles[index].width; 
+                p.style.height = originalStyles[index].height; 
+                p.style.boxShadow = originalStyles[index].boxShadow; 
+                p.style.margin = originalStyles[index].margin; 
+            });
+            document.getElementById('loadingOverlay').style.display = 'none'; 
+            alert("Lỗi tạo PDF. Vui lòng thử lại!");
         });
     }
 </script>
