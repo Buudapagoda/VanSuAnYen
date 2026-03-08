@@ -3,11 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sổ Tay Nghi Lễ Phật Giáo Tại Gia</title>
+    <title>Sổ Tay Nghi Lễ & Kịch Bản</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #8B5A2B; /* Màu nâu vân gỗ/áo tràng */
-            --bg-color: #FDF5E6; /* Màu nền vàng nhạt */
+            --red-wedding: #c0392b;
+            --bg-color: #f4ede3; 
             --text-color: #333;
         }
         body {
@@ -19,215 +23,152 @@
             padding: 20px;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: auto;
             background: white;
             padding: 30px;
             border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             border-top: 5px solid var(--primary-color);
         }
-        h1 {
-            text-align: center;
-            color: var(--primary-color);
-            border-bottom: 2px dashed var(--primary-color);
-            padding-bottom: 10px;
-        }
-        .selector-group {
-            margin: 20px 0;
-            text-align: center;
-        }
-        select {
-            padding: 10px;
-            font-size: 16px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            width: 80%;
-            max-width: 400px;
-            cursor: pointer;
-        }
-        .content-section {
-            display: none;
-            margin-top: 20px;
-            animation: fadeIn 0.5s;
-        }
-        .active {
-            display: block;
-        }
-        h2 { color: #A0522D; }
-        h3 { 
-            background-color: #F5DEB3; 
-            padding: 8px; 
-            border-left: 4px solid var(--primary-color);
-        }
-        .van-khan {
-            background-color: #f9f9f9;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 5px;
-            font-style: italic;
-            white-space: pre-wrap;
-        }
-        ul { padding-left: 20px; }
-        footer {
-            text-align: center;
-            margin-top: 30px;
-            font-size: 14px;
-            color: #777;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+        h1 { text-align: center; color: var(--primary-color); border-bottom: 2px dashed var(--primary-color); padding-bottom: 10px; text-transform: uppercase; font-size: 24px;}
+        
+        .selector-group { margin: 20px 0; text-align: center; background: #fdfaf6; padding: 20px; border-radius: 8px; border: 1px solid #e8dcc4;}
+        select { padding: 12px; font-size: 16px; border-radius: 5px; border: 1px solid #c19a6b; width: 100%; max-width: 500px; cursor: pointer; background: #fff; font-weight: bold; color: var(--primary-color);}
+        
+        .content-section { display: none; margin-top: 20px; animation: fadeIn 0.5s; }
+        .active { display: block; }
+        
+        /* Style cho phần Văn Khấn cơ bản */
+        .basic-ritual h2 { color: #A0522D; }
+        .basic-ritual h3 { background-color: #F5DEB3; padding: 8px 15px; border-left: 4px solid var(--primary-color); border-radius: 4px; font-size: 17px;}
+        .van-khan { background-color: #fcfcfc; padding: 20px; border: 1px solid #e0e0e0; border-radius: 5px; font-style: italic; white-space: pre-wrap; font-size: 15px; line-height: 1.8;}
+        
+        /* Style riêng cho phần Điều Khiển Đám Cưới */
+        .wedding-controls { background: #fff5f5; border: 1px solid #fadbd8; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .wedding-controls h3 { color: var(--red-wedding); margin-top: 0; border-bottom: 1px solid #fadbd8; padding-bottom: 10px;}
+        .form-row { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 15px; }
+        .form-group { flex: 1; min-width: 200px; }
+        .form-group label { display: block; font-weight: bold; font-size: 13px; margin-bottom: 5px; color: #555; }
+        .form-group input[type="text"], .form-group input[type="time"], .form-group input[type="date"], .form-group input[type="number"] { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-family: inherit;}
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; background: #fff; padding: 10px; border: 1px solid #eee; border-radius: 4px;}
+        .checkbox-group input { width: 18px; height: 18px; cursor: pointer; }
+        .checkbox-group label { font-weight: bold; cursor: pointer; color: #d35400; margin: 0; font-size: 14px;}
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase; color: white; font-size: 14px; transition: 0.3s; }
+        .btn-update { background-color: #27ae60; }
+        .btn-pdf { background-color: var(--red-wedding); }
+        .btn-img { background-color: #2980b9; }
+        .btn:hover { opacity: 0.85; transform: translateY(-1px); box-shadow: 0 4px 6px rgba(0,0,0,0.1);}
+
+        /* Style cho Kịch Bản Cưới A4 */
+        .export-wrapper { display: flex; justify-content: center; margin-top: 20px; overflow-x: auto; background: #e0e0e0; padding: 20px 0;}
+        .a4-page { background: white; width: 210mm; min-height: 297mm; padding: 20mm; box-sizing: border-box; box-shadow: 0 0 15px rgba(0,0,0,0.2); position: relative; background-image: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><text x="10" y="50" font-family="Arial" font-size="20" fill="%23fce4ec" transform="rotate(-45 50 50)">HỶ</text></svg>'); background-repeat: repeat; }
+        .a4-content { position: relative; z-index: 2; background: rgba(255,255,255,0.92); padding: 25px; border-radius: 10px; border: 1px solid #f9ebea; height: 100%;}
+        
+        .wd-title-box { text-align: center; margin-bottom: 25px; border-bottom: 2px solid var(--red-wedding); padding-bottom: 15px;}
+        .wd-title-box h1 { color: var(--red-wedding); margin: 0; font-size: 28pt; font-weight: bold; font-family: 'Times New Roman', serif; border: none;}
+        .wd-title-box h2 { color: #555; margin: 5px 0 0 0; font-size: 18pt; font-style: italic; font-weight: normal; }
+        .wd-couple { text-align: center; font-size: 24pt; font-weight: bold; color: var(--red-wedding); margin-bottom: 30px; font-family: 'Times New Roman', serif; text-transform: uppercase;}
+        
+        .timeline { position: relative; max-width: 100%; margin: 0 auto; font-family: 'Times New Roman', serif;}
+        .timeline::after { content: ''; position: absolute; width: 3px; background-color: #f1c40f; top: 0; bottom: 0; left: 100px; margin-left: -1.5px; }
+        .timeline-item { padding: 15px 0; position: relative; width: 100%; display: flex; align-items: flex-start; }
+        .time-box { width: 85px; padding-right: 15px; text-align: right; font-weight: bold; font-size: 18pt; color: var(--red-wedding); padding-top: 2px;}
+        .timeline-marker { position: absolute; width: 18px; height: 18px; background-color: white; border: 4px solid var(--red-wedding); border-radius: 50%; z-index: 1; left: 100px; transform: translateX(-50%); top: 20px; }
+        .content-box { padding-left: 25px; flex: 1; }
+        .content-box h3 { margin: 0 0 5px 0; font-size: 16pt; color: #333; text-transform: uppercase; background: none; border: none; padding: 0;}
+        .content-box p { margin: 0; font-size: 14pt; color: #555; line-height: 1.4; text-align: justify; }
+
+        .wd-note { margin-top: 40px; border: 1px dashed var(--red-wedding); padding: 15px; background: #fff9f9; font-size: 13.5pt; line-height: 1.5; text-align: justify; font-family: 'Times New Roman', serif; border-radius: 5px;}
+
+        /* CSS khi xuất file */
+        body.exporting-mode .container { padding: 0; box-shadow: none; border: none; max-width: none; background: transparent; }
+        body.exporting-mode h1, body.exporting-mode .selector-group, body.exporting-mode .wedding-controls, body.exporting-mode footer { display: none !important; }
+        body.exporting-mode .export-wrapper { margin: 0; padding: 0; background: transparent; }
+        body.exporting-mode .a4-page { box-shadow: none !important; margin: 0 !important; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Loading Overlay */
+        #loadingOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); color: white; z-index: 9999; justify-content: center; align-items: center; flex-direction: column; font-size: 18px; font-weight: bold; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid var(--red-wedding); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        @media (max-width: 768px) {
+            .btn-group { flex-direction: column; }
+            .a4-page { width: 100%; min-height: auto; padding: 10px; background-image: none;}
+            .a4-content { padding: 10px;}
+            .timeline::after { left: 65px; }
+            .time-box { width: 55px; font-size: 14pt; padding-right: 10px;}
+            .timeline-marker { left: 65px; width: 14px; height: 14px; top: 18px;}
+            .content-box { padding-left: 15px; }
+            .content-box h3 { font-size: 14pt; }
+            .content-box p { font-size: 12pt; }
+            .wd-title-box h1 { font-size: 20pt; }
+            .wd-couple { font-size: 18pt; }
         }
     </style>
 </head>
 <body>
 
+<div id="loadingOverlay"><div class="spinner"></div><div>Đang tạo file... Vui lòng đợi!</div></div>
+
 <div class="container">
-    <h1>Sổ Tay Nghi Lễ Tại Gia</h1>
+    <h1>Sổ Tay Nghi Lễ & Kịch Bản</h1>
     
     <div class="selector-group">
-        <label for="ritualSelect"><strong>Chọn Nghi Lễ: </strong></label><br><br>
+        <label for="ritualSelect" style="font-size: 18px; color: #555;"><strong>CHỌN CHUYÊN MỤC:</strong></label><br><br>
         <select id="ritualSelect" onchange="showRitual()">
-            <option value="">-- Vui lòng chọn một nghi lễ --</option>
-            <option value="cung_ong_ba">Cúng Ông Bà, Gia Tiên (Giỗ, Lễ Tết)</option>
-            <option value="cung_dong_tho">Cúng Động Thổ / Mở Móng / Khai Trương</option>
-            <option value="cung_ngoai_san">Cúng Ngoài Sân (Thí Thực / Cô Hồn)</option>
-            <option value="cung_mo">Cúng Xây Mộ / Tạ Mộ / Bốc Mộ</option>
-            <option value="cuoi_hoi">Nghi Lễ Cưới Hỏi (Gia Tiên)</option>
+            <option value="">-- Vui lòng chọn một hạng mục --</option>
+            <option value="cuoi_hoi">🎀 LẬP KỊCH BẢN ĐÁM CƯỚI TỰ ĐỘNG</option>
+            <option value="cung_ong_ba">🙏 Văn Khấn: Cúng Ông Bà, Gia Tiên</option>
+            <option value="cung_dong_tho">🏗️ Văn Khấn: Động Thổ / Khai Trương</option>
+            <option value="cung_ngoai_san">🍚 Văn Khấn: Thí Thực / Ngoài Sân</option>
+            <option value="cung_mo">🪦 Văn Khấn: Xây Mộ / Tạ Mộ</option>
         </select>
     </div>
 
-    <div id="displayArea">
-        </div>
+    <div id="displayArea"></div>
 
     <footer>
-        Phụng sự nhân sinh - Tài liệu tham khảo lưu hành nội bộ
+        Công cụ hỗ trợ Phong thủy & Tín ngưỡng - Lưu hành nội bộ
     </footer>
 </div>
 
 <script>
+    // --- DATA VĂN KHẤN CƠ BẢN ---
     const ritualsData = {
         cung_ong_ba: {
             title: "Cúng Ông Bà, Gia Tiên",
             meaning: "Thể hiện lòng tri ân, báo hiếu và cầu nguyện Tam Bảo gia hộ cho gia đạo bình an, độ trì cho cửu huyền thất tổ siêu sinh Tịnh Độ. Việc cúng chay giúp người mất không phải gánh thêm nghiệp sát sinh.",
-            offerings: [
-                "Hương (nhang), đèn (nến), hoa tươi, trái cây.",
-                "3 chén nước lọc (hoặc trà).",
-                "Mâm cơm chay tươm tất (xôi, chè, món xào, canh rau... tuyệt đối không dùng thịt cá).",
-                "Giấy cúng: Một ít tiền vàng mã tượng trưng (nhắc nhở gia đình từ từ giảm bớt, chủ yếu lấy tâm thành làm trọng)."
-            ],
-            vow: `Nam Mô Bổn Sư Thích Ca Mâu Ni Phật! (3 lần)
-Nam Mô A Di Đà Phật! (3 lần)
-
-Kính lạy Mười phương Chư Phật, chư Đại Bồ Tát.
-Kính lạy Cửu huyền thất tổ, nội ngoại gia tiên.
-
-Hôm nay là ngày... tháng... năm...
-Đệ tử con tên là:..., cùng toàn thể gia quyến ngụ tại:...
-
-Nhân ngày [Giỗ / Lễ Tết], gia đình con thiết lập đạo tràng, dâng chút lễ bạc tâm thành gồm hương hoa, trà quả, thực phẩm chay tịnh và chút kim ngân xuyến chỉ tượng trưng. Trước xin cúng dường mười phương Chư Phật, sau xin dâng lên Ông Bà Tổ Tiên.
-
-Chúng con cầu nguyện Tam Bảo gia hộ cho hương linh gia tiên được nghe kinh thính pháp, xả bỏ chấp niệm, siêu sinh Tịnh Độ. Đồng nguyện cầu cho gia đạo chúng con an lành, con cháu hiếu thuận, biết tu nhân tích đức.
-
-Nam Mô A Di Đà Phật! (3 lần - sau đó lạy 3 lạy)`
+            offerings: ["Hương (nhang), đèn (nến), hoa tươi, trái cây.", "3 chén nước lọc (hoặc trà).", "Mâm cơm chay tươm tất (tuyệt đối không dùng thịt cá).", "Giấy cúng cơ bản (nhắc nhở gia đình từ từ giảm bớt, chủ yếu lấy tâm thành làm trọng)."],
+            vow: `Nam Mô Bổn Sư Thích Ca Mâu Ni Phật! (3 lần)\nNam Mô A Di Đà Phật! (3 lần)\n\nKính lạy Mười phương Chư Phật, chư Đại Bồ Tát.\nKính lạy Cửu huyền thất tổ, nội ngoại gia tiên.\n\nHôm nay là ngày... tháng... năm...\nĐệ tử con tên là:..., cùng toàn thể gia quyến ngụ tại:...\n\nNhân ngày [Giỗ / Lễ Tết], gia đình con thiết lập đạo tràng, dâng chút lễ bạc tâm thành gồm hương hoa, trà quả, thực phẩm chay tịnh. Trước xin cúng dường mười phương Chư Phật, sau xin dâng lên Ông Bà Tổ Tiên.\n\nChúng con cầu nguyện Tam Bảo gia hộ cho hương linh gia tiên được nghe kinh thính pháp, xả bỏ chấp niệm, siêu sinh Tịnh Độ. Đồng nguyện cầu cho gia đạo an lành.\n\nNam Mô A Di Đà Phật! (3 lần - lạy 3 lạy)`
         },
         cung_dong_tho: {
             title: "Cúng Động Thổ / Mở Móng / Khai Trương",
             meaning: "Trình báo, xin phép chư Thiên, Thần linh, Thổ địa cai quản khu vực. Hồi hướng phước báu cho các vong linh nương tựa tại mảnh đất đó để công việc xây dựng, làm ăn hanh thông.",
-            offerings: [
-                "Mâm ngũ quả, bình hoa tươi (cúc, lay ơn).",
-                "3 chén nước trong, 3 chén chè, 3 đĩa xôi.",
-                "Bánh kẹo chay, trầu cau.",
-                "Giấy cúng: 1 bộ giấy cúng động thổ/khai trương cơ bản (vàng mã, tiền nẻ tượng trưng để đốt báo cáo Thần linh, không mua quá nhiều)."
-            ],
-            vow: `Nam Mô Bổn Sư Thích Ca Mâu Ni Phật! (3 lần)
-
-Kính lạy Mười phương Chư Phật, chư Đại Bồ Tát, chư Thiên, chư Thần Hộ Pháp.
-Kính lạy Tôn thần Bản cảnh Thành Hoàng, Ngài Bản xứ Thần linh Thổ Địa cai quản tại xứ này.
-
-Hôm nay là ngày... tháng... năm...
-Tín chủ con là:..., ngụ tại:...
-
-Nay con phát tâm [Khai trương cửa hàng / Động thổ / Mở móng xây nhà] tại địa chỉ:... Chúng con xin sắm sửa lễ chay thanh tịnh, cùng chút kim ngân lễ vật dâng lên các vị Tôn thần.
-
-Kính xin các Ngài quang giáng chứng minh tâm thành. Cầu xin các Ngài che chở cho công việc của chúng con được hanh thông, an toàn, nhân sự bình an. Chúng con xin nguyện làm việc thiện lành để hồi hướng phước báu này đến các vong linh tại khu vực, mong tất cả đều được an vui.
-
-Nam Mô A Di Đà Phật! (3 lần - sau đó lạy 3 lạy)`
+            offerings: ["Mâm ngũ quả, bình hoa tươi.", "3 chén nước trong, 3 chén chè, 3 đĩa xôi.", "Bánh kẹo chay, trầu cau.", "1 bộ giấy cúng động thổ/khai trương cơ bản."],
+            vow: `Nam Mô Bổn Sư Thích Ca Mâu Ni Phật! (3 lần)\n\nKính lạy Mười phương Chư Phật, chư Đại Bồ Tát, chư Thần Hộ Pháp.\nKính lạy Tôn thần Bản cảnh Thành Hoàng, Bản xứ Thần linh Thổ Địa cai quản xứ này.\n\nHôm nay là ngày... tháng... năm...\nTín chủ con là:..., ngụ tại:...\n\nNay con phát tâm [Khai trương / Động thổ xây nhà] tại địa chỉ:... Xin sắm sửa lễ chay thanh tịnh dâng lên các vị Tôn thần.\n\nKính xin các Ngài quang giáng chứng minh. Cầu xin các Ngài che chở cho công việc của chúng con được hanh thông, an toàn. Chúng con xin nguyện làm việc thiện lành để hồi hướng phước báu đến các vong linh tại khu vực, mong tất cả an vui.\n\nNam Mô A Di Đà Phật! (3 lần - lạy 3 lạy)`
         },
         cung_ngoai_san: {
             title: "Cúng Ngoài Sân (Thí Thực / Cô Hồn)",
             meaning: "Nghi thức rải tâm từ bi của người Phật tử đến các chúng sinh vô hình, đói khát. Khuyên họ quy y Tam Bảo, sớm thoát vòng đau khổ.",
-            offerings: [
-                "1 nồi cháo trắng loãng, 1 đĩa muối gạo.",
-                "Ly nước lọc, bánh kẹo, bỏng ngô, khoai luộc (tuyệt đối không cúng đồ mặn để tránh oan gia trái chủ).",
-                "Giấy cúng: 1 xấp tiền vàng lẻ tượng trưng để bố thí (khuyên Phật tử dần dần thay bằng việc phóng sinh hoặc ấn tống kinh sách)."
-            ],
-            vow: `Nam Mô A Di Đà Phật! (3 lần)
-
-Kính lạy chư Phật, chư Bồ Tát, Đức Đại Bi Quan Thế Âm Bồ Tát chứng minh.
-
-Hôm nay ngày... tháng... năm...
-Tín chủ con tên là:... ngụ tại:...
-
-Bằng tâm từ bi, con xin thiết lập mâm cúng thí thực chay tịnh ngoài hiên nhà. Xin thỉnh mời các chư vị khuất mày khuất mặt, thập loại cô hồn, các vong linh vô tự tại khu vực này cùng về đây thọ tài hưởng thực.
-
-Nguyện nhờ oai thần của Chư Phật, biến thức ăn này thành cam lộ, giúp các vị no đủ. Khuyên các vị hãy xả bỏ oán hờn, nương tựa Tam Bảo, thường niệm "Nam Mô A Di Đà Phật" để sớm thoát vòng đau khổ, siêu sinh Tịnh Độ. 
-
-(Sau khi khấn xong, niệm: "Nam Mô A Di Đà Phật" 21 lần. Cuối cùng đem đốt chút giấy tiền vàng và rải gạo muối, nước ra ngoài đường).`
+            offerings: ["1 nồi cháo trắng loãng, 1 đĩa muối gạo.", "Ly nước lọc, bánh kẹo, bỏng ngô, khoai luộc (tuyệt đối không cúng đồ mặn).", "1 xấp tiền vàng lẻ tượng trưng."],
+            vow: `Nam Mô A Di Đà Phật! (3 lần)\n\nKính lạy chư Phật, chư Bồ Tát, Đức Đại Bi Quan Thế Âm Bồ Tát chứng minh.\n\nHôm nay ngày... tháng... năm...\nTín chủ con tên là:... ngụ tại:...\n\nBằng tâm từ bi, con xin thiết lập mâm cúng thí thực chay tịnh ngoài hiên nhà. Xin thỉnh mời thập loại cô hồn, các vong linh vô tự tại khu vực này cùng về đây thọ tài hưởng thực.\n\nNguyện nhờ oai thần của Chư Phật, biến thức ăn này thành cam lộ, giúp các vị no đủ. Khuyên các vị hãy xả bỏ oán hờn, nương tựa Tam Bảo, thường niệm "Nam Mô A Di Đà Phật" để sớm siêu sinh Tịnh Độ.\n\n(Niệm "Nam Mô A Di Đà Phật" 21 lần. Cuối cùng rải gạo muối, nước ra ngoài đường).`
         },
         cung_mo: {
             title: "Cúng Xây Mộ / Tạ Mộ / Bốc Mộ",
-            meaning: "Báo cáo với Thần linh cai quản nghĩa trang và cầu siêu cho vong linh người quá cố. Dùng đồ chay để người mất được nhẹ nhàng, không thêm nghiệp bám víu.",
-            offerings: [
-                "2 mâm lễ: 1 mâm cúng Thần linh Thổ Địa (hoa quả, nước, trầu cau), 1 mâm cúng tại mộ người thân.",
-                "Mâm cúng mộ: Trái cây, hoa tươi, nhang đèn, xôi, chè hoặc 1 món xào chay đơn giản.",
-                "Giấy cúng: Vài xấp tiền vàng, quần áo giấy tượng trưng (đốt để yên tâm theo tập tục, nhưng người cúng cần dốc tâm niệm Phật cầu siêu mới là chính)."
-            ],
-            vow: `Nam Mô A Di Đà Phật! (3 lần)
-
-Kính lạy mười phương Chư Phật, chư Tôn thần cai quản Thổ Địa tại khu vực nghĩa trang này.
-
-Hôm nay là ngày... tháng... năm...
-Tín chủ con là:..., đại diện cho gia quyến.
-
-Chúng con xin đến đây thành tâm dâng lễ chay thanh tịnh, trước tạ ơn chư vị Thần linh đã che chở, sau xin phép được tiến hành [Xây mộ / Tạ mộ / Bốc mộ] cho hương linh là: [Tên người mất], mất ngày...
-
-Cầu xin chư vị Thần linh độ trì cho công việc được thuận lợi, viên mãn. Chúng con cũng thành tâm cầu xin chư Phật phóng quang tiếp dẫn hương linh [Tên người mất] rũ bỏ trần lao, nương theo ánh sáng Phật pháp mà siêu sinh về cõi lành. 
-
-Nam Mô A Di Đà Phật! (3 lần)`
-        },
-        cuoi_hoi: {
-            title: "Nghi Lễ Cưới Hỏi (Trước Bàn Thờ Gia Tiên)",
-            meaning: "Trình báo ông bà tổ tiên về hỷ sự của con cháu. Mong mỏi sự chứng minh của tổ tiên và cầu nguyện Phật pháp gia hộ cho đôi uyên ương biết sống nhẫn nhịn, hòa thuận và hướng thiện.",
-            offerings: [
-                "Hương, hoa tươi (thường dùng hoa huệ đỏ, lay ơn, cúc, sen...), trái cây ngũ quả.",
-                "Trà, xôi gấc, bánh phu thê (su sê).",
-                "Mâm cỗ mặn thường để đãi khách bên ngoài, nhưng trên bàn thờ gia tiên tuyệt đối chỉ dâng đồ chay thanh tịnh.",
-                "Giấy cúng: Một ít tiền vàng mã đặt mâm gia tiên để trình báo theo lệ làng."
-            ],
-            vow: `Nam Mô Bổn Sư Thích Ca Mâu Ni Phật! (3 lần)
-
-Kính lạy Cửu huyền thất tổ, nội ngoại gia tiên họ [Họ của gia đình].
-
-Hôm nay là ngày lành tháng tốt, ngày... tháng... năm...
-Đệ tử con tên là:..., cùng toàn thể gia quyến.
-
-Nay gia đình có hỷ sự, cử hành lễ [Đính hôn / Tân hôn] cho hai cháu:
-Trưởng nam / Thứ nam: ...
-Trưởng nữ / Thứ nữ: ...
-
-Chúng con thành tâm sắm sửa hương hoa, trà quả, lễ chay thanh tịnh dâng lên bàn thờ gia tiên. Kính thỉnh Ông Bà, Tổ Tiên nội ngoại về chứng giám cho tình duyên của hai cháu.
-
-Cầu nguyện Tam Bảo và Tổ Tiên gia hộ cho vợ chồng tân lang tân nương được trăm năm hạnh phúc, thuận hòa êm ấm, biết nhường nhịn nhau, cùng nhau tu nhân tích đức, làm tròn hiếu đạo với hai bên gia đình.
-
-Nam Mô A Di Đà Phật! (3 lần - Tân lang tân nương lạy 4 lạy)`
+            meaning: "Báo cáo với Thần linh cai quản nghĩa trang và cầu siêu cho vong linh người quá cố. Dùng đồ chay để người mất được nhẹ nhàng.",
+            offerings: ["Mâm cúng Thần linh Thổ Địa (hoa quả, nước, trầu cau).", "Mâm cúng mộ: Trái cây, hoa tươi, nhang đèn, xôi, chè hoặc đồ chay.", "Một ít tiền vàng, quần áo giấy tượng trưng."],
+            vow: `Nam Mô A Di Đà Phật! (3 lần)\n\nKính lạy mười phương Chư Phật, chư Tôn thần cai quản Thổ Địa tại khu vực nghĩa trang này.\n\nHôm nay là ngày... tháng... năm...\nTín chủ con là:..., đại diện cho gia quyến.\n\nChúng con xin đến đây thành tâm dâng lễ chay thanh tịnh, tạ ơn chư vị Thần linh đã che chở, xin phép được tiến hành [Xây mộ / Tạ mộ] cho hương linh là: [Tên người mất], mất ngày...\n\nCầu xin chư vị Thần linh độ trì cho công việc thuận lợi. Chúng con thành tâm cầu xin chư Phật phóng quang tiếp dẫn hương linh rũ bỏ trần lao, nương theo ánh sáng Phật pháp siêu sinh về cõi lành.\n\nNam Mô A Di Đà Phật! (3 lần)`
         }
     };
 
+    // --- HÀM XỬ LÝ CHUYỂN ĐỔI GIAO DIỆN ---
     function showRitual() {
-        const selectBox = document.getElementById("ritualSelect");
-        const selectedValue = selectBox.value;
+        const selectedValue = document.getElementById("ritualSelect").value;
         const displayArea = document.getElementById("displayArea");
 
         if (!selectedValue) {
@@ -236,25 +177,229 @@ Nam Mô A Di Đà Phật! (3 lần - Tân lang tân nương lạy 4 lạy)`
             return;
         }
 
-        const data = ritualsData[selectedValue];
-        
-        let offeringsHtml = data.offerings.map(item => `<li>${item}</li>`).join("");
+        // 1. NẾU LÀ KỊCH BẢN ĐÁM CƯỚI
+        if (selectedValue === "cuoi_hoi") {
+            displayArea.innerHTML = `
+                <div class="content-section active">
+                    <div class="wedding-controls">
+                        <h3><i class="fa-solid fa-sliders"></i> THÔNG SỐ KỊCH BẢN CƯỚI</h3>
+                        <div class="form-row">
+                            <div class="form-group"><label>Chú Rể:</label><input type="text" id="wdGroom" value="NGUYỄN VĂN A"></div>
+                            <div class="form-group"><label>Cô Dâu:</label><input type="text" id="wdBride" value="TRẦN THỊ B"></div>
+                            <div class="form-group"><label>Ngày Cử Hành:</label><input type="date" id="wdDate"></div>
+                        </div>
 
-        displayArea.innerHTML = `
-            <div class="content-section active">
-                <h2>${data.title}</h2>
-                <h3>Ý Nghĩa</h3>
-                <p>${data.meaning}</p>
-                
-                <h3>Lễ Vật Chuẩn Bị</h3>
-                <ul>
-                    ${offeringsHtml}
-                </ul>
-                
-                <h3>Văn Khấn</h3>
-                <div class="van-khan">${data.vow}</div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="chkOneSide" onchange="toggleTravelInputs()">
+                            <label for="chkOneSide">Gia đình chỉ tổ chức 1 điểm (Bỏ qua thời gian đi đường)</label>
+                        </div>
+                        <div class="checkbox-group mb-3">
+                            <input type="checkbox" id="chkSkipLenDen" onchange="generateTimeline()">
+                            <label for="chkSkipLenDen">Bỏ qua nghi thức LÊN ĐÈN (Theo phong tục riêng / Hoàn cảnh tế nhị)</label>
+                        </div>
+
+                        <div class="form-row" style="background: #fff; padding: 15px; border-radius: 5px; border: 1px solid #ddd;">
+                            <div class="form-group">
+                                <label style="color:#2980b9;">1. Giờ Xuất Hành (Bắt đầu):</label>
+                                <input type="time" id="wdStartTime" value="07:00" onchange="generateTimeline()">
+                            </div>
+                            <div class="form-group travel-input">
+                                <label>Phút đi xe (Trai -> Gái):</label>
+                                <input type="number" id="wdTravelTo" value="45" min="0" onchange="generateTimeline()">
+                            </div>
+                            <div class="form-group travel-input">
+                                <label>Phút làm lễ nhà Gái:</label>
+                                <input type="number" id="wdStay" value="60" min="0" onchange="generateTimeline()">
+                            </div>
+                            <div class="form-group travel-input">
+                                <label>Phút đi xe (Gái -> Trai):</label>
+                                <input type="number" id="wdTravelBack" value="45" min="0" onchange="generateTimeline()">
+                            </div>
+                            <div class="form-group">
+                                <label style="color:#8e44ad;">Giờ Đón Khách (Đãi tiệc):</label>
+                                <input type="time" id="wdPartyTime" value="11:30" onchange="generateTimeline()">
+                            </div>
+                        </div>
+
+                        <div class="btn-group">
+                            <button class="btn btn-update" onclick="generateTimeline()"><i class="fa-solid fa-rotate"></i> Cập Nhật Kịch Bản</button>
+                            <button class="btn btn-img" onclick="exportWedding('img')"><i class="fa-solid fa-image"></i> Tải Ảnh Zalo</button>
+                            <button class="btn btn-pdf" onclick="exportWedding('pdf')"><i class="fa-solid fa-file-pdf"></i> Tải PDF In Ấn</button>
+                        </div>
+                    </div>
+
+                    <div class="export-wrapper">
+                        <div class="a4-page" id="weddingExportTarget">
+                            <div class="a4-content">
+                                <div class="wd-title-box">
+                                    <h1>KỊCH BẢN & LỊCH TRÌNH</h1>
+                                    <h2>Lễ Vu Quy - Tân Hôn</h2>
+                                    <div id="outDate" style="margin-top: 12px; font-size: 15pt; font-weight: bold; color: #333;">Ngày ... tháng ... năm ...</div>
+                                </div>
+                                <div class="wd-couple">
+                                    <span id="outGroom">CHÚ RỂ</span> <span style="color:#555; font-size: 18pt; margin: 0 15px;">&hearts;</span> <span id="outBride">CÔ DÂU</span>
+                                </div>
+                                
+                                <div class="timeline" id="timelineContainer">
+                                    </div>
+
+                                <div class="wd-note">
+                                    <b>🙏 Đôi dòng nhắn nhủ:</b> Kịch bản thời gian mang tính chất tham khảo và định hướng để mọi việc trôi chảy. Cốt lõi của cuộc sống hôn nhân nằm ở sự tôn trọng, nhẫn nhịn và phước đức tự tu tập. Hai họ hoàn toàn có thể linh hoạt điều chỉnh trước sau một chút cho phù hợp với tình hình giao thông thực tế để mọi người được thoải mái. Sự bình an, hoan hỉ trong ngày trọng đại chính là giờ lành tốt nhất!
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            // Set default date to today and generate initial timeline
+            document.getElementById("wdDate").valueAsDate = new Date();
+            generateTimeline();
+        } 
+        // 2. NẾU LÀ VĂN KHẤN CƠ BẢN
+        else {
+            const data = ritualsData[selectedValue];
+            let offeringsHtml = data.offerings.map(item => `<li>${item}</li>`).join("");
+            displayArea.innerHTML = `
+                <div class="content-section active basic-ritual">
+                    <h2><i class="fa-solid fa-book-open"></i> ${data.title}</h2>
+                    <h3>1. Ý Nghĩa & Lời Khuyên</h3>
+                    <p style="font-size: 15px;">${data.meaning}</p>
+                    
+                    <h3>2. Lễ Vật Chuẩn Bị</h3>
+                    <ul style="font-size: 15px; margin-bottom: 20px;">${offeringsHtml}</ul>
+                    
+                    <h3>3. Nội Dung Văn Khấn</h3>
+                    <div class="van-khan">${data.vow}</div>
+                </div>
+            `;
+        }
+    }
+
+    // --- LOGIC TÍNH TOÁN GIỜ ĐÁM CƯỚI ---
+    function addMinutes(timeStr, minsToAdd) {
+        if (!timeStr) return "00:00";
+        let [hours, minutes] = timeStr.split(':').map(Number);
+        let date = new Date();
+        date.setHours(hours, minutes, 0, 0);
+        date.setMinutes(date.getMinutes() + Number(minsToAdd));
+        return String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+    }
+
+    function toggleTravelInputs() {
+        const isOneSide = document.getElementById("chkOneSide").checked;
+        const inputs = document.querySelectorAll(".travel-input");
+        inputs.forEach(el => el.style.display = isOneSide ? "none" : "block");
+        generateTimeline();
+    }
+
+    function formatDateVN(dateStr) {
+        if(!dateStr) return "Ngày ... tháng ... năm ...";
+        let d = new Date(dateStr);
+        return `Ngày ${d.getDate().toString().padStart(2,'0')} tháng ${(d.getMonth()+1).toString().padStart(2,'0')} năm ${d.getFullYear()}`;
+    }
+
+    function generateTimeline() {
+        // Cập nhật text Header
+        document.getElementById('outGroom').innerText = document.getElementById('wdGroom').value.toUpperCase() || "CHÚ RỂ";
+        document.getElementById('outBride').innerText = document.getElementById('wdBride').value.toUpperCase() || "CÔ DÂU";
+        document.getElementById('outDate').innerText = formatDateVN(document.getElementById('wdDate').value);
+
+        // Lấy thông số cấu hình
+        const isOneSide = document.getElementById("chkOneSide").checked;
+        const skipLenDen = document.getElementById("chkSkipLenDen").checked;
+        
+        let startTime = document.getElementById("wdStartTime").value;
+        let tTo = isOneSide ? 0 : parseInt(document.getElementById("wdTravelTo").value || 0);
+        let tStay = isOneSide ? 0 : parseInt(document.getElementById("wdStay").value || 0);
+        let tBack = isOneSide ? 0 : parseInt(document.getElementById("wdTravelBack").value || 0);
+        let partyTime = document.getElementById("wdPartyTime").value;
+
+        // Tính mốc giờ
+        let tDenNhaGai = addMinutes(startTime, tTo);
+        let tLenDen = addMinutes(tDenNhaGai, 15); // Lên đèn sau khi tới 15p
+        let tRuocDau = addMinutes(tDenNhaGai, tStay); 
+        let tNhapGia = addMinutes(tRuocDau, tBack);
+
+        const timelineContainer = document.getElementById("timelineContainer");
+        let html = "";
+
+        if (isOneSide) {
+            // KỊCH BẢN 1 ĐIỂM
+            html += buildItem(startTime, "Bắt Đầu Buổi Lễ", "Hai bên gia đình tập trung đông đủ. Đại diện nhà trai phát biểu lý do, trao sính lễ cho nhà gái.");
+            if (!skipLenDen) {
+                html += buildItem(addMinutes(startTime, 15), "Lên Đèn & Cúng Gia Tiên", "<b>Nghi thức thiêng liêng.</b> Trưởng tộc thắp sáng cặp nến Long Phụng dâng lên bàn thờ. Cô dâu chú rể dâng hương báo cáo tổ tiên, tiến hành trao nhẫn và nữ trang.", true);
+            } else {
+                html += buildItem(addMinutes(startTime, 15), "Trao Nhẫn & Trà Nước", "Chú rể trao nhẫn cưới cho cô dâu. Hai họ tiến hành trao quà, nữ trang. Cô dâu chú rể dâng trà mời các bậc trưởng bối.");
+            }
+            html += buildItem(addMinutes(startTime, 45), "Ra Mắt Họ Hàng", "Hai họ chung vui, chụp ảnh kỷ niệm gia đình.");
+        } else {
+            // KỊCH BẢN CHUẨN (CÓ ĐI ĐƯỜNG)
+            html += buildItem(startTime, "Đoàn Nhà Trai Xuất Hành", "Chú rể cùng họ nhà trai chuẩn bị sính lễ khởi hành sang nhà gái. Khởi hành giờ lành để vạn sự hanh thông.");
+            html += buildItem(tDenNhaGai, "Trao Sính Lễ & An Tọa", "Đoàn nhà trai đến cổng. Đội bưng quả hai họ trao nhận sính lễ. Hai gia đình an tọa, đại diện nhà trai phát biểu.");
+            
+            if (!skipLenDen) {
+                html += buildItem(tLenDen, "Giờ Lên Đèn & Cúng Gia Tiên", "<b>Nghi thức thiêng liêng nhất.</b> Trưởng tộc thắp sáng cặp nến Long Phụng dâng lên bàn thờ. Cô dâu chú rể dâng hương trình báo tổ tiên. Sau đó trao nhẫn và nữ trang.", true);
+            } else {
+                html += buildItem(tLenDen, "Trao Nhẫn & Nữ Trang", "Cô dâu ra mắt hai họ. Chú rể trao nhẫn cưới. Hai họ tiến hành trao quà, nữ trang. Vợ chồng dâng trà mời trưởng bối.");
+            }
+
+            html += buildItem(tRuocDau, "Giờ Xuất Giá (Rước Dâu)", "Đại diện nhà trai xin phép rước dâu. Cô dâu bái biệt cha mẹ đẻ và theo chú rể ra xe hoa. <i style='font-size:13pt; color:#666;'>(Khi bước đi, cô dâu hướng thẳng về phía trước, tránh ngoái đầu nhìn lại).</i>", true);
+            html += buildItem(tNhapGia, "Giờ Nhập Gia (Về Nhà Trai)", "Cô dâu bước qua cửa nhà chồng. Vợ chồng dâng hương lên bàn thờ gia tiên họ nội, ra mắt họ hàng nhà trai.");
+        }
+
+        // Mục Đãi Tiệc (Luôn có ở cuối nếu có nhập giờ)
+        if (partyTime) {
+            html += buildItem(partyTime, "Đón Khách Dự Tiệc", "Cô dâu chú rể cùng hai bên gia đình di chuyển ra sảnh tiệc để đón tiếp quan khách, nâng ly chúc mừng hạnh phúc.");
+        }
+
+        timelineContainer.innerHTML = html;
+    }
+
+    function buildItem(time, title, desc, isHighlight = false) {
+        let colorClass = isHighlight ? "color: var(--red-wedding);" : "color: #333;";
+        let markerBg = isHighlight ? "background-color: #fdf2e9;" : "background-color: white;";
+        return `
+            <div class="timeline-item">
+                <div class="time-box">${time}</div>
+                <div class="timeline-marker" style="${markerBg}"></div>
+                <div class="content-box">
+                    <h3 style="${colorClass}">${title}</h3>
+                    <p>${desc}</p>
+                </div>
             </div>
         `;
+    }
+
+    // --- XUẤT FILE ẢNH & PDF ---
+    function exportWedding(type) {
+        document.getElementById('loadingOverlay').style.display = 'flex';
+        document.body.classList.add('exporting-mode');
+        const target = document.getElementById('weddingExportTarget');
+
+        setTimeout(() => {
+            if (type === 'img') {
+                target.style.width = '794px'; // Fix chuẩn để ảnh nét
+                html2canvas(target, { scale: 2, useCORS: true, backgroundColor: "#ffffff" }).then(canvas => {
+                    let link = document.createElement('a'); 
+                    link.href = canvas.toDataURL("image/png"); 
+                    link.download = "Lich_Trinh_Cuoi.png";
+                    link.click(); 
+                    finishExport(target);
+                }).catch(err => { finishExport(target); alert("Lỗi tạo ảnh!"); });
+            } else {
+                const opt = {
+                    margin: 0, filename: "Lich_Trinh_Cuoi.pdf", image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(target).save().then(() => finishExport(target)).catch(err => { finishExport(target); alert("Lỗi tạo PDF!"); });
+            }
+        }, 300);
+    }
+
+    function finishExport(target) {
+        target.style.width = '';
+        document.body.classList.remove('exporting-mode');
+        document.getElementById('loadingOverlay').style.display = 'none';
     }
 </script>
 
