@@ -41,6 +41,7 @@
         .result-title {
             font-weight: bold; color: #8b4513; font-size: 1.2em; margin-bottom: 10px;
             border-bottom: 1px dashed #c19a6b; padding-bottom: 5px; text-transform: uppercase;
+            margin-top: 20px;
         }
         
         .info-card {
@@ -49,20 +50,32 @@
         .info-card div { margin-bottom: 5px; }
         
         table.analysis-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; font-size: 14px; background: #fff;}
-        table.analysis-table th, table.analysis-table td { padding: 10px; border: 1px solid #dcdcdc; text-align: left; }
+        table.analysis-table th, table.analysis-table td { padding: 10px; border: 1px solid #dcdcdc; text-align: left; vertical-align: top; }
         table.analysis-table th { background-color: #f0eae1; color: #8b4513; }
+        
         .t-tot { color: #1b5e20; font-weight: bold; }
         .t-xau { color: #b71c1c; font-weight: bold; }
         .t-binh { color: #0d47a1; font-weight: bold; }
 
-        .month-box {
-            background-color: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; border-radius: 4px; margin-bottom: 20px;
+        .cung-desc {
+            font-size: 13px; font-style: italic; color: #555; margin-top: 5px; display: block; font-weight: normal;
         }
-        .month-box ul { margin: 5px 0 0 0; padding-left: 20px; }
+
+        .month-box-container {
+            display: flex; flex-direction: column; gap: 15px; margin-bottom: 20px;
+        }
+        .month-box-good {
+            background-color: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; border-radius: 4px;
+        }
+        .month-box-bad {
+            background-color: #ffebee; border-left: 4px solid #f44336; padding: 15px; border-radius: 4px;
+        }
+        .month-box-container ul { margin: 8px 0 0 0; padding-left: 20px; font-size: 14px;}
+        .month-box-container li { margin-bottom: 5px; }
 
         .note {
-            font-size: 0.9em; font-style: italic; color: #2e7d32; margin-top: 20px;
-            padding: 15px; background: #e8f5e9; border-radius: 6px; line-height: 1.5;
+            font-size: 0.9em; font-style: italic; color: #2e7d32; margin-top: 30px;
+            padding: 15px; background: #e8f5e9; border-radius: 6px; line-height: 1.5; border: 1px solid #c8e6c9;
         }
 
         @media screen and (max-width: 600px) {
@@ -112,10 +125,21 @@
     const CAN = ["Canh", "Tân", "Nhâm", "Quý", "Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ"];
     const CHI = ["Thân", "Dậu", "Tuất", "Hợi", "Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi"];
 
+    // --- Ý NGHĨA 8 CUNG BÁT TRẠCH ---
+    const Y_NGHIA_CUNG = {
+        "Sinh Khí": "Mang ý nghĩa sinh sôi, nảy nở. Vợ chồng hợp cung này gia đạo êm ấm, làm ăn phát đạt, con cái khỏe mạnh, thông minh, vượng khí dồi dào.",
+        "Diên Niên": "(Còn gọi là Phúc Đức) Vợ chồng hòa thuận, gắn kết bền lâu, trường thọ. Gia đình hạnh phúc, con cháu sung túc, có quý nhân phù trợ.",
+        "Thiên Y": "Mang ý nghĩa sức khỏe, tiêu trừ bệnh tật. Vợ chồng gặp cung này tâm tính hiền hòa, gia đạo bình an, gặp hung hóa cát, được lộc trời ban.",
+        "Phục Vị": "Mang ý nghĩa bình yên, ổn định. Tình duyên vợ chồng êm đềm, không sóng gió, sự nghiệp vững chắc, con cái hiếu thuận.",
+        "Tuyệt Mệnh": "(Đại Hung) Mang ý nghĩa chia lìa, bệnh tật. Vợ chồng dễ xung khắc mạnh, hao tài tốn của, sức khỏe suy giảm. Cần tích đức hành thiện nhiều để hóa giải.",
+        "Ngũ Quỷ": "(Đại Hung) Mang ý nghĩa tai họa, rủi ro. Dễ gặp chuyện thị phi, kiện tụng, vợ chồng hay cãi vã, con cái ngang bướng, làm ăn trắc trở.",
+        "Lục Sát": "(Hung) Mang ý nghĩa sát khí, hao mòn. Gia đạo hay lục đục, bất hòa, dễ gặp rắc rối về tình cảm, tiền bạc hao hụt, sự nghiệp lận đận.",
+        "Họa Hại": "(Hung) Mang ý nghĩa xui xẻo, khó khăn. Vợ chồng dễ gặp chuyện buồn phiền, tiểu nhân quấy phá, làm việc gì cũng khó thành, dễ mệt mỏi tinh thần."
+    };
+
     // --- 2. THUẬT TOÁN TÍNH TOÁN ---
     function layCanChi(nam) { return CAN[nam % 10] + " " + CHI[nam % 12]; }
 
-    // Tính Cung Phi (Đã sửa lỗi đồng bộ thuật toán cho mọi năm)
     function tinhSoRutGon(nam) {
         let sum = 0;
         while(nam > 0 || sum > 9) {
@@ -127,19 +151,13 @@
     
     function layCungPhi(nam, isNam) {
         let x = tinhSoRutGon(nam);
-        // Áp dụng 1 công thức duy nhất chạy xuyên suốt các thế kỷ
         let cungNum = isNam ? (11 - x) % 9 : (4 + x) % 9;
-        
         if (cungNum === 0) cungNum = 9;
-        
-        // Theo bát quái, cung trung cung (số 5) nam quy về Khôn, nữ quy về Cấn
         if (cungNum === 5) return isNam ? "Khôn" : "Cấn"; 
-        
         const mapCung = {1:"Khảm", 2:"Khôn", 3:"Chấn", 4:"Tốn", 6:"Càn", 7:"Đoài", 8:"Cấn", 9:"Ly"};
         return mapCung[cungNum];
     }
 
-    // Tính Mạng (Ngũ Hành Nạp Âm)
     function tinhMang(nam) {
         let can = CAN[nam % 10]; let chi = CHI[nam % 12];
         let valCan = 0, valChi = 0;
@@ -196,28 +214,30 @@
 
     function soSanhCung(c1, c2) {
         let hiepCung = bangTraCung[c1][c2];
+        let moTa = Y_NGHIA_CUNG[hiepCung];
+        
         if (["Sinh Khí", "Diên Niên", "Thiên Y", "Phục Vị"].includes(hiepCung)) {
-            return { hiep: hiepCung, class: "t-tot" };
+            return { hiep: hiepCung, class: "t-tot", desc: moTa };
         } else {
-            return { hiep: hiepCung, class: "t-xau" };
+            return { hiep: hiepCung, class: "t-xau", desc: moTa };
         }
     }
 
-    // --- 4. THÁNG CƯỚI THEO TUỔI NỮ ---
-    function thangCuoiTot(chiVo) {
+    // --- 4. THÁNG CƯỚI THEO TUỔI NỮ (Đã bổ sung tháng Kỵ) ---
+    function thangCuoi(chiVo) {
         const rules = {
-            "Tý": { dl: "Tháng 6, Tháng 12", tl: "Tháng 1, Tháng 7" },
-            "Ngọ": { dl: "Tháng 6, Tháng 12", tl: "Tháng 1, Tháng 7" },
-            "Sửu": { dl: "Tháng 5, Tháng 11", tl: "Tháng 4, Tháng 10" },
-            "Mùi": { dl: "Tháng 5, Tháng 11", tl: "Tháng 4, Tháng 10" },
-            "Dần": { dl: "Tháng 2, Tháng 8", tl: "Tháng 3, Tháng 9" },
-            "Thân": { dl: "Tháng 2, Tháng 8", tl: "Tháng 3, Tháng 9" },
-            "Mão": { dl: "Tháng 1, Tháng 7", tl: "Tháng 6, Tháng 12" },
-            "Dậu": { dl: "Tháng 1, Tháng 7", tl: "Tháng 6, Tháng 12" },
-            "Thìn": { dl: "Tháng 4, Tháng 10", tl: "Tháng 5, Tháng 11" },
-            "Tuất": { dl: "Tháng 4, Tháng 10", tl: "Tháng 5, Tháng 11" },
-            "Tỵ": { dl: "Tháng 3, Tháng 9", tl: "Tháng 2, Tháng 8" },
-            "Hợi": { dl: "Tháng 3, Tháng 9", tl: "Tháng 2, Tháng 8" }
+            "Tý": { dl: "Tháng 6, Tháng 12", tl: "Tháng 1, Tháng 7", ongco: "Tháng 2, Tháng 8", phumau: "Tháng 3, Tháng 9", phuchu: "Tháng 4, Tháng 10", nuthan: "Tháng 5, Tháng 11" },
+            "Ngọ": { dl: "Tháng 6, Tháng 12", tl: "Tháng 1, Tháng 7", ongco: "Tháng 2, Tháng 8", phumau: "Tháng 3, Tháng 9", phuchu: "Tháng 4, Tháng 10", nuthan: "Tháng 5, Tháng 11" },
+            "Sửu": { dl: "Tháng 5, Tháng 11", tl: "Tháng 4, Tháng 10", ongco: "Tháng 3, Tháng 9", phumau: "Tháng 2, Tháng 8", phuchu: "Tháng 1, Tháng 7", nuthan: "Tháng 6, Tháng 12" },
+            "Mùi": { dl: "Tháng 5, Tháng 11", tl: "Tháng 4, Tháng 10", ongco: "Tháng 3, Tháng 9", phumau: "Tháng 2, Tháng 8", phuchu: "Tháng 1, Tháng 7", nuthan: "Tháng 6, Tháng 12" },
+            "Dần": { dl: "Tháng 2, Tháng 8", tl: "Tháng 3, Tháng 9", ongco: "Tháng 4, Tháng 10", phumau: "Tháng 5, Tháng 11", phuchu: "Tháng 6, Tháng 12", nuthan: "Tháng 1, Tháng 7" },
+            "Thân": { dl: "Tháng 2, Tháng 8", tl: "Tháng 3, Tháng 9", ongco: "Tháng 4, Tháng 10", phumau: "Tháng 5, Tháng 11", phuchu: "Tháng 6, Tháng 12", nuthan: "Tháng 1, Tháng 7" },
+            "Mão": { dl: "Tháng 1, Tháng 7", tl: "Tháng 6, Tháng 12", ongco: "Tháng 5, Tháng 11", phumau: "Tháng 4, Tháng 10", phuchu: "Tháng 3, Tháng 9", nuthan: "Tháng 2, Tháng 8" },
+            "Dậu": { dl: "Tháng 1, Tháng 7", tl: "Tháng 6, Tháng 12", ongco: "Tháng 5, Tháng 11", phumau: "Tháng 4, Tháng 10", phuchu: "Tháng 3, Tháng 9", nuthan: "Tháng 2, Tháng 8" },
+            "Thìn": { dl: "Tháng 4, Tháng 10", tl: "Tháng 5, Tháng 11", ongco: "Tháng 6, Tháng 12", phumau: "Tháng 1, Tháng 7", phuchu: "Tháng 2, Tháng 8", nuthan: "Tháng 3, Tháng 9" },
+            "Tuất": { dl: "Tháng 4, Tháng 10", tl: "Tháng 5, Tháng 11", ongco: "Tháng 6, Tháng 12", phumau: "Tháng 1, Tháng 7", phuchu: "Tháng 2, Tháng 8", nuthan: "Tháng 3, Tháng 9" },
+            "Tỵ": { dl: "Tháng 3, Tháng 9", tl: "Tháng 2, Tháng 8", ongco: "Tháng 1, Tháng 7", phumau: "Tháng 6, Tháng 12", phuchu: "Tháng 5, Tháng 11", nuthan: "Tháng 4, Tháng 10" },
+            "Hợi": { dl: "Tháng 3, Tháng 9", tl: "Tháng 2, Tháng 8", ongco: "Tháng 1, Tháng 7", phumau: "Tháng 6, Tháng 12", phuchu: "Tháng 5, Tháng 11", nuthan: "Tháng 4, Tháng 10" }
         };
         return rules[chiVo];
     }
@@ -262,40 +282,55 @@
         document.getElementById('luanGiai4YeuTo').innerHTML = `
             <div class='result-title'>2. Luận Cung, Mạng, Can, Chi</div>
             <table class="analysis-table">
-                <tr><th>Yếu Tố</th><th>Chi Tiết</th><th>Đánh Giá</th></tr>
+                <tr><th width="20%">Yếu Tố</th><th width="35%">Chi Tiết</th><th width="45%">Đánh Giá & Ý Nghĩa</th></tr>
                 <tr>
                     <td><b>Ngũ Hành (Mạng)</b></td>
-                    <td>Chồng <b>${mangChong}</b> gặp Vợ <b>${mangVo}</b></td>
+                    <td>Chồng <b>${mangChong}</b><br>Vợ <b>${mangVo}</b></td>
                     <td class="${kqMang.class}">${kqMang.text}</td>
                 </tr>
                 <tr>
                     <td><b>Thiên Can</b></td>
-                    <td><b>${canChong}</b> gặp <b>${canVo}</b></td>
+                    <td>Chồng <b>${canChong}</b><br>Vợ <b>${canVo}</b></td>
                     <td class="${kqCan.class}">${kqCan.text}</td>
                 </tr>
                 <tr>
                     <td><b>Địa Chi</b></td>
-                    <td><b>${chiChong}</b> gặp <b>${chiVo}</b></td>
+                    <td>Chồng <b>${chiChong}</b><br>Vợ <b>${chiVo}</b></td>
                     <td class="${kqChi.class}">${kqChi.text}</td>
                 </tr>
                 <tr>
                     <td><b>Cung Phi</b></td>
-                    <td>Chồng <b>${cungChong}</b> gặp Vợ <b>${cungVo}</b></td>
-                    <td class="${kqCung.class}">${kqCung.hiep}</td>
+                    <td>Chồng <b>${cungChong}</b><br>Vợ <b>${cungVo}</b></td>
+                    <td class="${kqCung.class}">
+                        ${kqCung.hiep}
+                        <span class="cung-desc">${kqCung.desc}</span>
+                    </td>
                 </tr>
             </table>
         `;
 
         // Khối 3: Gợi ý tháng cưới
-        let thangTot = thangCuoiTot(chiVo);
+        let dsThang = thangCuoi(chiVo);
         document.getElementById('thangCuoiTot').innerHTML = `
-            <div class='result-title'>3. Chọn Tháng Cưới Trong Năm</div>
-            <div class="month-box">
-                <b>Theo tuổi Nữ (${canVo} ${chiVo}), các tháng cưới tốt nhất (Âm Lịch) là:</b>
-                <ul>
-                    <li><b>Tháng Đại Lợi (Rất tốt):</b> ${thangTot.dl} <i>(Tốt cho tài lộc, gia đạo)</i></li>
-                    <li><b>Tháng Tiểu Lợi (Tốt vừa):</b> ${thangTot.tl} <i>(Tốt cho đường con cái, mẹ chồng nàng dâu)</i></li>
-                </ul>
+            <div class='result-title'>3. Luận Tháng Cưới (Dựa Theo Tuổi Nữ: ${canVo} ${chiVo})</div>
+            <div class="month-box-container">
+                <div class="month-box-good">
+                    <b>✅ CÁC THÁNG ĐẠI CÁT NÊN CHỌN ĐỂ CƯỚI:</b>
+                    <ul>
+                        <li><b>Tháng Đại Lợi (Tốt nhất): ${dsThang.dl}</b><br><i style="color:#555; font-size: 13px;">→ Lợi về đường công danh, tài lộc, gia đạo êm ấm, sinh con đẻ cái thuận lợi.</i></li>
+                        <li style="margin-top: 5px;"><b>Tháng Tiểu Lợi (Tốt nhì): ${dsThang.tl}</b><br><i style="color:#555; font-size: 13px;">→ Tốt cho cô dâu chú rể, đường con cái tốt đẹp, ít xảy ra xích mích mẹ chồng nàng dâu.</i></li>
+                    </ul>
+                </div>
+                
+                <div class="month-box-bad">
+                    <b>❌ CÁC THÁNG ĐẠI KỴ CẦN TRÁNH VÀ LÝ DO:</b>
+                    <ul>
+                        <li><b>Tháng Ông Cô: ${dsThang.ongco}</b><br><i style="color:#555; font-size: 13px;">→ Khắc kỵ với cha mẹ chồng. Cưới tháng này dễ sinh bất hòa, mâu thuẫn lớn với gia đình nhà chồng sau này. (Nếu cha mẹ chồng đã khuất thì không kỵ).</i></li>
+                        <li style="margin-top: 5px;"><b>Tháng Phụ Mẫu: ${dsThang.phumau}</b><br><i style="color:#555; font-size: 13px;">→ Khắc kỵ với cha mẹ đẻ. Cưới tháng này được cho là không tốt cho sức khỏe và bình an của cha mẹ đẻ cô dâu. (Nếu cha mẹ đẻ đã khuất thì không kỵ).</i></li>
+                        <li style="margin-top: 5px;"><b>Tháng Phu Chủ: ${dsThang.phuchu}</b><br><i style="color:#555; font-size: 13px;">→ Khắc kỵ trực tiếp với Chú rể. Ảnh hưởng xấu đến sức khỏe, công việc và bản mệnh của người chồng.</i></li>
+                        <li style="margin-top: 5px;"><b>Tháng Nữ Thân: ${dsThang.nuthan}</b><br><i style="color:#555; font-size: 13px;">→ Khắc kỵ trực tiếp với Cô dâu. Ảnh hưởng xấu đến sức khỏe, bản mệnh và đường sinh nở của người vợ.</i></li>
+                    </ul>
+                </div>
             </div>
         `;
 
