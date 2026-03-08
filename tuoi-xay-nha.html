@@ -86,18 +86,24 @@
         .highlight { color: #d35400; font-weight: bold; }
         .blue-text { color: #2980b9; font-weight: bold; }
 
+        .detail-sub-list {
+            font-size: 14px; color: #444; margin-top: 6px; padding-left: 10px; border-left: 3px solid #ccc;
+        }
+        .detail-sub-list b { color: #222; }
+
         .conclusion {
             margin-top: 20px; padding: 15px; border-radius: 5px; text-align: center; font-size: 18px; font-weight: bold; line-height: 1.5;
         }
         .conclusion.good { background-color: #d4efdf; color: #1e8449; border: 1px solid #27ae60; }
         .conclusion.bad { background-color: #fadbd8; color: #c0392b; border: 1px solid #e74c3c; }
+        .conclusion.warning { background-color: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
         
         .extra-box {
             background-color: #e8f8f5; border-left: 4px solid #1abc9c; padding: 15px; margin-top: 15px; border-radius: 4px; font-size: 14.5px; line-height: 1.6;
         }
 
         .note {
-            background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin-top: 20px; font-size: 14px; line-height: 1.6; border-radius: 4px;
+            background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin-top: 20px; font-size: 14px; line-height: 1.6; border-radius: 4px; color: #0d47a1;
         }
         
         .list-tuoi { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
@@ -150,10 +156,10 @@
         </div>
 
         <div class="note">
-            <strong>⚠️ Lưu ý quan trọng cho NGƯỜI ĐỨNG CÚNG (Gia chủ hoặc Người được mượn tuổi):</strong><br>
-            - Tuyệt đối không đứng cúng nếu nhà đang có tang chế.<br>
-            - Đời sống gia đạo yên ấm, vợ chồng hòa thuận.<br>
-            - Sức khỏe tốt, tính tình cởi mở, công việc làm ăn thuận lợi để truyền "vía tốt" cho ngôi nhà.
+            <strong>⚠️ Lưu ý chung cho việc mượn tuổi:</strong><br>
+            - Tuyệt đối không mượn tuổi người đang có tang chế.<br>
+            - Nên chọn nam giới lớn tuổi hơn chủ nhà, họ hàng nội tộc là tốt nhất.<br>
+            - Người được mượn tuổi phải có gia đạo yên ấm, khỏe mạnh, làm ăn khấm khá để truyền "vượng khí" cho ngôi nhà.
         </div>
     </div>
 </div>
@@ -163,7 +169,7 @@
 
     // 1. Hàm kiểm tra Tam Tai
     function checkTamTai(namSinh, namXay) {
-        let chiSinh = namSinh % 12; // 0: Thân, 1: Dậu...
+        let chiSinh = namSinh % 12; 
         let chiXay = namXay % 12;
         
         if ([0, 4, 8].includes(chiSinh) && [6, 7, 8].includes(chiXay)) return true;
@@ -195,7 +201,7 @@
     }
 
     // 3. Hàm tính Cửu Diệu Tinh (Sao chiếu mệnh)
-    function getSaoChieuMenh(tuoiMu, gioiTinh) {
+    function getSaoChieuMenhHTML(tuoiMu, gioiTinh) {
         let mod = tuoiMu % 9;
         let saoNam = { 1:"La Hầu", 2:"Thổ Tú", 3:"Thủy Diệu", 4:"Thái Bạch", 5:"Thái Dương", 6:"Vân Hớn", 7:"Kế Đô", 8:"Thái Âm", 0:"Mộc Đức" };
         let saoNu = { 1:"Kế Đô", 2:"Vân Hớn", 3:"Mộc Đức", 4:"Thái Âm", 5:"Thổ Tú", 6:"La Hầu", 7:"Thái Dương", 8:"Thái Bạch", 0:"Thủy Diệu" };
@@ -204,47 +210,36 @@
         let badStars = ["Thái Bạch", "La Hầu", "Kế Đô"];
         let isBadStar = badStars.includes(sao);
         
-        return { sao: sao, isBadStar: isBadStar };
+        let saoHtml = `<b>✨ Sao Chiếu Mệnh:</b> Năm nay người cúng được sao <b>${sao}</b> chiếu. `;
+        if (isBadStar) {
+            saoHtml += `<span class='highlight'>Đây vốn là sao hao tài tốn của. Cổ nhân có câu "Của đi thay người". Do đó, việc xuất tiền lớn để xây nhà trong năm nay chính là cách hóa giải vận hạn hoàn hảo nhất, biến hung thành cát!</span>`;
+        } else {
+            saoHtml += `<span class='success'>Đây là tinh tú bình hòa hoặc cát tinh, đem lại sự nhẹ nhàng, thuận lợi cho việc thi công.</span>`;
+        }
+        return saoHtml;
     }
 
     // 4. Hàm tính Tháng tốt và Tháng kỵ khởi công
     function getThangTotVaKy(namSinh) {
         let chiSinh = CHI[namSinh % 12];
 
-        // Đã loại bỏ Tháng 7 ra khỏi danh sách tháng tốt của tất cả các tuổi
         const thangTotMap = {
-            "Tý": "Tháng 2, Tháng 3, Tháng 8, Tháng 12",
-            "Sửu": "Tháng 3, Tháng 4, Tháng 8, Tháng 9, Tháng 11",
-            "Dần": "Tháng 2, Tháng 5, Tháng 9, Tháng 10, Tháng 11",
-            "Mão": "Tháng 1, Tháng 6, Tháng 9, Tháng 10, Tháng 11",
-            "Thìn": "Tháng 1, Tháng 8, Tháng 10, Tháng 11",
-            "Tỵ": "Tháng 2, Tháng 3, Tháng 8, Tháng 9, Tháng 12",
-            "Ngọ": "Tháng 1, Tháng 2, Tháng 6, Tháng 9, Tháng 10",
-            "Mùi": "Tháng 1, Tháng 2, Tháng 5, Tháng 10, Tháng 11",
-            "Thân": "Tháng 3, Tháng 4, Tháng 5, Tháng 11, Tháng 12",
-            "Dậu": "Tháng 3, Tháng 4, Tháng 6, Tháng 12",
-            "Tuất": "Tháng 1, Tháng 2, Tháng 4, Tháng 5",
-            "Hợi": "Tháng 1, Tháng 2, Tháng 6, Tháng 8"
+            "Tý": "Tháng 2, Tháng 3, Tháng 8, Tháng 12", "Sửu": "Tháng 3, Tháng 4, Tháng 8, Tháng 9, Tháng 11",
+            "Dần": "Tháng 2, Tháng 5, Tháng 9, Tháng 10, Tháng 11", "Mão": "Tháng 1, Tháng 6, Tháng 9, Tháng 10, Tháng 11",
+            "Thìn": "Tháng 1, Tháng 8, Tháng 10, Tháng 11", "Tỵ": "Tháng 2, Tháng 3, Tháng 8, Tháng 9, Tháng 12",
+            "Ngọ": "Tháng 1, Tháng 2, Tháng 6, Tháng 9, Tháng 10", "Mùi": "Tháng 1, Tháng 2, Tháng 5, Tháng 10, Tháng 11",
+            "Thân": "Tháng 3, Tháng 4, Tháng 5, Tháng 11, Tháng 12", "Dậu": "Tháng 3, Tháng 4, Tháng 6, Tháng 12",
+            "Tuất": "Tháng 1, Tháng 2, Tháng 4, Tháng 5", "Hợi": "Tháng 1, Tháng 2, Tháng 6, Tháng 8"
         };
 
-        // Tháng Kỵ = Tháng Lục Xung + Tháng Thái Tuế
         const thangKyMap = {
-            "Tý": "Tháng 5, Tháng 11",
-            "Sửu": "Tháng 6, Tháng 12",
-            "Dần": "Tháng 1", // Tháng 7 Thân trùng cô hồn nên gom chung
-            "Mão": "Tháng 2, Tháng 8",
-            "Thìn": "Tháng 3, Tháng 9",
-            "Tỵ": "Tháng 4, Tháng 10",
-            "Ngọ": "Tháng 5, Tháng 11",
-            "Mùi": "Tháng 6, Tháng 12",
-            "Thân": "Tháng 1", 
-            "Dậu": "Tháng 2, Tháng 8",
-            "Tuất": "Tháng 3, Tháng 9",
-            "Hợi": "Tháng 4, Tháng 10"
+            "Tý": "Tháng 5, Tháng 11", "Sửu": "Tháng 6, Tháng 12", "Dần": "Tháng 1", "Mão": "Tháng 2, Tháng 8",
+            "Thìn": "Tháng 3, Tháng 9", "Tỵ": "Tháng 4, Tháng 10", "Ngọ": "Tháng 5, Tháng 11", "Mùi": "Tháng 6, Tháng 12",
+            "Thân": "Tháng 1", "Dậu": "Tháng 2, Tháng 8", "Tuất": "Tháng 3, Tháng 9", "Hợi": "Tháng 4, Tháng 10"
         };
 
-        let html = `<div style="margin-top: 10px;"><b>Tháng KHỞI CÔNG ĐẠI CÁT:</b> <span class='blue-text'>${thangTotMap[chiSinh]} (Âm Lịch)</span>. Đây là những tháng sinh tài, tụ lộc nhất cho gia chủ.</div>`;
-        html += `<div style="margin-top: 8px; border-top: 1px dashed #ccc; padding-top: 8px;"><b>Tháng KỴ TUYỆT ĐỐI TRÁNH:</b> <span class='alert'>Tháng 7 (Cô hồn) và ${thangKyMap[chiSinh]} (Âm Lịch)</span>. Vì đây là tháng Thái Tuế, Lục Xung của người cúng, dễ gây trục trặc thi công.</div>`;
+        let html = `<div style="margin-top: 10px;"><b>Tháng KHỞI CÔNG ĐẠI CÁT:</b> <span class='blue-text'>${thangTotMap[chiSinh]} (Âm Lịch)</span>. Đây là những tháng sinh tài, tụ lộc nhất cho người cúng.</div>`;
+        html += `<div style="margin-top: 8px; border-top: 1px dashed #1abc9c; padding-top: 8px;"><b>Tháng KỴ TUYỆT ĐỐI TRÁNH:</b> <span class='alert'>Tháng 7 (Cô hồn) và ${thangKyMap[chiSinh]} (Âm Lịch)</span>. Vì đây là tháng Thái Tuế, Lục Xung của người cúng, dễ gây trục trặc thi công.</div>`;
 
         return html;
     }
@@ -266,35 +261,21 @@
         let details = document.getElementById("details");
         details.innerHTML = `<li><strong>Tuổi Mụ:</strong> <b class='blue-text'>${tuoiMu} tuổi</b> (Cầm tinh con ${CHI[namSinh % 12]})</li>`;
 
-        let isGiaChuBad = false;
+        // Phân loại lỗi
+        let hardErrors = []; // Lỗi tuyệt đối không được cúng (Tam Tai, Hoang Ốc, KL Thân)
+        let softErrors = []; // Lỗi có điều kiện (KL Thê, KL Tử)
 
-        // --- 1. XỬ LÝ KIM LÂU ---
-        let klMod = tuoiMu % 9;
-        let klText = "";
-        
-        if (klMod === 1) { klText = "<span class='alert'>Phạm Kim Lâu Thân</span> (Kỵ trực tiếp bản thân gia chủ)."; isGiaChuBad = true; }
-        else if (klMod === 3) { klText = "<span class='alert'>Phạm Kim Lâu Thê</span> (Kỵ vợ/chồng -> Xây nhà dễ lục đục)."; isGiaChuBad = true; }
-        else if (klMod === 6) { klText = "<span class='alert'>Phạm Kim Lâu Tử</span> (Kỵ con cái -> Ảnh hưởng sự phát triển của con)."; isGiaChuBad = true; }
-        else if (klMod === 8) { 
-            klText = "<span class='success'>Phạm Kim Lâu Lục Súc</span> (Chỉ kỵ chăn nuôi gia súc/gia cầm quy mô lớn. <b>NẾU XÂY NHÀ ĐỂ Ở HOẶC KINH DOANH THÌ VẪN TỰ ĐỨNG RA CÚNG ĐƯỢC BÌNH THƯỜNG</b>).";
-            isGiaChuBad = false; 
-        }
-        else {
-            klText = "<span class='success'>Sạch sẽ, không phạm Kim Lâu.</span>";
-        }
-        details.innerHTML += `<li><strong>Kim Lâu:</strong> ${klText}</li>`;
-
-        // --- 2. XỬ LÝ TAM TAI ---
+        // --- 1. XỬ LÝ TAM TAI ---
         let isTamTai = checkTamTai(namSinh, namXay);
-        if (isTamTai) isGiaChuBad = true;
+        if (isTamTai) hardErrors.push("Tam Tai");
         details.innerHTML += `<li><strong>Tam Tai:</strong> ${isTamTai ? "<span class='alert'>Năm nay phạm Tam Tai. Tuyệt đối tránh tự cúng động thổ.</span>" : "<span class='success'>Năm nay gia chủ không phạm Tam Tai.</span>"}</li>`;
 
-        // --- 3. XỬ LÝ HOANG ỐC ---
+        // --- 2. XỬ LÝ HOANG ỐC ---
         let hoangOc = getHoangOcDetails(tuoiMu);
         let hoangOcText = "";
         if (hoangOc.isBad) {
             hoangOcText = `<span class='alert'>Rơi vào cung ${hoangOc.name}</span>`;
-            isGiaChuBad = true;
+            hardErrors.push(`Hoang Ốc (${hoangOc.name.split(" ")[0]})`);
         } else {
             if (hoangOc.mod === 4) {
                 hoangOcText = `<span class='success'>Rơi vào cung <strong class='highlight'>TỨ TẤN TÀI</strong> - Cực kỳ cát lợi để xây cất, tài lộc ùa về!</span>`;
@@ -304,43 +285,88 @@
         }
         details.innerHTML += `<li><strong>Hoang Ốc:</strong> ${hoangOcText}</li>`;
 
-        // --- 4. KẾT LUẬN & SAO CHIẾU MỆNH & THÁNG TỐT ---
+        // --- 3. XỬ LÝ KIM LÂU (CHI TIẾT RÕ RÀNG) ---
+        let klMod = tuoiMu % 9;
+        let klText = "";
+        
+        if (klMod === 1) { 
+            klText = `<span class='alert'>Phạm Kim Lâu Thân (Số 1)</span>
+                      <div class='detail-sub-list'>
+                          - <b>Tác hại:</b> Kỵ trực tiếp bản thân gia chủ. Nếu cố xây sẽ dễ ốm đau, tai nạn, công việc trắc trở.<br>
+                          - <b>Kết luận:</b> <span class='alert'>Bắt buộc phải mượn tuổi, không có ngoại lệ.</span>
+                      </div>`; 
+            hardErrors.push("Kim Lâu Thân");
+        }
+        else if (klMod === 3) { 
+            klText = `<span class='highlight'>Phạm Kim Lâu Thê (Số 3)</span>
+                      <div class='detail-sub-list'>
+                          - <b>Tác hại:</b> Kỵ người vợ/chồng. Dễ gây bất hòa, tai ương hoặc ốm đau cho người phối ngẫu.<br>
+                          - <b>Ngoại lệ:</b> <span class='success'>Nếu gia chủ hiện đang <b>ĐỘC THÂN, CHƯA VỢ/CHỒNG</b> hoặc đã <b>GÓA</b> thì Kim Lâu này vô hiệu. Hoàn toàn có thể tự cúng.</span>
+                      </div>`; 
+            softErrors.push("Kim Lâu Thê");
+        }
+        else if (klMod === 6) { 
+            klText = `<span class='highlight'>Phạm Kim Lâu Tử (Số 6)</span>
+                      <div class='detail-sub-list'>
+                          - <b>Tác hại:</b> Kỵ con cái. Ảnh hưởng xấu đến sức khỏe, sự phát triển, con cái dễ ốm đau khó nuôi.<br>
+                          - <b>Ngoại lệ:</b> <span class='success'>Nếu gia chủ <b>CHƯA CÓ CON CÁI</b> thì Kim Lâu này vô hiệu. Hoàn toàn có thể tự cúng.</span>
+                      </div>`; 
+            softErrors.push("Kim Lâu Tử");
+        }
+        else if (klMod === 8) { 
+            klText = `<span class='success'>Phạm Kim Lâu Lục Súc (Số 8)</span>
+                      <div class='detail-sub-list'>
+                          - <b>Tác hại:</b> Kỵ chăn nuôi gia súc, gia cầm quy mô lớn (làm trang trại dễ dịch bệnh, thua lỗ).<br>
+                          - <b>Ngoại lệ:</b> <span class='success'>Nếu bạn chỉ xây nhà ở, kinh doanh bình thường (không làm trang trại) thì <b>KHÔNG ẢNH HƯỞNG</b>, hoàn toàn có thể tự cúng.</span>
+                      </div>`; 
+        }
+        else {
+            klText = "<span class='success'>Sạch sẽ, không phạm Kim Lâu.</span>";
+        }
+        details.innerHTML += `<li><strong>Kim Lâu:</strong> ${klText}</li>`;
+
+        // --- 4. KẾT LUẬN & GỢI Ý MƯỢN TUỔI ---
         let conclusionBox = document.getElementById("conclusionBox");
         let borrowSection = document.getElementById("borrowSection");
         let extraInfo = document.getElementById("extraInfo");
         
-        if (!isGiaChuBad) {
-            // Tuổi tốt, tự cúng
-            conclusionBox.className = "conclusion good";
-            conclusionBox.innerHTML = "🎉 CHÚC MỪNG! NĂM NAY TUỔI BẠN RẤT ĐẸP!<br>Gia chủ hoàn toàn CÓ THỂ TỰ ĐỨNG RA CÚNG ĐỘNG THỔ xây nhà.";
-            borrowSection.style.display = "none";
+        if (hardErrors.length > 0) {
+            // Có lỗi nặng -> Bắt buộc mượn tuổi
+            conclusionBox.className = "conclusion bad";
+            conclusionBox.innerHTML = `⚠️ NĂM NAY BẠN ĐANG PHẠM KỴ ĐẠI SỰ (${hardErrors.join(", ")})!<br>Bạn không nên tự đứng ra cúng. BẮT BUỘC PHẢI MƯỢN TUỔI người khác để đại diện làm lễ động thổ.`;
             
-            // Xử lý Cửu diệu tinh
-            let saoData = getSaoChieuMenh(tuoiMu, gioiTinh);
-            let saoHtml = `<b>✨ Sao Chiếu Mệnh:</b> Năm nay gia chủ được sao <b>${saoData.sao}</b> chiếu. `;
-            if (saoData.isBadStar) {
-                saoHtml += `<span class='highlight'>Đây vốn là sao hao tài tốn của. Cổ nhân có câu "Của đi thay người". Do đó, việc bạn xuất tiền lớn để xây nhà trong năm nay chính là cách hóa giải vận hạn hoàn hảo nhất, biến hung thành cát!</span>`;
-            } else {
-                saoHtml += `<span class='success'>Đây là tinh tú bình hòa hoặc cát tinh, đem lại sự nhẹ nhàng, thuận lợi cho việc thi công.</span>`;
-            }
+            borrowSection.style.display = "block"; 
+            extraInfo.style.display = "none";
             
-            // Lấy HTML tháng tốt và kỵ
-            let thangHtml = getThangTotVaKy(namSinh);
+        } else if (softErrors.length > 0) {
+            // Lỗi có điều kiện (Kim Lâu Thê/Tử)
+            conclusionBox.className = "conclusion warning";
             
-            extraInfo.innerHTML = saoHtml + thangHtml;
+            let condText = "";
+            if (softErrors.includes("Kim Lâu Thê")) condText += "- NẾU ĐANG ĐỘC THÂN: <b style='color:#1e8449'>Bạn CÓ THỂ tự cúng.</b><br>- NẾU ĐÃ CÓ GIA ĐÌNH: <b style='color:#c0392b'>Bạn NÊN mượn tuổi.</b><br>";
+            if (softErrors.includes("Kim Lâu Tử")) condText += "- NẾU CHƯA CÓ CON: <b style='color:#1e8449'>Bạn CÓ THỂ tự cúng.</b><br>- NẾU ĐÃ CÓ CON: <b style='color:#c0392b'>Bạn NÊN mượn tuổi.</b><br>";
+
+            conclusionBox.innerHTML = `<span style="font-size: 20px;">⚠️ NĂM NAY BẠN PHẠM KỴ CÓ ĐIỀU KIỆN!</span><br><div style="font-size:16px; font-weight:normal; margin-top:10px;">${condText}</div>`;
+            
+            // Vì có trường hợp họ được phép cúng, nên vẫn hiển thị Tháng tốt và Sao chiếu mệnh
+            extraInfo.innerHTML = getSaoChieuMenhHTML(tuoiMu, gioiTinh) + getThangTotVaKy(namSinh);
             extraInfo.style.display = "block";
+            borrowSection.style.display = "block"; // Vẫn hiện danh sách phòng khi họ cần mượn
 
         } else {
-            // Tuổi xấu, cần mượn tuổi
-            extraInfo.style.display = "none";
-            conclusionBox.className = "conclusion bad";
-            conclusionBox.innerHTML = "⚠️ NĂM NAY BẠN ĐANG PHẠM KỴ ĐẠI SỰ!<br>Bạn không nên tự đứng ra cúng. BẮT BUỘC PHẢI MƯỢN TUỔI người khác để đại diện làm lễ động thổ.";
-            borrowSection.style.display = "block"; 
+            // Tuổi Đẹp
+            conclusionBox.className = "conclusion good";
+            conclusionBox.innerHTML = "🎉 CHÚC MỪNG! NĂM NAY TUỔI BẠN RẤT ĐẸP!<br>Không phạm Tam Tai, Hoang Ốc, Kim Lâu. Gia chủ hoàn toàn CÓ THỂ TỰ ĐỨNG RA CÚNG ĐỘNG THỔ xây nhà.";
             
-            // Tìm người hợp tuổi
+            borrowSection.style.display = "none";
+            extraInfo.innerHTML = getSaoChieuMenhHTML(tuoiMu, gioiTinh) + getThangTotVaKy(namSinh);
+            extraInfo.style.display = "block";
+        }
+
+        // Khối tạo danh sách mượn tuổi chung
+        if (borrowSection.style.display === "block") {
             let goodYearsContainer = document.getElementById("goodYears");
             goodYearsContainer.innerHTML = "";
-            let foundGoodYears = false;
             
             for (let i = namXay - 70; i <= namXay - 25; i++) {
                 let tMu = namXay - i + 1;
@@ -348,8 +374,8 @@
                 let checkTT = checkTamTai(i, namXay);
                 let hoCheck = getHoangOcDetails(tMu);
 
+                // Người cho mượn tuổi phải cực kỳ sạch (Không KL, TT, HO)
                 if (!checkKL && !checkTT && !hoCheck.isBad) {
-                    foundGoodYears = true;
                     let extraLabel = (hoCheck.mod === 4) ? " - Tứ Tấn Tài" : "";
                     goodYearsContainer.innerHTML += `<span class="tuoi-badge">${i} (${tMu} tuổi${extraLabel})</span>`;
                 }
