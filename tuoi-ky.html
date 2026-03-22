@@ -99,7 +99,7 @@
     
     <div class="form-row form-row-inline">
         <div>
-            <label>Năm sinh (Âm lịch):</label>
+            <label>Năm sinh (Âm lịch) <span style="color:red">*</span>:</label>
             <input type="text" id="inpNamMat" inputmode="numeric" maxlength="4" placeholder="Ví dụ: 1950">
         </div>
         <div>
@@ -114,7 +114,7 @@
     <div class="form-row form-row-inline">
         <div>
             <label>Tuổi Mụ (Âm lịch):</label>
-            <input type="number" id="inpTuoiMu" placeholder="Tuổi khi mất" min="1">
+            <input type="number" id="inpTuoiMu" placeholder="Nhập để tính Trùng tang" min="1">
         </div>
         <div>
             <label>Tháng mất (ÂL):</label>
@@ -132,7 +132,7 @@
     <div class="form-row form-row-inline">
         <div>
             <label>Ngày mất (ÂL):</label>
-            <input type="number" id="inpNgayMat" placeholder="Ngày 1-30" min="1" max="30">
+            <input type="number" id="inpNgayMat" placeholder="Nhập để tính Trùng tang" min="1" max="30">
         </div>
         <div>
             <label>Giờ mất:</label>
@@ -175,7 +175,7 @@
         </select>
     </div>
 
-    <button class="btn-xem" onclick="tinhTuoiKyNguoiMat()"><i class="fa-solid fa-layer-group"></i> Phân Tích Tổng Hợp</button>
+    <button class="btn-xem" onclick="tinhTuoiKyNguoiMat()"><i class="fa-solid fa-layer-group"></i> Phân Tích Dữ Liệu</button>
 
     <div id="ketQuaKy"></div>
 </div>
@@ -186,29 +186,25 @@
     const CHI = ["Thân", "Dậu", "Tuất", "Hợi", "Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi"];
     const DANH_SACH_CHI = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
     
-    // Thuật toán: Can lùi 1, Chi lùi 3 lặp 6 lần để tìm 6 tuổi kỵ trong năm
     function tinh6TuoiKyThapNhang(nam) {
         let canIdx = nam % 10;
         let chiIdx = nam % 12;
         let ketQua = [];
         
         for (let i = 0; i < 6; i++) {
-            canIdx = (canIdx + 9) % 10; // Tương đương lùi 1
-            chiIdx = (chiIdx + 9) % 12; // Tương đương lùi 3
+            canIdx = (canIdx + 9) % 10; 
+            chiIdx = (chiIdx + 9) % 12; 
             ketQua.push(CAN[canIdx] + " " + CHI[chiIdx]);
         }
         return ketQua;
     }
 
-    // Tự động chạy khi tải trang để hiện 6 tuổi của năm
     function init() {
-        // Mặc định lấy năm hiện tại (nhưng người dùng phải hiểu là hệ Âm)
         let currentYear = new Date().getFullYear();
         document.getElementById("inpNamTangLe").value = currentYear;
         capNhat6TuoiNamNay();
     }
 
-    // Cập nhật Box 6 Tuổi Mặc định của năm
     function capNhat6TuoiNamNay() {
         let nam = parseInt(document.getElementById("inpNamTangLe").value);
         if (!nam || nam < 1900) return;
@@ -223,7 +219,6 @@
         document.getElementById("danhSach6Tuoi").innerHTML = html6Tuoi;
     }
 
-    // Tìm tuổi Lục Xung & Tứ Hành Xung (Giữ nguyên cấu trúc)
     function layTuoiXung(chiIndex) {
         let daiKy = (chiIndex + 6) % 12;
         let thuKy1 = (chiIndex + 3) % 12;
@@ -234,14 +229,13 @@
         };
     }
 
-    // Tính Nhập Mộ - Thiên Di - Trùng Tang
     function phanLoaiCung(index) {
         if ([2, 8, 5, 11].includes(index)) return { txt: "Trùng Tang", cls: "tag-trung" }; // Dần Thân Tỵ Hợi
         if ([0, 6, 3, 9].includes(index)) return { txt: "Thiên Di", cls: "tag-di" };   // Tý Ngọ Mão Dậu
         if ([4, 10, 1, 7].includes(index)) return { txt: "Nhập Mộ", cls: "tag-mo" };   // Thìn Tuất Sửu Mùi
     }
 
-    // Xử lý nút Tra Cứu Người Mất
+    // --- HÀM XỬ LÝ CHÍNH THEO NHU CẦU: LINH HOẠT THEO THÔNG TIN NHẬP VÀO ---
     function tinhTuoiKyNguoiMat() {
         let namSinh = parseInt(document.getElementById("inpNamMat").value);
         let gioiTinh = document.getElementById("selGioiTinh").value;
@@ -253,79 +247,84 @@
         let gioLiemIdx = parseInt(document.getElementById("selGioLiem").value);
         let gioDongQuanIdx = parseInt(document.getElementById("selGioDongQuan").value);
 
+        // BẮT BUỘC: Phải có Năm Sinh
         if (!namSinh || isNaN(namSinh) || namSinh < 1900) {
-            alert("Vui lòng nhập đúng Năm Sinh Âm Lịch (VD: 1950)!"); return;
+            alert("Vui lòng nhập Năm Sinh Âm Lịch (VD: 1950) để luận tuổi kỵ!"); 
+            return;
         }
-        if (!tuoiMu || !ngayMat || ngayMat < 1 || ngayMat > 30) {
-            alert("Vui lòng nhập đủ Tuổi Mụ và Ngày mất (1-30) để luận Cát Hung!"); return;
+
+        let html = "";
+        let tieuDeSo = 1;
+
+        // =========================================================
+        // PHẦN 1: NẾU NHẬP ĐỦ TUỔI MỤ + NGÀY MẤT -> LUẬN TRÙNG TANG
+        // =========================================================
+        if (tuoiMu > 0 && ngayMat > 0 && ngayMat <= 30) {
+            let pos = (gioiTinh === 'nam') ? 2 : 8; // Khởi Dần(2) hoặc Thân(8)
+            let dir = (gioiTinh === 'nam') ? 1 : -1;
+
+            let chuc = Math.floor(tuoiMu / 10);
+            let donvi = tuoiMu % 10;
+            
+            for (let i = 1; i < chuc; i++) { pos = (pos + dir + 12) % 12; }
+            if (donvi > 0) { for (let i = 1; i <= donvi; i++) { pos = (pos + dir + 12) % 12; } }
+            let kqNam = phanLoaiCung(pos);
+
+            pos = (pos + dir + 12) % 12;
+            for (let i = 1; i < thangMat; i++) { pos = (pos + dir + 12) % 12; }
+            let kqThang = phanLoaiCung(pos);
+
+            pos = (pos + dir + 12) % 12;
+            for (let i = 1; i < ngayMat; i++) { pos = (pos + dir + 12) % 12; }
+            let kqNgay = phanLoaiCung(pos);
+
+            pos = (pos + dir + 12) % 12; 
+            for (let i = 0; i < gioMat; i++) { pos = (pos + dir + 12) % 12; }
+            let kqGio = phanLoaiCung(pos);
+
+            let allResults = [kqNam.txt, kqThang.txt, kqNgay.txt, kqGio.txt];
+            let hasMo = allResults.includes("Nhập Mộ");
+            let hasTrung = allResults.includes("Trùng Tang");
+
+            html += `<h4 style="color:#8b0000; border-bottom: 1px dashed #ccc; padding-bottom:5px; margin-top:0;">${tieuDeSo}. LUẬN CÁT HUNG NGÀY GIỜ MẤT</h4>`;
+            html += `
+                <div class="tt-grid">
+                    <div class="tt-item">Năm: <span class="${kqNam.cls}">${kqNam.txt}</span></div>
+                    <div class="tt-item">Tháng: <span class="${kqThang.cls}">${kqThang.txt}</span></div>
+                    <div class="tt-item">Ngày: <span class="${kqNgay.cls}">${kqNgay.txt}</span></div>
+                    <div class="tt-item">Giờ: <span class="${kqGio.cls}">${kqGio.txt}</span></div>
+                </div>
+            `;
+
+            if (hasMo) {
+                html += `<div class="conc-box" style="background:#e8f5e9; border-color:#2e7d32; color:#2e7d32;"><b>✅ KẾT LUẬN RẤT TỐT: CÓ NHẬP MỘ</b><br>"Nhất Mộ sát tam Trùng" (Một cung Nhập Mộ hóa giải được ba cung Trùng Tang). Người mất đã mãn số tận phần, ra đi thanh thản. Gia quyến hoàn toàn yên tâm, vong linh sẽ sớm siêu thoát.</div>`;
+            } else if (hasTrung) {
+                html += `<div class="conc-box" style="background:#ffebee; border-color:#c0392b; color:#c0392b;"><b>⚠️ KẾT LUẬN XẤU: PHẠM TRÙNG TANG</b><br>Trường hợp này không có Nhập Mộ để hóa giải, người mất ra đi có thể còn luyến tiếc trần gian. Gia quyến <b>tuyệt đối không khóc lóc réo gọi tên</b> lúc khâm liệm. Cần mời chư Tăng làm lễ siêu độ để vong linh xả bỏ chấp niệm.</div>`;
+            } else {
+                html += `<div class="conc-box" style="background:#fff3cd; border-color:#d35400; color:#d35400;"><b>🔸 KẾT LUẬN: THIÊN DI (BÌNH THƯỜNG)</b><br>Duyên nợ trần gian đã dứt, thuận theo ý trời mà dời đi. Tuy nhiên điềm báo sau này con cháu có thể sẽ phân tán, đi làm ăn xa quê lập nghiệp.</div>`;
+            }
+            tieuDeSo++; // Tăng biến đếm mục lên 2
         }
 
         // =========================================================
-        // PHẦN 1 CỦA KẾT QUẢ: LUẬN CÁT HUNG LÚC MẤT (Trùng Tang)
-        // =========================================================
-        let pos = (gioiTinh === 'nam') ? 2 : 8; // Khởi Dần(2) hoặc Thân(8)
-        let dir = (gioiTinh === 'nam') ? 1 : -1;
-
-        let chuc = Math.floor(tuoiMu / 10);
-        let donvi = tuoiMu % 10;
-        
-        for (let i = 1; i < chuc; i++) { pos = (pos + dir + 12) % 12; }
-        if (donvi > 0) { for (let i = 1; i <= donvi; i++) { pos = (pos + dir + 12) % 12; } }
-        let kqNam = phanLoaiCung(pos);
-
-        pos = (pos + dir + 12) % 12;
-        for (let i = 1; i < thangMat; i++) { pos = (pos + dir + 12) % 12; }
-        let kqThang = phanLoaiCung(pos);
-
-        pos = (pos + dir + 12) % 12;
-        for (let i = 1; i < ngayMat; i++) { pos = (pos + dir + 12) % 12; }
-        let kqNgay = phanLoaiCung(pos);
-
-        pos = (pos + dir + 12) % 12; 
-        for (let i = 0; i < gioMat; i++) { pos = (pos + dir + 12) % 12; }
-        let kqGio = phanLoaiCung(pos);
-
-        let allResults = [kqNam.txt, kqThang.txt, kqNgay.txt, kqGio.txt];
-        let hasMo = allResults.includes("Nhập Mộ");
-        let hasTrung = allResults.includes("Trùng Tang");
-
-        let html = `<h4 style="color:#8b0000; border-bottom: 1px dashed #ccc; padding-bottom:5px; margin-top:0;">1. LUẬN CÁT HUNG NGÀY GIỜ MẤT</h4>`;
-        html += `
-            <div class="tt-grid">
-                <div class="tt-item">Năm: <span class="${kqNam.cls}">${kqNam.txt}</span></div>
-                <div class="tt-item">Tháng: <span class="${kqThang.cls}">${kqThang.txt}</span></div>
-                <div class="tt-item">Ngày: <span class="${kqNgay.cls}">${kqNgay.txt}</span></div>
-                <div class="tt-item">Giờ: <span class="${kqGio.cls}">${kqGio.txt}</span></div>
-            </div>
-        `;
-
-        if (hasMo) {
-            html += `<div class="conc-box" style="background:#e8f5e9; border-color:#2e7d32; color:#2e7d32;"><b>✅ KẾT LUẬN RẤT TỐT: CÓ NHẬP MỘ</b><br>"Nhất Mộ sát tam Trùng". Người mất đã mãn số tận phần, ra đi thanh thản. Gia quyến hoàn toàn yên tâm, vong linh sẽ sớm siêu thoát và phù hộ độ trì.</div>`;
-        } else if (hasTrung) {
-            html += `<div class="conc-box" style="background:#ffebee; border-color:#c0392b; color:#c0392b;"><b>⚠️ KẾT LUẬN XẤU: PHẠM TRÙNG TANG</b><br>Trường hợp này không có Nhập Mộ để hóa giải, người mất ra đi có thể còn luyến tiếc trần gian. Gia quyến <b>tuyệt đối không khóc lóc réo gọi tên</b> lúc khâm liệm. Cần mời chư Tăng làm lễ siêu độ để vong linh xả bỏ chấp niệm.</div>`;
-        } else {
-            html += `<div class="conc-box" style="background:#fff3cd; border-color:#d35400; color:#d35400;"><b>🔸 KẾT LUẬN: THIÊN DI (BÌNH THƯỜNG)</b><br>Duyên nợ trần gian đã dứt, thuận theo ý trời mà dời đi. Tuy nhiên điềm báo sau này con cháu có thể sẽ phân tán, đi làm ăn xa quê lập nghiệp.</div>`;
-        }
-
-        // =========================================================
-        // PHẦN 2 CỦA KẾT QUẢ: TUỔI XUNG KHẮC (Lấy cấu trúc y như cũ của bạn)
+        // PHẦN 2: LUẬN TUỔI KỴ DỰA VÀO NĂM SINH (Luôn luôn hiện)
         // =========================================================
         let canMat = CAN[namSinh % 10];
         let chiMat = CHI[namSinh % 12];
-        let tuoiMat = canMat + " " + chiMat;
         let chiMatIdx = DANH_SACH_CHI.indexOf(chiMat);
         let xungTuoi = layTuoiXung(chiMatIdx);
         
-        html += `<h4 style="color:#8b0000; border-bottom: 1px dashed #ccc; padding-bottom:5px; margin-top:20px;">2. XUNG KHẮC VỚI NGƯỜI MẤT & GIỜ HÀNH LỄ</h4>`;
-        html += `<div style="text-align:center; font-weight:bold; margin-bottom:10px; font-size:16px;">Người mất tuổi: <span style="color:#8b0000; font-size:18px;">${tuoiMat}</span></div>`;
+        html += `<h4 style="color:#8b0000; border-bottom: 1px dashed #ccc; padding-bottom:5px; margin-top:${html !== "" ? '20px' : '0'};">${tieuDeSo}. XUNG KHẮC VỚI NGƯỜI MẤT (TUỔI ${canMat.toUpperCase()} ${chiMat.toUpperCase()})</h4>`;
+        
+        html += `<div class="ky-item"><b>Tránh khắc bản mệnh:</b><br>- Tuổi <span class="tag-daiky">${xungTuoi.daiKyTxt}</span> (Đại Kỵ)<br>- Tuổi <span class="tag-thuky">${xungTuoi.thuKyTxt}</span> (Thứ Kỵ).</div>`;
 
-        html += `<div class="ky-item"><b>Xung khắc bản mệnh:</b><br>- Tuổi <span class="tag-daiky">${xungTuoi.daiKyTxt}</span> (Đại Kỵ)<br>- Tuổi <span class="tag-thuky">${xungTuoi.thuKyTxt}</span> (Thứ Kỵ).</div>`;
-
+        // Nếu có chọn giờ liệm
         if (gioLiemIdx !== -1) {
             let xungLiem = layTuoiXung(gioLiemIdx);
             html += `<div class="ky-item"><b>Tránh mặt lúc Khâm Liệm (Giờ ${DANH_SACH_CHI[gioLiemIdx]}):</b><br>- Cấm kỵ người tuổi <span class="tag-daiky">${xungLiem.daiKyTxt}</span> có mặt lúc đưa thi hài vào quan tài.</div>`;
         }
 
+        // Nếu có chọn giờ động quan
         if (gioDongQuanIdx !== -1) {
             let xungDQ = layTuoiXung(gioDongQuanIdx);
             html += `<div class="ky-item"><b>Tránh mặt lúc Động Quan (Giờ ${DANH_SACH_CHI[gioDongQuanIdx]}):</b><br>- Người tuổi <span class="tag-daiky">${xungDQ.daiKyTxt}</span> nên lùi lại phía sau, không nhìn trực tiếp lúc di quan và hạ huyệt.</div>`;
@@ -340,7 +339,6 @@
         document.getElementById("ketQuaKy").style.display = "block";
     }
 
-    // Chạy init khi load web
     window.onload = init;
 </script>
 
