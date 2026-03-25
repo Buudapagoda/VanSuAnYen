@@ -135,7 +135,7 @@
         TRUC: ["Kiến","Trừ","Mãn","Bình","Định","Chấp","Phá","Nguy","Thành","Thu","Khai","Bế"], LUC_DIEU: ["Đại An","Lưu Niên","Tốc Hỷ","Xích Khẩu","Tiểu Cát","Không Vong"],
         ELEMENTS: { CAN: [1,1,3,3,4,4,0,0,2,2], CHI: [2,4,1,1,4,3,3,4,0,0,4,2] }, DIRECTIONS: { TAI_THAN: ["Đông Nam","Đông Nam","Chính Đông","Chính Đông","Chính Bắc","Chính Bắc","Tây Nam","Tây Nam","Chính Tây","Tây Bắc"], HAC_THAN: "Đông Nam" },
         TRUNG_NHAT_MAP: {1:11, 2:11, 3:11, 4:2, 5:2, 6:2, 7:5, 8:5, 9:5, 10:8, 11:8, 12:8}, TAM_TANG_MAP: {1:4, 2:4, 3:4, 4:7, 5:7, 6:7, 7:10, 8:10, 9:10, 10:1, 11:1, 12:1},
-        TRUNG_TANG_MAP: {1:[0], 2:[1], 3:[4,5], 4:[2], 5:[3], 6:[4,5], 7:[6], 8:[7], 9:[4,5], 10:[8], 11:[9], 12:[4,5]},
+        TRUNG_TANG_MAP: {1:[0], 2:[1], 3:[5], 4:[2], 5:[3], 6:[5], 7:[6], 8:[7], 9:[5], 10:[8], 11:[9], 12:[5]},
         SAT_CHU_DUONG_MAP: {1:[0], 2:[1], 3:[1], 4:[10], 5:[4], 6:[4], 7:[1], 8:[4], 9:[1], 10:[4], 11:[7], 12:[4]},
         SAT_CHU_AM_MAP: {1:[5], 2:[0], 3:[7], 4:[3], 5:[8], 6:[10], 7:[1], 8:[11], 9:[6], 10:[9], 11:[2], 12:[4]},
         THO_TU_MAP: {1:10, 2:4, 3:11, 4:5, 5:0, 6:6, 7:1, 8:7, 9:2, 10:8, 11:3, 12:9},
@@ -145,8 +145,6 @@
             "Kiến": "<b class='text-green-700'>Nên:</b> Xuất hành, nhậm chức.<br><b class='text-red-700'>Kỵ:</b> Động thổ, đào ao, thuyền.", "Trừ": "<b class='text-green-700'>Nên:</b> Chữa bệnh, dọn dẹp, giải xui.<br><b class='text-red-700'>Kỵ:</b> Khai trương, giá thú, chức.", "Mãn": "<b class='text-green-700'>Nên:</b> Cầu tài, khai trương, cưới hỏi.<br><b class='text-red-700'>Kỵ:</b> Uống thuốc, nhậm chức.", "Bình": "<b class='text-green-700'>Nên:</b> San lấp, sửa đường, việc bình thường.<br><b class='text-red-700'>Kỵ:</b> Kiện cáo, tranh chấp.", "Định": "<b class='text-green-700'>Nên:</b> Cưới hỏi, giao dịch, động thổ.<br><b class='text-red-700'>Kỵ:</b> Chữa bệnh, thưa kiện.", "Chấp": "<b class='text-green-700'>Nên:</b> Xây cất, trồng trọt, bắt trộm.<br><b class='text-red-700'>Kỵ:</b> Xuất hành, chuyển nhà, khai trương.", "Phá": "<b class='text-green-700'>Nên:</b> Dỡ nhà, phá vách, chữa bệnh.<br><b class='text-red-700'>Kỵ:</b> Khởi công, cưới hỏi, khai trương.", "Nguy": "<b class='text-green-700'>Nên:</b> Tế tự, cầu an, kết lưới.<br><b class='text-red-700'>Kỵ:</b> Đi thuyền, mạo hiểm, xuất hành.", "Thành": "<b class='text-green-700'>Nên:</b> Khai trương, giá thú, xây cất.<br><b class='text-red-700'>Kỵ:</b> Kiện tụng, thưa kiện.", "Thu": "<b class='text-green-700'>Nên:</b> Thu hoạch, cất giữ, an táng.<br><b class='text-red-700'>Kỵ:</b> Khởi công, xuất hành.", "Khai": "<b class='text-green-700'>Nên:</b> Khai trương, mở cửa, giá thú.<br><b class='text-red-700'>Kỵ:</b> An táng, chôn cất, động thổ.", "Bế": "<b class='text-green-700'>Nên:</b> Lấp hang, đắp đập, vá víu.<br><b class='text-red-700'>Kỵ:</b> Khai trương, mở cửa, chữa bệnh."
         },
         
-        // --- DỮ LIỆU NHỊ THẬP BÁT TÚ ĐƯỢC CHUẨN HÓA THEO ĐÚNG THỨ TỰ THIÊN VĂN ---
-        // (Phần text mô tả 'desc' vẫn được lưu nhưng sẽ ẩn đi trên giao diện để tránh làm rối người xem)
         NHI_THAP_BAT_TU: [
             { name: "Giác (Mộc Giao)", type: "Kiết", color: "text-green-700" },
             { name: "Cang (Kim Long)", type: "Hung", color: "text-red-700" },
@@ -213,13 +211,35 @@
     function getTuoiXungTrongNgay(dayCanIdx, dayChiIdx) { let xungChiIdx = (dayChiIdx + 6) % 12; let badAges = []; let canXung1 = (dayCanIdx + 4) % 10; badAges.push(CAL_DATA.CAN[canXung1] + " " + CAL_DATA.CHI[xungChiIdx]); let canXung2 = (dayCanIdx + 6) % 10; badAges.push(CAL_DATA.CAN[canXung2] + " " + CAL_DATA.CHI[xungChiIdx]); badAges.push(CAL_DATA.CAN[canXung2] + " " + CAL_DATA.CHI[dayChiIdx]); return badAges.join(", "); }
     function checkXungTuoi(dayChiIdx) { const uYear = document.getElementById("birthYear").value; if(!uYear || uYear === "") return false; const uChiIdx = (uYear - 4) % 12; let diff = Math.abs(uChiIdx - dayChiIdx); return diff === 6 || diff === 0; }
     
+    // --- ĐÃ CHỈNH SỬA: Tính toán ngày kỵ dựa vào Tháng Âm Lịch & Luật Tụ Bảo Lâu ---
     function getBadDaysInfo(lMonth, lDay, dCanIdx, dChiIdx) { 
         let notes = []; 
         if ([3, 7, 13, 18, 22, 27].includes(lDay)) notes.push({ name: "Tam Nương", desc: "Kỵ khai trương, xuất hành, cưới hỏi." }); 
         if ([5, 14, 23].includes(lDay)) notes.push({ name: "Nguyệt Kỵ", desc: "Kỵ xuất hành đi xa, khởi công." }); 
+        
         if (dChiIdx === CAL_DATA.TAM_TANG_MAP[lMonth]) notes.push({ name: "Tam Tang", desc: "Đại kỵ khởi công, cưới hỏi và an táng." }); 
         if (CAL_DATA.TRUNG_TANG_MAP[lMonth] && CAL_DATA.TRUNG_TANG_MAP[lMonth].includes(dCanIdx)) notes.push({ name: "Trùng Tang", desc: "Đại kỵ trong việc tang sự, an táng." }); 
-        if (dChiIdx === CAL_DATA.TRUNG_NHAT_MAP[lMonth]) notes.push({ name: "Trung Nhật", desc: "Kỵ làm đại sự đất đai hoặc di chuyển linh cữu." }); 
+        
+        // --- THUẬT TOÁN TRUNG NHẬT CHUẨN TỤ BẢO LÂU ---
+        let isTrungNhat = false;
+        
+        // 1. Mặc định: Tất cả ngày Tỵ (5) và Hợi (11) đều là Trung Nhật
+        if (dChiIdx === 5 || dChiIdx === 11) {
+            isTrungNhat = true;
+            
+            // 2. Loại trừ đúng 5 ngày theo sách Tụ Bảo Lâu
+            if (lMonth === 1 && lDay === 20) isTrungNhat = false; // Tháng 1, 20/01 ÂL
+            if (lMonth === 3 && lDay === 9) isTrungNhat = false;  // Tháng 3, 09/03 ÂL
+            if (lMonth === 8 && lDay === 18) isTrungNhat = false; // Tháng 8, 19/08 ÂL
+            if (lMonth === 9 && lDay === 19) isTrungNhat = false; // Tháng 9, 19/09 ÂL
+            if (lMonth === 11 && lDay === 19) isTrungNhat = false;// Tháng 11, 19/11 ÂL
+        }
+
+        if (isTrungNhat) {
+            notes.push({ name: "Trung Nhật", desc: "Đại kỵ làm đại sự đất đai hoặc di chuyển linh cữu." }); 
+        }
+        // --- KẾT THÚC TRUNG NHẬT ---
+        
         if (dChiIdx === CAL_DATA.THO_TU_MAP[lMonth]) notes.push({ name: "Thọ Tử", desc: "Ngày trăm sự đều kỵ. Tuyệt đối tránh làm việc lớn." }); 
         
         if (CAL_DATA.SAT_CHU_DUONG_MAP[lMonth] && CAL_DATA.SAT_CHU_DUONG_MAP[lMonth].includes(dChiIdx)) {
@@ -298,11 +318,9 @@
         const rating = getDayRating(dayInfo.canIdx, dayInfo.chiIdx);
         let isHoangDao = checkNgayHoangDao(lMonth, dayInfo.chiIdx);
         
-        // --- XÁC ĐỊNH NHỊ THẬP BÁT TÚ (28 SAO) CHUẨN XÁC DỰA THEO THỨ TỰ TỊNH TIẾN ---
-        // Mốc chuẩn theo thiên văn: Ngày 01/01/1995 (Chủ Nhật) mang sao Hư (Index 10 trong mảng)
         let jd = getJulianDay(d.getDate(), d.getMonth()+1, d.getFullYear());
         let jdn = Math.floor(jd + 0.5);
-        let diffDays = jdn - 2449719; // JDN của ngày 01/01/1995
+        let diffDays = jdn - 2449719; 
         
         let saoIdx = (10 + (diffDays % 28)) % 28;
         if (saoIdx < 0) saoIdx += 28;
@@ -311,6 +329,8 @@
 
         const tuoiXungNgay = getTuoiXungTrongNgay(dayInfo.canIdx, dayInfo.chiIdx);
         const isXungTuoiCaNhan = checkXungTuoi(dayInfo.chiIdx);
+        
+        // --- CHỈNH SỬA: Lấy danh sách ngày xấu theo Tháng Âm Lịch thay vì Tháng Phong Thủy ---
         const badDaysList = getBadDaysInfo(lMonth, lDay, dayInfo.canIdx, dayInfo.chiIdx);
 
         let dTomorrow = new Date(solarDate);
@@ -332,7 +352,11 @@
         for(let i=0; i<12; i++) {
             const canGio = CAL_DATA.CAN[((dayInfo.canIdx % 5) * 2 + i) % 10]; const chiGio = CAL_DATA.CHI[i];
             const ldIdx = (lMonth + lDay + i - 2) % 6; let lucDieuStr = CAL_DATA.LUC_DIEU[ldIdx < 0 ? ldIdx + 6 : ldIdx];
-            let isThoTu = (i === CAL_DATA.GIO_THO_TU_MAP[dayInfo.chiIdx]); let isSatChu = (i === CAL_DATA.GIO_SAT_CHU_MAP[lMonth]); let isKhongVong = (lucDieuStr === "Không Vong");
+            
+            // --- ĐÃ CHỈNH SỬA: Giờ Sát Chủ tính theo Tháng Âm Lịch (lMonth) ---
+            let isThoTu = (i === CAL_DATA.GIO_THO_TU_MAP[dayInfo.chiIdx]); 
+            let isSatChu = (i === CAL_DATA.GIO_SAT_CHU_MAP[lMonth]); 
+            let isKhongVong = (lucDieuStr === "Không Vong");
 
             hourDetails.push({ can: canGio, chi: chiGio, chiIdx: i, str: `${canGio} ${chiGio}<br><span class="text-[9px] text-gray-500">(${(i*2-1+24)%24}h-${(i*2+1)%24}h)</span>`, isGood: checkGioHoangDao(dayInfo.chiIdx, i), lucDieu: lucDieuStr, isThoTu: isThoTu, isSatChu: isSatChu, isKhongVong: isKhongVong });
         }
@@ -468,7 +492,6 @@
 
         let trucDescHtml = CAL_DATA.TRUC_DESC[dData.extra.truc];
         
-        // --- HIỂN THỊ SAO GỌN GÀNG (KHÔNG CÓ NÊN/KỴ) ---
         let starData = dData.extra.sao;
         let starHtml = `
             <div class="border-t border-black pt-2 pb-2 flex flex-col bg-stone-100 h-full justify-center">
