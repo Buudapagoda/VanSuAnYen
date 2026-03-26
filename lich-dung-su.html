@@ -133,7 +133,9 @@
         YAKSHA_IMAGES: { 1: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang1.JPG", 2: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang2.JPG", 3: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang3.JPG", 4: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang4.JPG", 5: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang5.JPG", 6: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang6.JPG", 7: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang7.JPG", 8: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang8.JPG", 9: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang9.JPG", 10: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang10.JPG", 11: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang11.JPG", 12: "https://raw.githubusercontent.com/Buudapagoda/Anh_Lich/main/Thang12.JPG" },
         CAN: ["Giáp","Ất","Bính","Đinh","Mậu","Kỷ","Canh","Tân","Nhâm","Quý"], CHI: ["Tý","Sửu","Dần","Mão","Thìn","Tỵ","Ngọ","Mùi","Thân","Dậu","Tuất","Hợi"],
         TRUC: ["Kiến","Trừ","Mãn","Bình","Định","Chấp","Phá","Nguy","Thành","Thu","Khai","Bế"], LUC_DIEU: ["Đại An","Lưu Niên","Tốc Hỷ","Xích Khẩu","Tiểu Cát","Không Vong"],
-        ELEMENTS: { CAN: [1,1,3,3,4,4,0,0,2,2], CHI: [2,4,1,1,4,3,3,4,0,0,4,2] }, DIRECTIONS: { TAI_THAN: ["Đông Nam","Đông Nam","Chính Đông","Chính Đông","Chính Bắc","Chính Bắc","Tây Nam","Tây Nam","Chính Tây","Tây Bắc"], HAC_THAN: "Đông Nam" },
+        ELEMENTS: { CAN: [1,1,3,3,4,4,0,0,2,2], CHI: [2,4,1,1,4,3,3,4,0,0,4,2] }, 
+        HY_THAN: ["Đông Bắc", "Tây Bắc", "Tây Nam", "Chính Nam", "Đông Nam", "Đông Bắc", "Tây Bắc", "Tây Nam", "Chính Nam", "Đông Nam"],
+        TAI_THAN: ["Đông Nam", "Đông Nam", "Chính Đông", "Chính Đông", "Chính Bắc", "Chính Nam", "Tây Nam", "Tây Nam", "Chính Tây", "Tây Bắc"],
         TRUNG_NHAT_MAP: {1:11, 2:11, 3:11, 4:2, 5:2, 6:2, 7:5, 8:5, 9:5, 10:8, 11:8, 12:8}, TAM_TANG_MAP: {1:4, 2:4, 3:4, 4:7, 5:7, 6:7, 7:10, 8:10, 9:10, 10:1, 11:1, 12:1},
         TRUNG_TANG_MAP: {1:[0], 2:[1], 3:[5], 4:[2], 5:[3], 6:[5], 7:[6], 8:[7], 9:[5], 10:[8], 11:[9], 12:[5]},
         SAT_CHU_DUONG_MAP: {1:[0], 2:[1], 3:[1], 4:[10], 5:[4], 6:[4], 7:[1], 8:[4], 9:[1], 10:[4], 11:[7], 12:[4]},
@@ -209,6 +211,22 @@
     function getTruc(dayChiIdx, solarInfo) { return CAL_DATA.TRUC[(dayChiIdx - solarInfo.chiMonth + 12) % 12]; }
     function getDayRating(cIdx, chIdx) { let ec = CAL_DATA.ELEMENTS.CAN[cIdx]; let ech = CAL_DATA.ELEMENTS.CHI[chIdx]; if (ec === ech) return { name: "Bát Chuyên (Đồng Khí)", color: "text-stone-600", desc: "Ngày bình hòa." }; if ((ec===0&&ech===2)||(ec===2&&ech===1)||(ec===1&&ech===3)||(ec===3&&ech===4)||(ec===4&&ech===0)) return { name: "Bảo Nhật (Đại Cát)", color: "text-green-700", desc: "Rất tốt cho mọi việc." }; if ((ech===0&&ec===2)||(ech===2&&ec===1)||(ech===1&&ec===3)||(ech===3&&ec===4)||(ech===4&&ec===0)) return { name: "Thoa Nhật (Tiểu Cát)", color: "text-blue-700", desc: "Tốt vừa, có thể dùng." }; if ((ec===0&&ec===1)||(ec===1&&ech===4)||(ec===4&&ech===2)||(ec===2&&ech===3)||(ec===3&&ech===0)) return { name: "Chế Nhật (Tiểu Hung)", color: "text-amber-600", desc: "Xấu nhẹ, thận trọng." }; return { name: "Phạt Nhật (Đại Hung)", color: "text-red-600 font-bold", desc: "Can khắc Chi. Kỵ làm đại sự." }; }
     function getTuoiXungTrongNgay(dayCanIdx, dayChiIdx) { let xungChiIdx = (dayChiIdx + 6) % 12; let badAges = []; let canXung1 = (dayCanIdx + 4) % 10; badAges.push(CAL_DATA.CAN[canXung1] + " " + CAL_DATA.CHI[xungChiIdx]); let canXung2 = (dayCanIdx + 6) % 10; badAges.push(CAL_DATA.CAN[canXung2] + " " + CAL_DATA.CHI[xungChiIdx]); badAges.push(CAL_DATA.CAN[canXung2] + " " + CAL_DATA.CHI[dayChiIdx]); return badAges.join(", "); }
+    function getHacThanDirection(jdn) {
+        // Chỉ số 60 hoa giáp chuẩn: Giáp Tý = 0.
+        // Dữ liệu của bạn Giáp Tý là 4, Quý Tỵ (chuẩn 29) là 33 -> Offset chuẩn xác!
+        let stdIdx = (jdn + 49) % 60; 
+        
+        if (stdIdx >= 29 && stdIdx <= 44) return "Trên Trời (Khỏi lo)";
+        if (stdIdx >= 45 && stdIdx <= 50) return "Đông Bắc";
+        if (stdIdx >= 51 && stdIdx <= 55) return "Chính Đông";
+        if (stdIdx >= 56 || stdIdx <= 1)  return "Đông Nam"; // Bao gồm 56, 57, 58, 59, 0, 1
+        if (stdIdx >= 2  && stdIdx <= 6)  return "Chính Nam";
+        if (stdIdx >= 7  && stdIdx <= 12) return "Tây Nam";
+        if (stdIdx >= 13 && stdIdx <= 17) return "Chính Tây";
+        if (stdIdx >= 18 && stdIdx <= 23) return "Tây Bắc";
+        if (stdIdx >= 24 && stdIdx <= 28) return "Chính Bắc";
+        return "";
+    }
     function checkXungTuoi(dayChiIdx) { const uYear = document.getElementById("birthYear").value; if(!uYear || uYear === "") return false; const uChiIdx = (uYear - 4) % 12; let diff = Math.abs(uChiIdx - dayChiIdx); return diff === 6 || diff === 0; }
     
     // --- ĐÃ CHỈNH SỬA: Tính toán ngày kỵ dựa vào Tháng Âm Lịch & Luật Tụ Bảo Lâu ---
@@ -361,7 +379,26 @@
             hourDetails.push({ can: canGio, chi: chiGio, chiIdx: i, str: `${canGio} ${chiGio}<br><span class="text-[9px] text-gray-500">(${(i*2-1+24)%24}h-${(i*2+1)%24}h)</span>`, isGood: checkGioHoangDao(dayInfo.chiIdx, i), lucDieu: lucDieuStr, isThoTu: isThoTu, isSatChu: isSatChu, isKhongVong: isKhongVong });
         }
         
-        return { solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() }, lunar: { day: lDay, month: lMonth, year: lYear }, text: { day: dayInfo.full }, extra: { truc, tietKhi: solarInfo.name, taiThan: CAL_DATA.DIRECTIONS.TAI_THAN[dayInfo.canIdx], badDaysList, isXungTuoiCaNhan, tuoiXungNgay, bHoliday, isHoangDao, sao: saoData }, hourDetails, rating };
+        // Thay thế dòng trả về cũ bằng:
+        return { 
+            solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() }, 
+            lunar: { day: lDay, month: lMonth, year: lYear }, 
+            text: { day: dayInfo.full }, 
+            extra: { 
+                truc, 
+                tietKhi: solarInfo.name, 
+                hyThan: CAL_DATA.HY_THAN[dayInfo.canIdx],
+                taiThan: CAL_DATA.TAI_THAN[dayInfo.canIdx],
+                hacThan: getHacThanDirection(jdn), // Gọi hàm tính Hạc Thần
+                badDaysList, 
+                isXungTuoiCaNhan, 
+                tuoiXungNgay, 
+                bHoliday, 
+                isHoangDao, 
+                sao: saoData 
+            }, 
+            hourDetails, rating 
+        };
     }
 
     let selDate = new Date();
@@ -571,8 +608,27 @@
                     ${daoBadge}
                     
                     <div class="mt-2 border-t border-gray-400 pt-1 text-[10px]">
-                        <div><b class="text-gray-700">Xung Ngày:</b> <span class="text-red-700">${dData.extra.tuoiXungNgay}</span></div>
-                        <div class="mt-1"><b class="text-gray-700">Tài Thần:</b> <span class="text-red-700">${dData.extra.taiThan}</span></div>
+                        <div class="mb-1"><b class="text-gray-700">Xung Ngày:</b> <span class="text-red-700 font-bold">${dData.extra.tuoiXungNgay}</span></div>
+                        <div class="grid grid-cols-1 gap-1 bg-stone-200 p-1.5 border border-stone-400 shadow-inner rounded text-left">
+                            <div>
+                                <b class="text-pink-700">Hỷ Thần:</b> 
+                                ${dData.extra.hyThan === dData.extra.hacThan ? 
+                                    `<span class="line-through text-stone-500">${dData.extra.hyThan}</span> <span class="text-red-600 font-bold text-[9px]">(Kỵ: Trùng Hạc Thần)</span>` : 
+                                    `<span class="text-stone-800 font-bold">${dData.extra.hyThan}</span>`
+                                }
+                            </div>
+                            <div>
+                                <b class="text-blue-700">Tài Thần:</b> 
+                                ${dData.extra.taiThan === dData.extra.hacThan ? 
+                                    `<span class="line-through text-stone-500">${dData.extra.taiThan}</span> <span class="text-red-600 font-bold text-[9px]">(Kỵ: Trùng Hạc Thần)</span>` : 
+                                    `<span class="text-stone-800 font-bold">${dData.extra.taiThan}</span>`
+                                }
+                            </div>
+                            <div class="border-t border-stone-300 pt-0.5 mt-0.5">
+                                <b class="text-gray-700">Hạc Thần (Ác):</b> 
+                                <span class="${dData.extra.hacThan.includes('Trên Trời') ? 'text-green-700' : 'text-red-700 font-bold'}">${dData.extra.hacThan}</span>
+                            </div>
+                        </div>
                     </div>
                 </td>
             </tr></table>
