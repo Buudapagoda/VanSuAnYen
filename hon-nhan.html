@@ -52,6 +52,7 @@
         table.analysis-table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px; font-size: 14px; background: #fff;}
         table.analysis-table th, table.analysis-table td { padding: 10px; border: 1px solid #dcdcdc; text-align: left; vertical-align: top; }
         table.analysis-table th { background-color: #f0eae1; color: #8b4513; }
+        table.analysis-table td { line-height: 1.4; }
         
         .t-tot { color: #1b5e20; font-weight: bold; }
         .t-xau { color: #b71c1c; font-weight: bold; }
@@ -223,7 +224,7 @@
         }
     }
 
-    // --- 4. THÁNG CƯỚI THEO TUỔI NỮ (Đã bổ sung tháng Kỵ) ---
+    // --- 4. THÁNG CƯỚI THEO TUỔI NỮ ---
     function thangCuoi(chiVo) {
         const rules = {
             "Tý": { dl: "Tháng 6, Tháng 12", tl: "Tháng 1, Tháng 7", ongco: "Tháng 2, Tháng 8", phumau: "Tháng 3, Tháng 9", phuchu: "Tháng 4, Tháng 10", nuthan: "Tháng 5, Tháng 11" },
@@ -242,6 +243,17 @@
         return rules[chiVo];
     }
 
+    // --- HÀM KIỂM TRA TAM TAI ---
+    function checkTamTai(chiNguoi, chiNam) {
+        const tamTaiGroups = {
+            "Thân": ["Dần", "Mão", "Thìn"], "Tý": ["Dần", "Mão", "Thìn"], "Thìn": ["Dần", "Mão", "Thìn"],
+            "Dần": ["Thân", "Dậu", "Tuất"], "Ngọ": ["Thân", "Dậu", "Tuất"], "Tuất": ["Thân", "Dậu", "Tuất"],
+            "Hợi": ["Tỵ", "Ngọ", "Mùi"], "Mão": ["Tỵ", "Ngọ", "Mùi"], "Mùi": ["Tỵ", "Ngọ", "Mùi"],
+            "Tỵ": ["Hợi", "Tý", "Sửu"], "Dậu": ["Hợi", "Tý", "Sửu"], "Sửu": ["Hợi", "Tý", "Sửu"]
+        };
+        return tamTaiGroups[chiNguoi].includes(chiNam);
+    }
+
     // --- 5. RENDER KẾT QUẢ ---
     function xemKetQua() {
         let nChong = parseInt(document.getElementById('namChong').value);
@@ -252,15 +264,14 @@
             alert("Vui lòng nhập đầy đủ năm (ví dụ: 1995)!"); return;
         }
 
-        // Khai báo biến cơ bản
         let canChong = CAN[nChong % 10]; let chiChong = CHI[nChong % 12];
         let canVo = CAN[nVo % 10]; let chiVo = CHI[nVo % 12];
         let canChiCuoi = layCanChi(nCuoi);
+        let chiCuoi = CHI[nCuoi % 12];
 
         let cungChong = layCungPhi(nChong, true); let cungVo = layCungPhi(nVo, false);
         let mangChong = tinhMang(nChong); let mangVo = tinhMang(nVo);
 
-        // Hiển thị
         document.getElementById('ketQua').style.display = 'block';
 
         // Khối 1: Thông tin
@@ -334,32 +345,73 @@
             </div>
         `;
 
-        // Khối 4: Xét năm cưới (Kim Lâu)
-        let tuoiMu = nCuoi - nVo + 1;
-        let isKimLau = ([1, 3, 6, 8].includes(tuoiMu % 9));
-        
-        let luanNamCuoiText = `<div class='result-title'>4. Xét Năm Dự Kiến Cưới: ${nCuoi} (${canChiCuoi})</div>`;
-        luanNamCuoiText += `<p>Năm ${nCuoi}, cô dâu được <b>${tuoiMu} tuổi</b> (tuổi mụ).</p>`;
+        // --- KHỐI 4: XÉT NĂM CƯỚI CHO CẢ NAM VÀ NỮ ---
+        // Nam
+        let isTamTaiChong = checkTamTai(chiChong, chiCuoi);
+        let isThaiTueChong = (chiChong === chiCuoi);
+        const hungNienNamMap = {"Tý":"Mùi", "Sửu":"Thân", "Dần":"Dậu", "Mão":"Tuất", "Thìn":"Hợi", "Tỵ":"Tý", "Ngọ":"Sửu", "Mùi":"Dần", "Thân":"Mão", "Dậu":"Thìn", "Tuất":"Tỵ", "Hợi":"Ngọ"};
+        let isHungNienChong = (chiCuoi === hungNienNamMap[chiChong]);
 
-        if (!isKimLau) {
-            luanNamCuoiText += `<p><b>Đánh giá: HỢP TUỔI.</b> Năm nay người nữ không phạm Kim Lâu, vạn sự hanh thông, rất tốt để tiến hành đại sự.</p>`;
+        // Nữ
+        let isTamTaiVo = checkTamTai(chiVo, chiCuoi);
+        let isThaiTueVo = (chiVo === chiCuoi);
+        const hungNienNuMap = {"Tý":"Mão", "Sửu":"Dần", "Dần":"Sửu", "Mão":"Tý", "Thìn":"Hợi", "Tỵ":"Tuất", "Ngọ":"Dậu", "Mùi":"Thân", "Thân":"Mùi", "Dậu":"Ngọ", "Tuất":"Tỵ", "Hợi":"Thìn"};
+        let isHungNienVo = (chiCuoi === hungNienNuMap[chiVo]);
+
+        let hasIssueChong = isTamTaiChong || isThaiTueChong || isHungNienChong;
+        let hasIssueVo = isTamTaiVo || isThaiTueVo || isHungNienVo;
+
+        let luanNamCuoiText = `<div class='result-title'>4. Xét Năm Dự Kiến Cưới: ${nCuoi} (${canChiCuoi})</div>`;
+        
+        luanNamCuoiText += `<table class="analysis-table" style="margin-bottom: 15px;">
+            <tr><th width="30%">Cát Hung</th><th width="35%">👨 Chú Rể (Tuổi ${chiChong})</th><th width="35%">👩 Cô Dâu (Tuổi ${chiVo})</th></tr>
+            <tr>
+                <td><b>Tam Tai</b><br><i style="font-size:11px; font-weight:normal; color:#555;">Kỵ đại sự, việc lớn</i></td>
+                <td>${isTamTaiChong ? "<span class='t-xau'>Phạm Tam Tai</span>" : "<span class='t-tot'>Không phạm</span>"}</td>
+                <td>${isTamTaiVo ? "<span class='t-xau'>Phạm Tam Tai</span>" : "<span class='t-tot'>Không phạm</span>"}</td>
+            </tr>
+            <tr>
+                <td><b>Thái Tuế</b><br><i style="font-size:11px; font-weight:normal; color:#555;">Năm tuổi bản mệnh</i></td>
+                <td>${isThaiTueChong ? "<span class='t-xau'>Phạm Thái Tuế</span>" : "<span class='t-tot'>Không phạm</span>"}</td>
+                <td>${isThaiTueVo ? "<span class='t-xau'>Phạm Thái Tuế</span>" : "<span class='t-tot'>Không phạm</span>"}</td>
+            </tr>
+            <tr>
+                <td><b>Hung Niên</b><br><i style="font-size:11px; font-weight:normal; color:#555;">Năm kỵ kết hôn</i></td>
+                <td>${isHungNienChong ? "<span class='t-xau'>Phạm Hung Niên</span>" : "<span class='t-tot'>Không phạm</span>"}</td>
+                <td>${isHungNienVo ? "<span class='t-xau'>Phạm Hung Niên</span>" : "<span class='t-tot'>Không phạm</span>"}</td>
+            </tr>
+        </table>`;
+
+        if (!hasIssueChong && !hasIssueVo) {
+            luanNamCuoiText += `<p style="background: #e8f5e9; padding: 12px; border-left: 4px solid #4caf50; border-radius: 4px;"><b>ĐÁNH GIÁ CHUNG: <span class='t-tot'>RẤT TỐT.</span></b> Năm nay cả hai vợ chồng đều hoàn toàn sạch, không phạm kỵ đại sự, vạn sự hanh thông, rất lý tưởng để tiến hành lễ cưới.</p>`;
         } else {
-            luanNamCuoiText += `<p><b>Đánh giá: KHÔNG HỢP (Phạm Kim Lâu).</b> Dân gian kỵ cưới năm Kim Lâu vì lo ngại sức khỏe, công việc bị trắc trở.</p>`;
-            luanNamCuoiText += `<p><b>❖ Cách hóa giải:</b> Nếu bắt buộc phải cưới, có thể xin rước dâu 2 lần, hoặc lên chùa làm Lễ Hằng Thuận để nương nhờ phước báu Tam Bảo che chở.</p>`;
+            luanNamCuoiText += `<p style="background: #fff3cd; padding: 12px; border-left: 4px solid #ffc107; border-radius: 4px;"><b>ĐÁNH GIÁ CHUNG: <span class='t-xau'>CẦN LƯU Ý.</span></b> Có người đang phạm kỵ trong năm nay. Tuy nhiên, cưới hỏi trọng nhất là chọn được <b>Tháng Đại Lợi</b> và <b>Ngày Hoàng Đạo</b> thì mọi hung sát đều được hóa giải. Gia đình không cần quá lo lắng.</p>`;
             
             luanNamCuoiText += `<div style='background-color:#f0eae1; padding: 10px; border-radius: 5px; margin-top: 15px;'>`;
-            luanNamCuoiText += `<p style='margin-top:0;'><b>💡 Gợi ý 3 năm gần nhất không phạm Kim Lâu:</b></p><ul>`;
+            luanNamCuoiText += `<p style='margin-top:0;'><b>💡 Gợi ý 3 năm gần nhất Sạch (Cả 2 đều không phạm Tam Tai, Thái Tuế, Hung Niên):</b></p><ul style="margin-bottom:0;">`;
+            
             let count = 0; let year = nCuoi + 1;
             while(count < 3) {
-                let tMu = year - nVo + 1;
-                if (![1, 3, 6, 8].includes(tMu % 9)) {
-                    luanNamCuoiText += `<li>Năm <b>${year} (${layCanChi(year)})</b> - Cô dâu ${tMu} tuổi.</li>`;
+                let nextChi = CHI[year % 12];
+                let cTamTai = checkTamTai(chiChong, nextChi);
+                let cThaiTue = (chiChong === nextChi);
+                let cHungNien = (nextChi === hungNienNamMap[chiChong]);
+                
+                let vTamTai = checkTamTai(chiVo, nextChi);
+                let vThaiTue = (chiVo === nextChi);
+                let vHungNien = (nextChi === hungNienNuMap[chiVo]);
+
+                if (!cTamTai && !cThaiTue && !cHungNien && !vTamTai && !vThaiTue && !vHungNien) {
+                    luanNamCuoiText += `<li>Năm <b>${year} (${layCanChi(year)})</b></li>`;
                     count++;
                 }
                 year++;
+                if (year > nCuoi + 20) break; // Giới hạn vòng lặp
             }
+            if (count === 0) luanNamCuoiText += `<li>Rất khó tìm năm hoàn toàn sạch cho cả hai trong 20 năm tới. Khuyên nên châm chước và chọn tháng/ngày tốt để bù đắp.</li>`;
             luanNamCuoiText += `</ul></div>`;
         }
+
         document.getElementById('luanNamCuoi').innerHTML = luanNamCuoiText;
     }
 </script>
