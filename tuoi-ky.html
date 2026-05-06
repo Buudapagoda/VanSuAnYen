@@ -1,3 +1,8 @@
+Chào bạn, mình xin nhận lỗi vì sự nhầm lẫn trong thuật toán tính **Cung Huỳnh Long** và sự sai sót khi tính **Thiên Can** ở bản trước. Bạn phân tích rất chuẩn xác: Cung Huỳnh Long phải lấy Mộ Cung của Tam Hợp làm điểm khởi "Thần", sau đó đếm thuận chiều kim đồng hồ đến **Địa Chi của Năm Mất** mới dừng lại.
+Ví dụ bạn đưa ra cực kỳ rõ ràng: Tuổi Tý (thuộc Thân-Tý-Thìn) khởi Thần tại Thìn. Mất năm 2026 (Ngọ). Đếm: Thìn (Thần) -> Tỵ (Tề) -> Ngọ (Mục). Kết quả là chữ **Mục**!
+Bên cạnh đó, mảng tính Thiên Can đã được mình đưa về đúng chuẩn: Tận cùng 4 là Giáp, 5 là Ất, 6 là Bính... (VD: 1996 là Bính Tý).
+Dưới đây là mã nguồn đã được sửa lỗi hoàn thiện. Bạn hãy copy và dán đè lên file tuoi-ky.html nhé:
+```html
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -56,6 +61,7 @@
     <h3>Tra Cứu Tuổi Kỵ & Tang Sự Chuyên Sâu</h3>
     <div class="subtitle-phat">"Hành sự theo thuật số, giải ách bằng Tâm đức."</div>
     
+    <!-- PHẦN 1: 6 TUỔI KỴ CỦA NĂM -->
     <div class="nam-hien-tai-box">
         <div class="form-row-inline" style="margin-bottom: 10px;">
             <div>
@@ -70,11 +76,12 @@
         </div>
     </div>
 
+    <!-- PHẦN 2: THÔNG TIN NGƯỜI MẤT -->
     <div class="section-title">I. Phân Tích Cát Hung Người Mất</div>
     <div class="form-row form-row-inline">
         <div>
             <label>Năm sinh (Âm lịch):</label>
-            <input type="number" id="inpNamSinh" placeholder="VD: 1932">
+            <input type="number" id="inpNamSinh" placeholder="VD: 1996">
         </div>
         <div>
             <label>Giới tính:</label>
@@ -89,6 +96,7 @@
         </div>
     </div>
 
+    <!-- PHẦN 3: GIỜ HÀNH LỄ -->
     <div class="section-title">II. Tuổi Kỵ Hành Lễ (Theo Lục Xung)</div>
     <div class="form-row form-row-inline">
         <div>
@@ -103,6 +111,7 @@
         </div>
     </div>
 
+    <!-- PHẦN 4: CẢI TÁNG -->
     <div class="section-title">III. Dự Kiến Năm Cải Táng (Bốc Mộ)</div>
     <div class="form-row">
         <label>Năm định Cải táng (Âm lịch):</label>
@@ -115,8 +124,12 @@
 </div>
 
 <script>
+    // --- CHUẨN HÓA MẢNG CAN VÀ CHI ĐỂ KHỚP % 10 VÀ % 12 ---
     const CAN = ["Canh", "Tân", "Nhâm", "Quý", "Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ"];
-    const CHI = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
+    const CHI = ["Thân", "Dậu", "Tuất", "Hợi", "Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi"];
+    
+    // Mảng này dùng để đếm theo thứ tự vòng tròn 12 cung (Dùng cho Lục Xung, Huỳnh Long)
+    const DANH_SACH_CHI = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
 
     function init() {
         document.getElementById("inpNamTangLe").value = new Date().getFullYear();
@@ -128,14 +141,12 @@
         let nam = parseInt(document.getElementById("inpNamTangLe").value);
         if (!nam) return;
         
-        let canIdx = (nam + 6) % 10; 
-        let chiIdx = (nam + 8) % 12; 
-        let canNam = CAN[canIdx]; 
-        let chiNam = CHI[chiIdx];
+        let canNam = CAN[nam % 10]; 
+        let chiNam = CHI[nam % 12]; 
         
         document.getElementById("tieuDeNamNay").innerText = `Sáu (6) tuổi vận khí yếu trong năm ${canNam} ${chiNam} (${nam}):`;
         
-        let ketQua = [];
+        let canIdx = nam % 10; let chiIdx = nam % 12; let ketQua = [];
         for (let i = 0; i < 6; i++) {
             canIdx = (canIdx + 9) % 10; chiIdx = (chiIdx + 9) % 12; 
             ketQua.push(CAN[canIdx] + " " + CHI[chiIdx]);
@@ -143,13 +154,13 @@
         document.getElementById("danhSach6Tuoi").innerHTML = ketQua.map(t => `<span class="tag-6tuoi">${t}</span>`).join(" ");
     }
 
-    function layTuoiXung(chiIndex) {
-        let daiKy = (chiIndex + 6) % 12;
-        let thuKy1 = (chiIndex + 3) % 12;
-        let thuKy2 = (chiIndex + 9) % 12;
+    function layTuoiXung(chiIndex_TheoDanhSach) {
+        let daiKy = (chiIndex_TheoDanhSach + 6) % 12;
+        let thuKy1 = (chiIndex_TheoDanhSach + 3) % 12;
+        let thuKy2 = (chiIndex_TheoDanhSach + 9) % 12;
         return {
-            daiKyTxt: CHI[daiKy],
-            thuKyTxt: CHI[thuKy1] + ", " + CHI[thuKy2]
+            daiKyTxt: DANH_SACH_CHI[daiKy],
+            thuKyTxt: DANH_SACH_CHI[thuKy1] + ", " + DANH_SACH_CHI[thuKy2]
         };
     }
 
@@ -183,8 +194,8 @@
         return { cung: cung, danhGia: danhGia, isTot: isTot, classColor: classColor };
     }
 
-    // THUẬT TOÁN 2: Cung Huỳnh Long (Đã Sửa Lỗi - Chỉ xét địa chi, không tính theo tuổi mụ)
-    function tinhCungHuynhLong(chiNamSinh) {
+    // THUẬT TOÁN 2: Cung Huỳnh Long Đã Sửa (Tính đến Địa Chi của Năm Mất)
+    function tinhCungHuynhLong(chiNamSinh, chiNamMat) {
         const huynhLongSteps = ["Thần", "Tề", "Mục", "Dĩ", "Tảng", "Phúc", "Giác", "Nhĩ", "Yêu", "Túc", "Tỷ", "Trường"];
         const goodHL = ["Nhĩ", "Tề", "Tảng", "Tỷ", "Phúc", "Trường"];
         
@@ -194,14 +205,14 @@
         else if (["Hợi", "Mão", "Mùi"].includes(chiNamSinh)) startChi = "Mùi";
         else if (["Tỵ", "Dậu", "Sửu"].includes(chiNamSinh)) startChi = "Sửu";
 
-        let startIdx = CHI.indexOf(startChi);
-        let targetIdx = CHI.indexOf(chiNamSinh);
+        let startIdx = DANH_SACH_CHI.indexOf(startChi);
+        let targetIdx = DANH_SACH_CHI.indexOf(chiNamMat);
         
-        // Đếm khoảng cách từ Cung khởi đến Cung của người mất (Đếm thuận)
+        // Đếm khoảng cách từ Cung khởi đến Cung của NĂM MẤT (Đếm thuận)
         let distance = (targetIdx - startIdx + 12) % 12;
         let cungHL = huynhLongSteps[distance];
         
-        return { cung: cungHL, isTot: goodHL.includes(cungHL), startChi: startChi };
+        return { cung: cungHL, isTot: goodHL.includes(cungHL), startChi: startChi, targetChi: chiNamMat };
     }
 
     // THUẬT TOÁN 3: Tuổi kỵ theo Giờ Nhị Xung (Lục Xung) - Có tính "Giờ Tiến Tới"
@@ -213,11 +224,12 @@
         let mm = parseInt(parts[1]);
         let timeFmt = `${hh < 10 ? '0'+hh : hh}h${mm < 10 ? '0'+mm : mm}`;
 
+        // Xác định index của mảng DANH_SACH_CHI (0 = Tý, 1 = Sửu,...)
         let chiIdx = Math.floor(hh / 2) % 12; 
         let xungIdx = (chiIdx + 6) % 12;
         
-        let textGio = `${timeFmt} (Thuộc Giờ ${CHI[chiIdx]})`;
-        let textKy = `${CHI[chiIdx]}, ${CHI[xungIdx]}`;
+        let textGio = `${timeFmt} (Thuộc Giờ ${DANH_SACH_CHI[chiIdx]})`;
+        let textKy = `${DANH_SACH_CHI[chiIdx]}, ${DANH_SACH_CHI[xungIdx]}`;
         
         return { ten: textGio, ky: textKy };
     }
@@ -237,9 +249,13 @@
         }
 
         let html = "";
-        let canMat = CAN[(nSinh + 6) % 10]; let chiMat = CHI[(nSinh + 8) % 12];
+        let canMat = CAN[nSinh % 10]; 
+        let chiMat = CHI[nSinh % 12];
+        let chiNamMat = CHI[nMat % 12]; 
+        
         let tuoiMuMat = nMat - nSinh + 1;
         
+        // --- XỬ LÝ TỪ NGỮ ĐỘ TUỔI ---
         let danhXungTuoi = "";
         if (tuoiMuMat >= 90) { danhXungTuoi = "Đại thọ"; } 
         else if (tuoiMuMat >= 60) { danhXungTuoi = "Hưởng thọ"; } 
@@ -247,8 +263,9 @@
 
         let txtGioiTinh = (gTinh === 'nam') ? "Nam giới" : "Nữ giới";
 
+        // 1. LUẬN CÁT HUNG LÚC MẤT
         let kqCungTu = tinhCungPhiBangTay(tuoiMuMat, gTinh);
-        let kqHuynhLong = tinhCungHuynhLong(chiMat); // Không truyền tuổi mụ nữa
+        let kqHuynhLong = tinhCungHuynhLong(chiMat, chiNamMat);
 
         html += `<div class="result-block">
             <div class="res-title"><i class="fa-solid fa-user"></i> Thông Tin & Cát Hung Người Mất</div>
@@ -263,11 +280,11 @@
             
             <table style="width: 100%; margin-top: 10px; border-collapse: collapse; background: #fff; border: 1px solid #e8dcc4; border-radius: 4px; overflow: hidden;">
                 <tr style="border-bottom: 1px solid #e8dcc4;">
-                    <td style="padding: 8px 12px;"><b>Cung Phi:</b> Rơi Cung ${kqCungTu.cung}</td>
+                    <td style="padding: 8px 12px;"><b>Cung Lạc Mệnh:</b> Rơi Cung ${kqCungTu.cung}</td>
                     <td style="padding: 8px 12px; text-align: right;"><span class="${kqCungTu.classColor}">${kqCungTu.danhGia}</span></td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px 12px;"><b>Cung Huỳnh Long:</b> (Khởi tại ${kqHuynhLong.startChi}) Rơi Chữ <b>${kqHuynhLong.cung}</b></td>
+                    <td style="padding: 8px 12px;"><b>Cung Huỳnh Long:</b> (Khởi tại ${kqHuynhLong.startChi} tính đến năm ${kqHuynhLong.targetChi}) Rơi Chữ <b>${kqHuynhLong.cung}</b></td>
                     <td style="padding: 8px 12px; text-align: right;">${kqHuynhLong.isTot ? '<span class="tag-tot">TỐT</span>' : '<span class="tag-xau">XẤU</span>'}</td>
                 </tr>
             </table>`;
@@ -335,3 +352,5 @@
 
 </body>
 </html>
+
+```
