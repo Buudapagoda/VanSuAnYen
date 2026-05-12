@@ -41,7 +41,7 @@
     .lunar-main { color: #b30000; font-weight: bold; font-size: 1.05em; }
     .note-text { font-size: 12px; color: #666; font-style: italic; margin-top: 3px; }
 
-    /* --- CSS SỬA LỖI GIAO DIỆN TRÊN ĐIỆN THOẠI (MOBILE RESPONSIVE) --- */
+    /* CSS ĐIỆN THOẠI RESPONSIVE */
     @media screen and (max-width: 600px) {
         body { padding: 10px; }
         .ky-tuoi-wrapper { padding: 15px; }
@@ -58,7 +58,7 @@
     @media print {
         body { background-color: #fff; padding: 0; margin: 0; }
         body > *:not(#printAreaContainer) { display: none; }
-        #printArea { display: block !important; position: static !important; width: 100% !important; padding: 0 !important; }
+        #printArea { display: block !important; position: static !important; width: 100% !important; padding: 0 !important; border: none !important;}
     }
 </style>
 </head>
@@ -199,11 +199,24 @@
         return { cung: cung, isTot: isTot, classColor: classColor, danhGia: isTot ? "Tốt" : (["Đoài", "Tốn"].includes(cung) ? "Trung Bình" : "Xấu") };
     }
 
-    function tinhBanTayHuynhLong(chiNamMat) {
+    // THUẬT TOÁN BÀN TAY HUỲNH LONG ĐÃ ĐƯỢC CHỈNH SỬA
+    function tinhBanTayHuynhLong(chiSinh, chiNamMat) {
         const hl = ["Thần", "Tề", "Mục", "Dĩ", "Tảng", "Phúc", "Giác", "Nhĩ", "Yêu", "Túc", "Tỷ", "Trường"];
-        let start = ["Thân","Tý","Thìn"].includes(chiNamMat) ? "Thìn" : (["Dần","Ngọ","Tuất"].includes(chiNamMat) ? "Tuất" : (["Hợi","Mão","Mùi"].includes(chiNamMat) ? "Mùi" : "Sửu"));
-        let cungHL = hl[(CHI.indexOf(chiNamMat) - CHI.indexOf(start) + 12) % 12];
-        return { cung: cungHL, isTot: ["Nhĩ", "Tề", "Tảng", "Tỷ", "Phúc", "Trường"].includes(cungHL) };
+        
+        // 1. Xác định cung khởi Thần dựa vào Tuổi Người Mất (chiSinh)
+        let start = "";
+        if (["Thân", "Tý", "Thìn"].includes(chiSinh)) start = "Thìn";
+        else if (["Dần", "Ngọ", "Tuất"].includes(chiSinh)) start = "Tuất";
+        else if (["Hợi", "Mão", "Mùi"].includes(chiSinh)) start = "Mùi";
+        else if (["Tỵ", "Dậu", "Sửu"].includes(chiSinh)) start = "Sửu";
+        
+        // 2. Tính khoảng cách từ Cung Khởi đến Cung của Năm Mất
+        let distance = (CHI.indexOf(chiNamMat) - CHI.indexOf(start) + 12) % 12;
+        let cungHL = hl[distance];
+        
+        // 3. Đánh giá tốt xấu
+        let isTot = ["Nhĩ", "Tề", "Tảng", "Tỷ", "Phúc", "Trường"].includes(cungHL);
+        return { cung: cungHL, isTot: isTot, startChi: start };
     }
 
     // Xử lý sự kiện Hành Lễ
@@ -275,7 +288,7 @@
         if (chiGio === kỵ) biTrùng.push(`Giờ`);
 
         let cungPhi = tinhCungPhiBangTay(tuoiMu, gTinh);
-        let huynhLong = tinhBanTayHuynhLong(chiNam);
+        let huynhLong = tinhBanTayHuynhLong(chiSinh, chiNam); // Tính Huỳnh Long (Đã truyền đúng chiSinh và chiNamMat)
 
         let ngayDongQuanStr = document.getElementById("inpNgayDongQuan").value;
         let dtLiem = xuLySuKienHanhLe(document.getElementById("inpNgayLiem").value, document.getElementById("inpGioLiem").value, "Nhập Liệm", chiSinh);
@@ -313,10 +326,20 @@
                     <td style="padding: 10px 12px; text-align: right;"><span class="${cungPhi.classColor}">${cungPhi.danhGia}</span></td>
                 </tr>
                 <tr>
-                    <td style="padding: 10px 12px;"><b>Bàn Tay Huỳnh Long:</b> Rơi Chữ <b>${huynhLong.cung}</b></td>
+                    <td style="padding: 10px 12px;"><b>Bàn Tay Huỳnh Long:</b> (Khởi tại ${huynhLong.startChi}) Rơi Chữ <b>${huynhLong.cung}</b></td>
                     <td style="padding: 10px 12px; text-align: right;">${huynhLong.isTot ? '<span class="tag-tot">TỐT</span>' : '<span class="tag-xau">XẤU</span>'}</td>
                 </tr>
-            </table></div>`;
+            </table>`;
+
+        // Tổng kết chung
+        if (cungPhi.isTot === true && huynhLong.isTot === true) {
+            htmlWeb += `<div class="adv-box" style="margin-top:12px; background:#e8f5e9; color:#2e7d32; border-color:#2e7d32;"><b>ĐÁNH GIÁ CHUNG: RẤT TỐT.</b> Người mất ra đi thanh thản, cung mạng cát tường. Con cháu làm ăn thuận lợi, gia đạo bình an.</div>`;
+        } else if (cungPhi.isTot === false && huynhLong.isTot === false) {
+            htmlWeb += `<div class="danger-box" style="margin-top:12px;"><b>ĐÁNH GIÁ CHUNG: XẤU.</b> Cả 2 cung đều rơi vào điểm dữ. Hướng dẫn con cháu nên tích cực phóng sinh, bố thí, tụng kinh làm phước hồi hướng cho người mất lẫn con cháu.</div>`;
+        } else {
+            htmlWeb += `<div class="warning-box" style="margin-top:12px;"><b>ĐÁNH GIÁ CHUNG: TRUNG BÌNH.</b> Có sự đan xen giữa điểm Tốt và Xấu. Gia đình chu toàn tang lễ và thành tâm niệm Phật là vạn sự sẽ được hóa giải.</div>`;
+        }
+        htmlWeb += `</div>`;
 
         if (dtLiem || dtDQ || dtHN) {
             htmlWeb += `<div class="result-block">
@@ -388,6 +411,11 @@
         }
         htmlIn += `<div><b>Cung Phi:</b> ${cungPhi.cung} (${cungPhi.danhGia})</div>`;
         htmlIn += `<div><b>Bàn Tay Huỳnh Long:</b> ${huynhLong.cung} (${huynhLong.isTot ? 'Tốt' : 'Xấu'})</div>`;
+        
+        // Đánh giá chung
+        if (cungPhi.isTot && huynhLong.isTot) htmlIn += `<div><b>Đánh giá:</b> <span style="color: #2e7d32;">Tốt (Mọi sự bình an)</span></div>`;
+        else if (!cungPhi.isTot && !huynhLong.isTot) htmlIn += `<div><b>Đánh giá:</b> <span style="color: #c0392b;">Xấu (Cần làm phước hồi hướng)</span></div>`;
+        else htmlIn += `<div><b>Đánh giá:</b> Trung Bình (Thành tâm sẽ hóa giải)</div>`;
         htmlIn += `</div>`;
 
         // Thời gian hành lễ
