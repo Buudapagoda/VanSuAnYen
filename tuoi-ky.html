@@ -41,6 +41,16 @@
     .lunar-main { color: #b30000; font-weight: bold; font-size: 1.05em; }
     .note-text { font-size: 12px; color: #666; font-style: italic; margin-top: 3px; }
 
+    /* --- CSS SỬA LỖI GIAO DIỆN TRÊN ĐIỆN THOẠI (MOBILE RESPONSIVE) --- */
+    @media screen and (max-width: 600px) {
+        body { padding: 10px; }
+        .ky-tuoi-wrapper { padding: 15px; }
+        .form-row-inline { flex-direction: column; gap: 10px; }
+        .form-row-inline > div { width: 100%; min-width: unset; }
+        .btn-group { flex-direction: column; }
+        .btn-in, .btn-anh { width: 100%; margin-top: 5px; }
+    }
+
     /* KHU VỰC IN ẨN TRÊN WEB */
     #printArea { display: none; }
 
