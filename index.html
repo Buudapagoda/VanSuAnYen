@@ -4,9 +4,7 @@
   <meta charset="UTF-8" />
   <title>Vạn Sự An Yên - Ứng Dụng Tổng Hợp</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <script src="https://cdn.tailwindcss.com"></script>
-
   <style>
     * {
       box-sizing: border-box;
@@ -20,6 +18,8 @@
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: #e5e7eb;
+      display: flex;
+      flex-direction: column;
     }
     
     /* Ẩn thanh cuộn của menu ngang trên điện thoại cho đẹp nhưng vẫn vuốt được */
@@ -43,11 +43,29 @@
       color: #facc15;      /* Màu chữ vàng */
       border-color: #facc15;
     }
-    #appFrame {
+
+    /* VÙNG CHỨA CÁC IFRAME */
+    #framesContainer {
+        flex: 1;
+        position: relative;
+        width: 100%;
+    }
+    
+    /* Mặc định ẩn tất cả iframe, chiếm toàn bộ vùng chứa */
+    .app-frame {
+      position: absolute;
+      top: 0;
+      left: 0;
       width: 100%;
+      height: 100%;
       border: none;
-      display: block;
       background-color: #ffffff;
+      display: none; /* Ẩn đi */
+    }
+    
+    /* Iframe nào có class 'active' thì hiện lên */
+    .app-frame.active {
+        display: block;
     }
   </style>
 </head>
@@ -70,90 +88,89 @@
 
   <nav id="topNav" class="bg-slate-800 text-slate-100 px-3 md:px-8 py-3 flex overflow-x-auto hide-scrollbar gap-2 md:gap-3 border-b border-slate-700 items-center">
     
-    <button class="tab-btn active shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700 border border-transparent" data-src="lich-dung-su.html">
+    <button class="tab-btn active shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700 border border-transparent" data-target="frame-lich-dung-su">
       📅 Lịch Dụng Sự
     </button>
-    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="tuoi-ky.html">
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-target="frame-tuoi-ky">
       ⭐ Tang Sự
     </button>
-    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="cung-that.html">
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-target="frame-cung-that">
       🕯️ Cúng Thất
     </button>
 
-    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="tuoi-xay-nha.html">
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-target="frame-tuoi-xay-nha">
       🏗️ Xây Nhà
     </button>
 
-    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="hon-nhan.html">
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-target="frame-hon-nhan">
       💍 Hôn Nhân
     </button>
 
-    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="tinh-cach.html">
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-target="frame-tinh-cach">
       🧠 Tính Cách
     </button>
 
-    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="sao-han.html">
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-target="frame-sao-han">
       ⏳ Sao Hạn
     </button>
 
-    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="xong-dat.html">
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-target="frame-xong-dat">
       🏠 Xông Đất
     </button>
 
-    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-src="van-khan.html">
+    <button class="tab-btn shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-700/60 border border-transparent" data-target="frame-van-khan">
       📜 Nghi Lễ
     </button>
 
   </nav>
 
- <iframe id="appFrame" src="lich-dung-su.html"></iframe>
+  <div id="framesContainer">
+      <iframe id="frame-lich-dung-su" class="app-frame active" src="lich-dung-su.html"></iframe>
+      <iframe id="frame-tuoi-ky" class="app-frame" src="tuoi-ky.html"></iframe>
+      <iframe id="frame-cung-that" class="app-frame" src="cung-that.html"></iframe>
+      <iframe id="frame-tuoi-xay-nha" class="app-frame" src="tuoi-xay-nha.html"></iframe>
+      <iframe id="frame-hon-nhan" class="app-frame" src="hon-nhan.html"></iframe>
+      <iframe id="frame-tinh-cach" class="app-frame" src="tinh-cach.html"></iframe>
+      <iframe id="frame-sao-han" class="app-frame" src="sao-han.html"></iframe>
+      <iframe id="frame-xong-dat" class="app-frame" src="xong-dat.html"></iframe>
+      <iframe id="frame-van-khan" class="app-frame" src="van-khan.html"></iframe>
+  </div>
 
   <script>
     const buttons = document.querySelectorAll(".tab-btn");
-    const frame = document.getElementById("appFrame");
-    const header = document.getElementById("topHeader");
-    const nav = document.getElementById("topNav");
-
-    // Tính toán chiều cao iframe khít với màn hình
-    function resizeFrame() {
-      const hHeader = header.offsetHeight || 0;
-      const hNav = nav.offsetHeight || 0;
-      const total = window.innerHeight;
-      const frameHeight = total - hHeader - hNav;
-      frame.style.height = frameHeight + "px";
-    }
+    const frames = document.querySelectorAll(".app-frame");
 
     // Xử lý sự kiện khi bấm nút
     buttons.forEach(btn => {
       btn.addEventListener("click", () => {
-        // Trả lại trạng thái bình thường cho tất cả các nút
+        
+        // 1. TẮT TẤT CẢ NÚT (Trở về trạng thái xám mờ)
         buttons.forEach(b => {
             b.classList.remove("active", "bg-slate-700");
             b.classList.add("bg-slate-700/60");
         });
         
-        // Làm nổi bật nút được bấm
+        // 2. LÀM NỔI BẬT NÚT VỪA BẤM
         btn.classList.add("active", "bg-slate-700");
         btn.classList.remove("bg-slate-700/60");
 
         // Cuộn nút vừa bấm vào giữa màn hình (rất tiện cho mobile)
         btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
 
-        // Đổi nội dung iframe
-        const src = btn.getAttribute("data-src");
-        frame.src = src;
+        // 3. ẨN TẤT CẢ IFRAME VÀ HIỆN IFRAME TƯƠNG ỨNG VỚI NÚT ĐƯỢC BẤM
+        const targetId = btn.getAttribute("data-target");
+        
+        frames.forEach(f => {
+            if (f.id === targetId) {
+                f.classList.add("active"); // Hiện Iframe lên
+            } else {
+                f.classList.remove("active"); // Ẩn Iframe đi
+            }
+        });
+
       });
     });
-
-    // Kích hoạt tính năng tự động đổi kích thước
-    window.addEventListener("resize", resizeFrame);
-    // Chạy thử lần đầu để lấy kích thước chuẩn
-    setTimeout(resizeFrame, 100); 
   </script>
 
 </body>
-
 </html>
-
-
-
