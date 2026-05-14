@@ -10,46 +10,36 @@
     body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #fcfcfc; color: #333; margin: 0; padding: 20px; }
     .ky-tuoi-wrapper { border: 2px solid #8b0000; border-radius: 8px; padding: 20px; max-width: 850px; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.1); background: #fff; }
     h3 { text-align: center; color: #8b0000; margin-top: 0; margin-bottom: 10px; text-transform: uppercase; font-size: 1.4rem;}
-    .subtitle-phat { text-align: center; font-style: italic; color: #666; font-size: 14px; margin-bottom: 20px; border-bottom: 1px dashed #d4af37; padding-bottom: 15px; }
-    .section-title { font-weight: bold; color: #fff; background-color: #8b0000; padding: 10px 15px; border-radius: 4px; margin: 20px 0 15px 0; text-transform: uppercase; font-size: 15px; }
+    .subtitle-phat { text-align: center; font-style: italic; color: #666; font-size: 14px; margin-bottom: 10px; border-bottom: 1px dashed #d4af37; padding-bottom: 15px; }
+    .auto-notice { text-align: center; font-size: 13px; color: #2e7d32; font-weight: bold; margin-bottom: 20px; background: #e8f5e9; padding: 8px; border-radius: 4px;}
+    
+    .section-box { border: 1px solid #e0e0e0; border-radius: 6px; padding: 15px; margin-bottom: 20px; background: #fafafa; }
+    .section-title { font-weight: bold; color: #fff; background-color: #8b0000; padding: 10px 15px; border-radius: 4px; margin: -15px -15px 15px -15px; text-transform: uppercase; font-size: 15px; }
+    
     .form-row { margin-bottom: 15px; }
     .form-row label { display: block; font-weight: bold; color: #4a3b32; margin-bottom: 5px; font-size: 14px; }
-    .form-row input, .form-row select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; box-sizing: border-box; }
+    .form-row input, .form-row select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; box-sizing: border-box; transition: 0.3s;}
+    .form-row input:focus, .form-row select:focus { border-color: #8b0000; outline: none; }
     .form-row-inline { display: flex; gap: 15px; flex-wrap: wrap; }
     .form-row-inline > div { flex: 1; min-width: 150px; }
     
-    .btn-xem { width: 100%; background-color: #8b0000; color: white; border: none; padding: 15px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; transition: 0.3s; margin-top: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-    .btn-xem:hover { background-color: #a52a2a; }
-    
     .btn-group { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
-    .btn-in { flex: 1; background-color: #2e7d32; color: white; border: none; padding: 15px; font-size: 15px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; transition: 0.3s; display: none; min-width: 200px;}
+    .btn-in { flex: 1; background-color: #2e7d32; color: white; border: none; padding: 15px; font-size: 15px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; transition: 0.3s; min-width: 200px;}
     .btn-in:hover { background-color: #1b5e20; }
-    .btn-anh { flex: 1; background-color: #1976d2; color: white; border: none; padding: 15px; font-size: 15px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; transition: 0.3s; display: none; min-width: 200px;}
+    .btn-anh { flex: 1; background-color: #1976d2; color: white; border: none; padding: 15px; font-size: 15px; font-weight: bold; border-radius: 4px; cursor: pointer; text-transform: uppercase; transition: 0.3s; min-width: 200px;}
     .btn-anh:hover { background-color: #1565c0; }
 
-    .result-box { margin-top: 20px; padding: 20px; background-color: #fbf8f1; border: 1px solid #e8dcc4; border-radius: 6px; display: none; line-height: 1.6; }
-    .result-block { margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px dashed #dcdcdc; }
-    .result-block:last-child { border-bottom: none; }
-    .res-title { font-weight: bold; color: #8b4513; font-size: 17px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; }
-    .tag-tot { color: #2e7d32; font-weight: bold; background: #e8f5e9; padding: 3px 8px; border-radius: 4px; border: 1px solid #c8e6c9;}
-    .tag-tb { color: #856404; font-weight: bold; background: #fff3cd; padding: 3px 8px; border-radius: 4px; border: 1px solid #ffeeba;}
-    .tag-xau { color: #c0392b; font-weight: bold; background: #ffebee; padding: 3px 8px; border-radius: 4px; border: 1px solid #f5c6cb;}
+    .result-box { margin-top: 15px; padding: 15px; background-color: #fff; border: 1px solid #e8dcc4; border-radius: 6px; display: none; line-height: 1.6; box-shadow: inset 0 0 5px rgba(0,0,0,0.05);}
+    .res-title { font-weight: bold; color: #8b4513; font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; text-transform: uppercase; border-bottom: 1px dashed #ccc; padding-bottom: 5px;}
+    
+    .tag-tot { color: #2e7d32; font-weight: bold; background: #e8f5e9; padding: 3px 8px; border-radius: 4px; border: 1px solid #c8e6c9; font-size: 14px;}
+    .tag-tb { color: #856404; font-weight: bold; background: #fff3cd; padding: 3px 8px; border-radius: 4px; border: 1px solid #ffeeba; font-size: 14px;}
+    .tag-xau { color: #c0392b; font-weight: bold; background: #ffebee; padding: 3px 8px; border-radius: 4px; border: 1px solid #f5c6cb; font-size: 14px;}
+    
     .warning-box { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 12px; border-radius: 4px; font-size: 14.5px; color: #856404; margin-top: 10px; }
     .adv-box { background-color: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px; border-radius: 4px; font-size: 14.5px; color: #0d47a1; margin-top: 10px; text-align: justify;}
     .danger-box { background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 12px; border-radius: 4px; font-size: 14.5px; color: #721c24; margin-top: 10px; }
-    .info-person { background: #fff; border: 1px solid #e8dcc4; padding: 15px; border-radius: 6px; margin-bottom: 15px; font-size: 15.5px; }
-    .lunar-main { color: #b30000; font-weight: bold; font-size: 1.05em; }
-    .note-text { font-size: 12px; color: #666; font-style: italic; margin-top: 3px; }
-
-    /* CSS ĐIỆN THOẠI RESPONSIVE */
-    @media screen and (max-width: 600px) {
-        body { padding: 10px; }
-        .ky-tuoi-wrapper { padding: 15px; }
-        .form-row-inline { flex-direction: column; gap: 10px; }
-        .form-row-inline > div { width: 100%; min-width: unset; }
-        .btn-group { flex-direction: column; }
-        .btn-in, .btn-anh { width: 100%; margin-top: 5px; }
-    }
+    .info-person { font-size: 15.5px; }
 
     /* KHU VỰC IN ẨN TRÊN WEB */
     #printArea { display: none; }
@@ -67,26 +57,92 @@
 <div class="ky-tuoi-wrapper">
     <h3>Tra Cứu Tang Sự & Xuất Ảnh Chuyên Sâu</h3>
     <div class="subtitle-phat">"Hành sự theo thuật số, giải ách bằng Tâm đức."</div>
+    <div class="auto-notice"><i class="fa-solid fa-wand-magic-sparkles"></i> Hệ thống tự động phân tích độc lập khi bạn nhập dữ liệu!</div>
 
-    <div class="section-title">I. Thông Tin Người Mất & Liên Hệ</div>
-    <div class="form-row form-row-inline">
-        <div>
-            <label>Họ và Tên người mất:</label>
-            <input type="text" id="inpHoTen" placeholder="VD: Nguyễn Văn A">
+    <div class="section-box">
+        <div class="section-title">I. Thông Tin Cơ Bản Người Mất</div>
+        <div class="form-row form-row-inline">
+            <div style="flex: 2;">
+                <label>Họ và Tên:</label>
+                <input type="text" id="inpHoTen" placeholder="VD: Nguyễn Văn A">
+            </div>
+            <div style="flex: 1;">
+                <label>Giới tính:</label>
+                <select id="selGioiTinh">
+                    <option value="nam">Nam Giới</option>
+                    <option value="nu">Nữ Giới</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label>Năm sinh (Âm lịch):</label>
+                <input type="number" id="inpNamSinh" placeholder="VD: 1996">
+            </div>
         </div>
-        <div>
-            <label>Giới tính:</label>
-            <select id="selGioiTinh">
-                <option value="nam">Nam Giới</option>
-                <option value="nu">Nữ Giới</option>
-            </select>
-        </div>
-        <div>
-            <label>Năm sinh (Âm lịch):</label>
-            <input type="number" id="inpNamSinh" placeholder="VD: 1950">
-        </div>
+        <div id="resNguoiMat" class="result-box"></div>
     </div>
 
+    <div class="section-box">
+        <div class="section-title">II. Thời Điểm Mất & Luận Trùng Tang</div>
+        <div class="form-row form-row-inline">
+            <div>
+                <label>Ngày mất (Dương lịch):</label>
+                <input type="date" id="inpNgayMatDL">
+            </div>
+            <div>
+                <label>Giờ mất chính xác:</label>
+                <input type="time" id="inpGioMatDL">
+            </div>
+        </div>
+        
+        <div class="form-row form-row-inline" style="background: #fff8e1; padding: 10px; border: 1px dashed #d4af37; border-radius: 4px;">
+            <div>
+                <label>Ngày mất (Âm lịch):</label>
+                <input type="number" id="inpNgayMatAL" placeholder="VD: 25">
+            </div>
+            <div>
+                <label>Tháng mất (Âm lịch):</label>
+                <input type="number" id="inpThangMatAL" placeholder="VD: 3">
+            </div>
+            <div>
+                <label>Năm mất (Âm lịch):</label>
+                <input type="number" id="inpNamMatAL" placeholder="VD: 2026">
+            </div>
+        </div>
+        <div id="resTrungTang" class="result-box"></div>
+    </div>
+
+    <div class="section-box">
+        <div class="section-title">III. Thời Gian Hành Lễ & Kỵ Đi Chôn</div>
+        <div class="form-row form-row-inline">
+            <div>
+                <label>Lúc Khâm Liệm:</label>
+                <div style="display: flex; gap: 5px;">
+                    <input type="date" id="inpNgayLiem" style="flex: 3;">
+                    <input type="time" id="inpGioLiem" style="flex: 2;">
+                </div>
+            </div>
+            <div>
+                <label>Lúc Động Quan (Hạ huyệt):</label>
+                <div style="display: flex; gap: 5px;">
+                    <input type="date" id="inpNgayDongQuan" style="flex: 3;">
+                    <input type="time" id="inpGioDongQuan" style="flex: 2;">
+                </div>
+            </div>
+        </div>
+        <div id="resHanhLe" class="result-box"></div>
+    </div>
+
+    <div class="section-box">
+        <div class="section-title">IV. Cải Táng (Bốc Mộ)</div>
+        <div class="form-row">
+            <label>Nhập Năm định Cải táng (Âm lịch):</label>
+            <input type="number" id="inpNamCaiTang" placeholder="VD: 2028 (Hệ thống tự tính Cung Lạc Mệnh của năm bốc)">
+        </div>
+        <div id="resCaiTang" class="result-box"></div>
+    </div>
+
+    <hr style="border-top: 2px dashed #8b0000; margin-top: 30px; margin-bottom: 20px;">
+    
     <div class="form-row form-row-inline">
         <div style="flex: 2;">
             <label>Địa chỉ tang quyến (Để in phiếu):</label>
@@ -97,83 +153,25 @@
             <input type="text" id="inpSDT" placeholder="0909...">
         </div>
     </div>
-
-    <div class="form-row form-row-inline">
-        <div>
-            <label>Ngày mất (Dương lịch):</label>
-            <input type="date" id="inpNgayMatDL">
-        </div>
-        <div>
-            <label>Giờ mất:</label>
-            <input type="time" id="inpGioMatDL">
-        </div>
-    </div>
-    
-    <div class="form-row form-row-inline" style="background: #fff8e1; padding: 10px; border: 1px dashed #d4af37; border-radius: 4px;">
-        <div>
-            <label>Ngày mất (Âm lịch):</label>
-            <input type="number" id="inpNgayMatAL" placeholder="VD: 25">
-        </div>
-        <div>
-            <label>Tháng mất (Âm lịch):</label>
-            <input type="number" id="inpThangMatAL" placeholder="VD: 3">
-        </div>
-        <div>
-            <label>Năm mất (Âm lịch):</label>
-            <input type="number" id="inpNamMatAL" placeholder="VD: 2026">
-        </div>
-    </div>
-
-    <div class="section-title">II. Thời Gian Hành Lễ (Nhập Liệm / Động Quan / Hạ Nguyệt)</div>
-    <div style="font-size: 13px; color: #555; margin-bottom: 10px;"><i>* Nhập Ngày Dương Lịch và Giờ để máy tự tính Can Chi.</i></div>
-    
-    <div class="form-row form-row-inline">
-        <div>
-            <label>Lúc Khâm Liệm:</label>
-            <div style="display: flex; gap: 5px;">
-                <input type="date" id="inpNgayLiem" style="flex: 3;">
-                <input type="time" id="inpGioLiem" style="flex: 2;">
-            </div>
-        </div>
-        <div>
-            <label>Lúc Động Quan:</label>
-            <div style="display: flex; gap: 5px;">
-                <input type="date" id="inpNgayDongQuan" style="flex: 3;">
-                <input type="time" id="inpGioDongQuan" style="flex: 2;">
-            </div>
-        </div>
-        <div>
-            <label>Giờ Hạ Nguyệt (Cùng ngày):</label>
-            <input type="time" id="inpHaNguyet" style="width: 100%;">
-        </div>
-    </div>
-
-    <div class="section-title">III. Năm Cải Táng (Bốc Mộ)</div>
-    <div class="form-row">
-        <label>Năm định Cải táng (Âm lịch):</label>
-        <input type="number" id="inpNamCaiTang" placeholder="VD: 2028">
-    </div>
-
-    <button class="btn-xem" onclick="phanTichTongHop()"><i class="fa-solid fa-bolt"></i> Phân Tích Dữ Liệu</button>
     
     <div class="btn-group">
-        <button class="btn-in" id="btnIn" onclick="window.print()"><i class="fa-solid fa-print"></i> In Máy In</button>
-        <button class="btn-anh" id="btnAnh" onclick="taiAnhVeMay()"><i class="fa-solid fa-download"></i> Lưu Ảnh Cho Zalo</button>
+        <button class="btn-in" onclick="window.print()"><i class="fa-solid fa-print"></i> In Phiếu Tang Sự</button>
+        <button class="btn-anh" onclick="taiAnhVeMay()"><i class="fa-solid fa-download"></i> Lưu Ảnh Chia Sẻ</button>
     </div>
-
-    <div id="ketQua" class="result-box"></div>
 </div>
 
 <div id="printAreaContainer">
     <div id="printArea" style="font-family: 'Times New Roman', Times, serif; color: #000; padding: 40px; background: #fff; width: 800px; box-sizing: border-box; border: 2px solid #000;">
-        </div>
+    </div>
 </div>
 
 <script>
+    // --- THƯ VIỆN DỮ LIỆU ---
     const CAN = ["Giáp", "Ất", "Bính", "Đinh", "Mậu", "Kỷ", "Canh", "Tân", "Nhâm", "Quý"];
     const CHI = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
 
-    function getChiIdxFromHour(hour) { return Math.floor((hour + 1) / 2) % 12; }
+    // --- HÀM TIỆN ÍCH ---
+    function getChiIdxFromHour(hour) { return Math.floor(hour / 2) % 12; }
     function getJulianDay(dd, mm, yyyy) {
         let a = Math.floor((14 - mm) / 12); let y = yyyy + 4800 - a; let m = mm + 12 * a - 3;
         return dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
@@ -190,82 +188,106 @@
     }
     function formatDate(d) { return (d < 10 ? '0' : '') + d; }
 
+    // --- CÁC THUẬT TOÁN PHONG THỦY ---
+
+    // 1. Cung Phi (Cung Tử / Cải Táng)
     function tinhCungPhiBangTay(tuoiMu, gioiTinh) {
         let chuc = Math.floor(tuoiMu / 10); if (chuc === 0) chuc = 1; let le = tuoiMu % 10;
         let arr = (gioiTinh === 'nam') ? ["Cấn", "Chấn", "Tốn", "Ly", "Khôn", "Đoài", "Càn", "Khảm"] : ["Khôn", "Ly", "Tốn", "Chấn", "Cấn", "Khảm", "Càn", "Đoài"];
         let cung = arr[(chuc - 1 + (le === 0 ? 0 : le)) % 8];
-        let isTot = ["Chấn", "Khôn", "Cấn", "Khảm"].includes(cung);
-        let classColor = ["Chấn", "Khôn", "Cấn", "Khảm"].includes(cung) ? "tag-tot" : (["Đoài", "Tốn"].includes(cung) ? "tag-tb" : "tag-xau");
-        return { cung: cung, isTot: isTot, classColor: classColor, danhGia: isTot ? "Tốt" : (["Đoài", "Tốn"].includes(cung) ? "Trung Bình" : "Xấu") };
+        let classColor = ["Chấn", "Khôn"].includes(cung) ? "tag-tot" : (["Cấn", "Khảm"].includes(cung) ? "tag-tot" : (["Đoài", "Tốn"].includes(cung) ? "tag-tb" : "tag-xau"));
+        let danhGia = ["Chấn", "Khôn"].includes(cung) ? "Tốt Nhất" : (["Cấn", "Khảm"].includes(cung) ? "Tốt Nhì" : (["Đoài", "Tốn"].includes(cung) ? "Trung Bình" : "Xấu Nhất"));
+        return { cung: cung, isTot: ["Chấn", "Khôn", "Cấn", "Khảm"].includes(cung), classColor: classColor, danhGia: danhGia };
     }
 
-    // THUẬT TOÁN BÀN TAY HUỲNH LONG ĐÃ ĐƯỢC CHỈNH SỬA
-    function tinhBanTayHuynhLong(chiSinh, chiNamMat) {
+    // 2. Bàn tay Huỳnh Long
+    function tinhBanTayHuynhLong(chiSinh, chiMat) {
         const hl = ["Thần", "Tề", "Mục", "Dĩ", "Tảng", "Phúc", "Giác", "Nhĩ", "Yêu", "Túc", "Tỷ", "Trường"];
-        
-        // 1. Xác định cung khởi Thần dựa vào Tuổi Người Mất (chiSinh)
-        let start = "";
-        if (["Thân", "Tý", "Thìn"].includes(chiSinh)) start = "Thìn";
-        else if (["Dần", "Ngọ", "Tuất"].includes(chiSinh)) start = "Tuất";
-        else if (["Hợi", "Mão", "Mùi"].includes(chiSinh)) start = "Mùi";
-        else if (["Tỵ", "Dậu", "Sửu"].includes(chiSinh)) start = "Sửu";
-        
-        // 2. Tính khoảng cách từ Cung Khởi đến Cung của Năm Mất
-        let distance = (CHI.indexOf(chiNamMat) - CHI.indexOf(start) + 12) % 12;
-        let cungHL = hl[distance];
-        
-        // 3. Đánh giá tốt xấu
-        let isTot = ["Nhĩ", "Tề", "Tảng", "Tỷ", "Phúc", "Trường"].includes(cungHL);
-        return { cung: cungHL, isTot: isTot, startChi: start };
+        let start = ["Thân","Tý","Thìn"].includes(chiSinh) ? "Thìn" : (["Dần","Ngọ","Tuất"].includes(chiSinh) ? "Tuất" : (["Hợi","Mão","Mùi"].includes(chiSinh) ? "Mùi" : "Sửu"));
+        let dist = (CHI.indexOf(chiMat) - CHI.indexOf(start) + 12) % 12;
+        let cungHL = hl[dist];
+        return { cung: cungHL, isTot: ["Nhĩ", "Tề", "Tảng", "Tỷ", "Phúc", "Trường"].includes(cungHL), startChi: start };
     }
 
-    // Xử lý sự kiện Hành Lễ
-    function xuLySuKienHanhLe(dateStr, timeStr, tenSuKien, chiSinh) {
+    // 3. Luật Ngày Kỵ Đi Chôn
+    function getNgayKyDiChon(chiSinh) {
+        if (["Thân", "Tý", "Thìn"].includes(chiSinh)) return "Tỵ";
+        if (["Dần", "Ngọ", "Tuất"].includes(chiSinh)) return "Hợi";
+        if (["Hợi", "Mão", "Mùi"].includes(chiSinh)) return "Thân";
+        if (["Tỵ", "Dậu", "Sửu"].includes(chiSinh)) return "Dần";
+        return "";
+    }
+
+    // 4. Tuổi kỵ theo Giờ Lục Xung
+    function getKyLiemDongQuan(timeStr) {
         if (!timeStr) return null;
-        let result = { tenSuKien: tenSuKien, timeStr: timeStr, dateStrFormat: "", chiGio: "", kyTuoi: "", phamGio: false, phamNgay: false, chiNgay: "" };
+        let parts = timeStr.split(":");
+        let hh = parseInt(parts[0]);
+        let mm = parseInt(parts[1]);
+        let timeFmt = `${hh < 10 ? '0'+hh : hh}h${mm < 10 ? '0'+mm : mm}`;
+
+        let chiIdx = Math.floor(hh / 2) % 12; 
+        let xungIdx = (chiIdx + 6) % 12;
         
-        let [hh, mm] = timeStr.split(":").map(Number);
-        let chiIdx = getChiIdxFromHour(hh);
-        result.chiGio = CHI[chiIdx];
-        result.kyTuoi = `${CHI[chiIdx]}, ${CHI[(chiIdx + 6) % 12]}`;
-
-        if (dateStr) {
-            let [y, m, d] = dateStr.split("-").map(Number);
-            let jd = getJulianDay(d, m, y);
-            let canChiNgay = getCanChiDay(jd);
-            result.chiNgay = CHI[(jd + 1) % 12];
-            result.dateStrFormat = `Ngày ${formatDate(d)}/${formatDate(m)}/${y} (${canChiNgay})`;
-        } else {
-            result.dateStrFormat = "(Chưa nhập ngày)";
-        }
-
-        let chiXungSinh = CHI[(CHI.indexOf(chiSinh) + 6) % 12];
-        if (result.chiGio === "Tỵ" || result.chiGio === "Hợi" || result.chiGio === chiSinh) {
-            result.phamGio = true;
-        }
-        if (result.chiNgay === chiXungSinh && (tenSuKien === "Hạ Nguyệt" || tenSuKien === "Động Quan")) {
-            result.phamNgay = true;
-        }
-        return result;
+        let textGio = `${timeFmt} (Giờ ${CHI[chiIdx]})`;
+        let textKy = `${CHI[chiIdx]}, ${CHI[xungIdx]}`;
+        
+        return { ten: textGio, ky: textKy, chiGio: CHI[chiIdx] };
     }
 
-    function phanTichTongHop() {
-        let hoTen = document.getElementById("inpHoTen").value.trim() || ".......................................................";
-        let nSinhAL = parseInt(document.getElementById("inpNamSinh").value);
+    // --- CÁC HÀM CẬP NHẬT GIAO DIỆN ĐỘC LẬP ---
+
+    function updateSection1() {
+        let nSinh = parseInt(document.getElementById("inpNamSinh").value);
         let gTinh = document.getElementById("selGioiTinh").value;
-        let diaChi = document.getElementById("inpDiaChi").value.trim() || ".......................................................................";
-        let sdt = document.getElementById("inpSDT").value.trim() || "................................";
+        let nMatAL = parseInt(document.getElementById("inpNamMatAL").value); 
         
+        let resBox = document.getElementById("resNguoiMat");
+        if (!nSinh || nSinh < 1900) { resBox.style.display = "none"; return; }
+        
+        let currentYear = new Date().getFullYear();
+        let yMat = nMatAL ? nMatAL : currentYear; 
+
+        let canSinh = CAN[(nSinh + 6) % 10];
+        let chiSinh = CHI[(nSinh + 8) % 12];
+        let chiMat = CHI[(yMat + 8) % 12];
+        let tuoiMu = yMat - nSinh + 1;
+        
+        let danhXung = (tuoiMu >= 90) ? "Đại thọ" : ((tuoiMu >= 60) ? "Hưởng thọ" : "Hưởng dương");
+        
+        let cp = tinhCungPhiBangTay(tuoiMu, gTinh);
+        let hl = tinhBanTayHuynhLong(chiSinh, chiMat);
+
+        let html = `
+            <div class="res-title">Kết Quả Phân Tích Cơ Bản</div>
+            <div class="info-person">
+                <div>- Niên Canh: <b>${nSinh} (${canSinh} ${chiSinh})</b></div>
+                <div>- Thọ Mạng: <b>${danhXung} <span style="color:#b30000; font-size:18px;">${tuoiMu}</span> tuổi Âm</b> (Tính tới năm ${yMat})</div>
+            </div>
+            <table style="width:100%; margin-top:10px; font-size: 15px; border-collapse: collapse;">
+                <tr style="border-bottom: 1px dashed #ccc;"><td style="padding: 8px 0;"><b>Cung Lạc Mệnh:</b> Cung ${cp.cung}</td><td style="text-align:right"><span class="${cp.classColor}">${cp.danhGia}</span></td></tr>
+                <tr><td style="padding: 8px 0;"><b>Bàn Tay Huỳnh Long:</b> (Khởi ${hl.startChi} đến năm ${chiMat}) Rơi chữ <b>${hl.cung}</b></td><td style="text-align:right">${hl.isTot ? '<span class="tag-tot">TỐT</span>' : '<span class="tag-xau">XẤU</span>'}</td></tr>
+            </table>
+        `;
+        resBox.innerHTML = html;
+        resBox.style.display = "block";
+    }
+
+    function updateSection2() {
+        let nSinh = parseInt(document.getElementById("inpNamSinh").value);
         let ngayDLStr = document.getElementById("inpNgayMatDL").value;
         let gioDLStr = document.getElementById("inpGioMatDL").value;
         let dAL = parseInt(document.getElementById("inpNgayMatAL").value);
         let mAL = parseInt(document.getElementById("inpThangMatAL").value);
         let yAL = parseInt(document.getElementById("inpNamMatAL").value);
-        let nCaiTang = parseInt(document.getElementById("inpNamCaiTang").value);
 
-        if (!nSinhAL || !ngayDLStr || !gioDLStr || !dAL || !mAL || !yAL) { 
-            alert("Vui lòng nhập đầy đủ Năm sinh, Ngày Giờ Dương và Ngày Tháng Năm Âm!"); return; 
+        let resBox = document.getElementById("resTrungTang");
+        if (!nSinh || !ngayDLStr || !gioDLStr || !dAL || !mAL || !yAL) { 
+            resBox.style.display = "none"; return; 
         }
+
+        let chiSinh = CHI[(nSinh + 8) % 12];
+        let kyDay = getNgayKyDiChon(chiSinh); 
 
         let [yDL, mmDL, ddDL] = ngayDLStr.split("-").map(Number);
         let hDL = parseInt(gioDLStr.split(":")[0]);
@@ -275,171 +297,217 @@
         let canChiThang = getCanChiMonth(yAL, mAL); let chiThang = CHI[(mAL + 1) % 12];
         let canChiNgay = getCanChiDay(jd); let chiNgay = CHI[(jd + 1) % 12];
         let canChiGio = getCanChiHour(jd, hDL); let chiGio = CHI[getChiIdxFromHour(hDL)];
-        let chiSinh = CHI[(nSinhAL + 8) % 12];
-        let chiXungSinh = CHI[(CHI.indexOf(chiSinh) + 6) % 12]; 
-        let tuoiMu = yAL - nSinhAL + 1;
-        let danhXung = (tuoiMu >= 60) ? "Hưởng thọ" : "Hưởng dương";
 
-        let kỵ = ["Thân", "Tý", "Thìn"].includes(chiSinh) ? "Tỵ" : (["Dần", "Ngọ", "Tuất"].includes(chiSinh) ? "Hợi" : (["Hợi", "Mão", "Mùi"].includes(chiSinh) ? "Thân" : "Dần"));
-        let biTrùng = [];
-        if (chiNam === kỵ) biTrùng.push(`Năm`);
-        if (chiThang === kỵ) biTrùng.push(`Tháng`);
-        if (chiNgay === kỵ) biTrùng.push(`Ngày`);
-        if (chiGio === kỵ) biTrùng.push(`Giờ`);
+        let biTrung = [];
+        if (chiNam === kyDay) biTrung.push(`Năm ${chiNam}`);
+        if (chiThang === kyDay) biTrung.push(`Tháng ${chiThang}`);
+        if (chiNgay === kyDay) biTrung.push(`Ngày ${chiNgay}`);
+        if (chiGio === kyDay) biTrung.push(`Giờ ${chiGio}`);
 
-        let cungPhi = tinhCungPhiBangTay(tuoiMu, gTinh);
-        let huynhLong = tinhBanTayHuynhLong(chiSinh, chiNam); // Tính Huỳnh Long (Đã truyền đúng chiSinh và chiNamMat)
-
-        let ngayDongQuanStr = document.getElementById("inpNgayDongQuan").value;
-        let dtLiem = xuLySuKienHanhLe(document.getElementById("inpNgayLiem").value, document.getElementById("inpGioLiem").value, "Nhập Liệm", chiSinh);
-        let dtDQ = xuLySuKienHanhLe(ngayDongQuanStr, document.getElementById("inpGioDongQuan").value, "Động Quan", chiSinh);
-        let dtHN = xuLySuKienHanhLe(ngayDongQuanStr, document.getElementById("inpHaNguyet").value, "Hạ Nguyệt", chiSinh);
-
-        // ==========================================
-        // 1. TẠO GIAO DIỆN WEB (CHI TIẾT MÀU SẮC)
-        // ==========================================
-        let htmlWeb = `<div class="result-block">
-            <div class="res-title"><i class="fa-solid fa-user-check"></i> 1. Thông Tin & Đánh Giá Trùng Tang</div>
-            <div class="info-person">
-                Họ và tên: <b style="color:#b30000; text-transform:uppercase;">${hoTen}</b> | Giới tính: <b>${gTinh == 'nam' ? 'Nam' : 'Nữ'}</b><br>
-                Sinh năm: <b>${nSinhAL} (${getCanChiYear(nSinhAL)})</b><br>
-                Mất ngày: <b style="color:#333;">${formatDate(ddDL)}/${formatDate(mmDL)}/${yDL}</b> (Lúc ${gioDLStr})<br>
-                <span class="lunar-main">Nhằm Ngày ${formatDate(dAL)} (${canChiNgay}) Tháng ${formatDate(mAL)} (${canChiThang}) Năm ${canChiNam} (${yAL})</span><br>
-                Giờ Mất: <b style="color:#b30000;">${canChiGio}</b><br>
-                Thọ mạng: <b>${danhXung} <span style="font-size:1.2em; color:#b30000;">${tuoiMu}</span> tuổi Âm</b>
-            </div>`;
-
-        if (biTrùng.length === 4) {
-            htmlWeb += `<div class="danger-box"><b><i class="fa-solid fa-triangle-exclamation"></i> PHẠM TRÙNG TANG LIÊN TÁNG (RẤT NẶNG):</b><br>Người mất tuổi <b>${chiSinh}</b> kỵ rơi vào <b>${kỵ}</b>. Ở đây đã mất trúng vào CẢ 4 TRỤ (Năm, Tháng, Ngày, Giờ đều là ${kỵ}). Cần nhờ bậc chân tu cao tăng hóa giải!</div>`;
-        } else if (biTrùng.length > 0) {
-            htmlWeb += `<div class="warning-box"><b><i class="fa-solid fa-circle-exclamation"></i> CẢNH BÁO PHẠM TRÙNG TANG:</b><br>Người mất tuổi <b>${chiSinh}</b> kỵ chết vào thời điểm <b>${kỵ}</b>. Đã phạm trùng tang tại các trụ:<ul style="margin-top: 5px; margin-bottom:0;"><li>Trùng ${biTrùng.join("</li><li>Trùng ")}</li></ul></div>`;
+        let html = `<div class="res-title">Bát Tự Thời Điểm Mất</div>`;
+        html += `<div style="font-size: 15px; margin-bottom: 10px;">Tứ trụ: <b style="color:#b30000;">Năm ${canChiNam} - Tháng ${canChiThang} - Ngày ${canChiNgay} - Giờ ${canChiGio}</b></div>`;
+        
+        if (biTrung.length === 4) {
+            html += `<div class="danger-box"><b>❌ PHẠM TRÙNG TANG LIÊN TÁNG (RẤT NẶNG):</b> Tuổi ${chiSinh} kỵ rơi vào <b>${kyDay}</b>. Đã mất trúng vào CẢ 4 TRỤ. Cần mời Cao tăng hóa giải.</div>`;
+        } else if (biTrung.length > 0) {
+            html += `<div class="warning-box"><b>⚠️ CẢNH BÁO TRÙNG TANG:</b> Tuổi ${chiSinh} kỵ thời điểm <b>${kyDay}</b>. Đã phạm trùng tang tại: <b>${biTrung.join(", ")}</b>.</div>`;
         } else {
-            htmlWeb += `<div class="adv-box" style="color: #155724; background-color: #d4edda; border-color: #c3e6cb;"><b><i class="fa-solid fa-check-circle"></i> KHÔNG PHẠM TRÙNG TANG:</b> Các thời điểm mất không trùng với cung kỵ (${kỵ}) của tuổi ${chiSinh}.</div>`;
+            html += `<div class="adv-box" style="color: #155724; background-color: #d4edda; border-color: #c3e6cb;"><b>✅ KHÔNG PHẠM TRÙNG TANG:</b> Các thời điểm mất không trùng với cung kỵ (${kyDay}) của tuổi ${chiSinh}.</div>`;
         }
-        htmlWeb += `<div style="font-size:13.5px; margin-top: 10px; color: #555; font-style: italic; text-align: justify;">* Quan niệm dân gian: Chết trúng Giờ, Ngày, Tháng hoặc Năm rơi vào <b>Tỵ, Hợi</b> chắc chắn bị trùng 100%. Còn rơi vào các ngày <b>Dần, Thân</b> thì khi 3 tuổi kỵ, 9 tuổi không kỵ.</div></div>`;
+        resBox.innerHTML = html;
+        resBox.style.display = "block";
+    }
 
-        htmlWeb += `<div class="result-block">
-            <div class="res-title"><i class="fa-solid fa-star-and-crescent"></i> 2. Luận Cung Phi & Bàn Tay Huỳnh Long</div>
-            <table style="width: 100%; margin-top: 10px; border-collapse: collapse; background: #fff; border: 1px solid #e8dcc4; border-radius: 4px; overflow: hidden; font-size: 15px;">
-                <tr style="border-bottom: 1px solid #e8dcc4;">
-                    <td style="padding: 10px 12px;"><b>Cung Phi:</b> Rơi Cung ${cungPhi.cung}</td>
-                    <td style="padding: 10px 12px; text-align: right;"><span class="${cungPhi.classColor}">${cungPhi.danhGia}</span></td>
-                </tr>
-                <tr>
-                    <td style="padding: 10px 12px;"><b>Bàn Tay Huỳnh Long:</b> (Khởi tại ${huynhLong.startChi}) Rơi Chữ <b>${huynhLong.cung}</b></td>
-                    <td style="padding: 10px 12px; text-align: right;">${huynhLong.isTot ? '<span class="tag-tot">TỐT</span>' : '<span class="tag-xau">XẤU</span>'}</td>
-                </tr>
-            </table>`;
+    function updateSection3() {
+        let nSinh = parseInt(document.getElementById("inpNamSinh").value);
+        let ngayLiem = document.getElementById("inpNgayLiem").value;
+        let gioLiemStr = document.getElementById("inpGioLiem").value;
+        let ngayDQ = document.getElementById("inpNgayDongQuan").value;
+        let gioDQStr = document.getElementById("inpGioDongQuan").value;
 
-        // Tổng kết chung
-        if (cungPhi.isTot === true && huynhLong.isTot === true) {
-            htmlWeb += `<div class="adv-box" style="margin-top:12px; background:#e8f5e9; color:#2e7d32; border-color:#2e7d32;"><b>ĐÁNH GIÁ CHUNG: RẤT TỐT.</b> Người mất ra đi thanh thản, cung mạng cát tường. Con cháu làm ăn thuận lợi, gia đạo bình an.</div>`;
-        } else if (cungPhi.isTot === false && huynhLong.isTot === false) {
-            htmlWeb += `<div class="danger-box" style="margin-top:12px;"><b>ĐÁNH GIÁ CHUNG: XẤU.</b> Cả 2 cung đều rơi vào điểm dữ. Hướng dẫn con cháu nên tích cực phóng sinh, bố thí, tụng kinh làm phước hồi hướng cho người mất lẫn con cháu.</div>`;
-        } else {
-            htmlWeb += `<div class="warning-box" style="margin-top:12px;"><b>ĐÁNH GIÁ CHUNG: TRUNG BÌNH.</b> Có sự đan xen giữa điểm Tốt và Xấu. Gia đình chu toàn tang lễ và thành tâm niệm Phật là vạn sự sẽ được hóa giải.</div>`;
+        let resBox = document.getElementById("resHanhLe");
+        if (!nSinh || (!gioLiemStr && !gioDQStr)) {
+            resBox.style.display = "none"; return;
         }
-        htmlWeb += `</div>`;
 
-        if (dtLiem || dtDQ || dtHN) {
-            htmlWeb += `<div class="result-block">
-                <div class="res-title"><i class="fa-solid fa-clock"></i> 3. Thời Gian Hành Lễ & Cảnh Báo Tuổi Kỵ</div>`;
-            
-            let arrHLWeb = [dtLiem, dtDQ, dtHN];
-            arrHLWeb.forEach(dt => {
-                if (dt) {
-                    if (dt.phamGio) {
-                        htmlWeb += `<div class="danger-box" style="margin-bottom:10px;"><b>Lúc ${dt.tenSuKien}: ${dt.dateStrFormat} - Lúc ${dt.timeStr} (Giờ ${dt.chiGio})</b><br>→ <i class="fa-solid fa-ban"></i> KHÔNG ĐƯỢC CHỌN GIỜ NÀY VÌ RƠI VÀO GIỜ TRÙNG HOẶC KỴ TUỔI</div>`;
-                    } else if (dt.phamNgay) {
-                        htmlWeb += `<div class="danger-box" style="margin-bottom:10px;"><b>Lúc ${dt.tenSuKien}: ${dt.dateStrFormat} - Lúc ${dt.timeStr} (Giờ ${dt.chiGio})</b><br>→ <i class="fa-solid fa-ban"></i> KHÔNG ĐƯỢC CHỌN NGÀY NÀY VÌ LÀ NGÀY TRỰC XUNG VỚI TUỔI NGƯỜI MẤT</div>`;
-                    } else {
-                        let kyText = (dt.tenSuKien === "Động Quan") ? `<span class="tag-tot">Không tính tuổi kỵ</span>` : `Kỵ các tuổi: <span class="tag-xau">${dt.kyTuoi}</span>`;
-                        htmlWeb += `<div style="background:#fff; padding: 12px; border:1px solid #eee; border-left: 4px solid #8b0000; margin-bottom:10px; border-radius: 4px; font-size: 15px;"><b>Lúc ${dt.tenSuKien}: ${dt.dateStrFormat} - Lúc ${dt.timeStr} (Giờ ${dt.chiGio})</b><br>→ ${kyText}</div>`;
+        let chiSinh = CHI[(nSinh + 8) % 12];
+        let kyDay = getNgayKyDiChon(chiSinh);
+
+        let html = `<div class="res-title">Tuổi Kỵ Tham Dự & Cảnh Báo</div>`;
+        
+        let arr = [
+            { ten: "Khâm Liệm", ngay: ngayLiem, gioStr: gioLiemStr, isBury: false },
+            { ten: "Động Quan / Hạ Huyệt", ngay: ngayDQ, gioStr: gioDQStr, isBury: true }
+        ];
+
+        arr.forEach(dt => {
+            if (dt.gioStr) {
+                let rLiem = getKyLiemDongQuan(dt.gioStr);
+                let errText = "";
+                
+                // Phạm Giờ
+                if (rLiem.chiGio === "Tỵ" || rLiem.chiGio === "Hợi" || rLiem.chiGio === chiSinh) {
+                    errText += `[❌ PHẠM GIỜ TRÙNG HOẶC GIỜ TỴ/HỢI] <br>`;
+                }
+                
+                // Phạm Ngày
+                if (dt.isBury && dt.ngay) {
+                    let [y, m, d] = dt.ngay.split("-").map(Number);
+                    let jd = getJulianDay(d, m, y);
+                    let chiNgay = CHI[(jd + 1) % 12];
+                    if (chiNgay === kyDay) {
+                        errText += `[❌ PHẠM NGÀY ĐẠI KỴ ĐI CHÔN: NGÀY ${kyDay.toUpperCase()}] <br>`;
                     }
                 }
-            });
-            htmlWeb += `<div class="warning-box" style="margin-top: 15px; border-left-color: #ff9800;">
-                <b style="color: #e65100;"><i class="fa-solid fa-bullhorn"></i> GHI CHÚ QUAN TRỌNG:</b>
-                <ul style="margin-top: 8px; margin-bottom: 0; padding-left: 20px; line-height: 1.6; font-size: 14.5px;">
-                    <li><b>Tránh Giờ Trùng:</b> Phải tuyệt đối tránh <b>Giờ Tỵ (Từ 09:00 đến 10:59)</b> và <b>Giờ Hợi (Từ 21:00 đến 22:59)</b>. Kiêng chọn giờ trùng với tuổi <b>${chiSinh}</b> của người mất.</li>
-                    <li><b>Tránh Ngày Xung Khắc:</b> Tuyệt đối không Động Quan hay Hạ Nguyệt vào ngày có Địa chi xung khắc trực tiếp (Nhị Xung) với tuổi người mất. Người mất tuổi <b>${chiSinh}</b> thì <b style="color:#d32f2f;">TUYỆT ĐỐI TRÁNH NGÀY ${chiXungSinh.toUpperCase()}</b>.</li>
-                </ul></div></div>`;
-        }
 
-        if (nCaiTang && nCaiTang > yAL) {
-            let tCaiTang = nCaiTang - nSinhAL + 1;
-            let kqCaiTang = tinhCungPhiBangTay(tCaiTang, gTinh);
-            htmlWeb += `<div class="result-block">
-                <div class="res-title"><i class="fa-solid fa-gavel"></i> 4. Luận Năm Cải Táng (Bốc Mộ)</div>
-                <ul style="list-style-type: square; padding-left: 20px; line-height: 1.8; font-size: 15px;">
-                    <li>Năm dự định bốc mộ: <b>${nCaiTang}</b></li>
-                    <li>Tuổi mụ vào năm bốc mộ: <b>${tCaiTang} tuổi Âm</b></li>
-                    <li>Rơi vào Cung: <b>Cung ${kqCaiTang.cung} (<span class="${kqCaiTang.classColor}">${kqCaiTang.danhGia}</span>)</b></li>
-                </ul>`;
-            if (kqCaiTang.isTot) {
-                htmlWeb += `<div style="margin-top: 10px; font-size: 15px;" class="tag-tot">✅ ĐƯỢC CẢI TÁNG (Rơi vào tứ cung Cát: Chấn, Khôn, Cấn, Khảm).</div>`;
-            } else {
-                htmlWeb += `<div style="margin-top: 10px; font-size: 15px;" class="tag-xau">❌ KHÔNG NÊN CẢI TÁNG. Năm này cung mạng người mất không thuận.</div>`;
-            }
-            htmlWeb += `</div>`;
-        }
+                let dateTxt = dt.ngay ? `Ngày ${dt.ngay.split("-").reverse().join("/")} - ` : "";
 
-        document.getElementById("ketQua").innerHTML = htmlWeb;
-        document.getElementById("ketQua").style.display = "block";
-        document.getElementById("btnIn").style.display = "block";
-        document.getElementById("btnAnh").style.display = "block";
-
-        // ==========================================
-        // 2. TẠO NỘI DUNG IN & CHỤP ẢNH (BẢN RÚT GỌN)
-        // ==========================================
-        let htmlIn = `<h2 style="text-align: center; font-size: 26px; text-transform: uppercase; margin-bottom: 20px; border-bottom: 3px solid #000; padding-bottom: 10px;">THÔNG TIN TANG SỰ</h2>`;
-        htmlIn += `<div style="font-size: 19px; line-height: 1.8; margin-bottom: 15px;">`;
-        htmlIn += `<div><b>Họ và Tên:</b> ${hoTen.toUpperCase()}</div>`;
-        htmlIn += `<div><b>Giới Tính:</b> ${gTinh == 'nam' ? 'Nam' : 'Nữ'}</div>`;
-        htmlIn += `<div><b>Năm Sanh:</b> ${nSinhAL} (${getCanChiYear(nSinhAL)})</div>`;
-        htmlIn += `<div><b>Mất lúc:</b> ${gioDLStr} ngày ${formatDate(ddDL)}/${formatDate(mmDL)}/${yDL}</div>`;
-        htmlIn += `<div><b>Nhằm ngày Âm:</b> Ngày ${formatDate(dAL)} (${canChiNgay}) Tháng ${formatDate(mAL)} (${canChiThang}) Năm ${canChiNam} (${yAL})</div>`;
-        htmlIn += `<div><b>${danhXung}:</b> ${tuoiMu} tuổi</div>`;
-        htmlIn += `</div>`;
-        
-        // Trùng tang
-        htmlIn += `<div style="font-size: 19px; line-height: 1.8; margin-bottom: 15px; border-top: 1px dashed #000; padding-top: 15px;">`;
-        if (biTrùng.length === 4) {
-            htmlIn += `<div style="color: #c0392b;"><b>Phạm:</b> ❌ Trùng Tang Liên Táng (Cần hóa giải)</div>`;
-        } else if (biTrùng.length > 0) {
-            htmlIn += `<div style="color: #c0392b;"><b>Phạm Trùng Tang:</b> ❌ Trùng ${biTrùng.join(", ")}</div>`;
-        }
-        htmlIn += `<div><b>Cung Phi:</b> ${cungPhi.cung} (${cungPhi.danhGia})</div>`;
-        htmlIn += `<div><b>Bàn Tay Huỳnh Long:</b> ${huynhLong.cung} (${huynhLong.isTot ? 'Tốt' : 'Xấu'})</div>`;
-        
-        // Đánh giá chung
-        if (cungPhi.isTot && huynhLong.isTot) htmlIn += `<div><b>Đánh giá:</b> <span style="color: #2e7d32;">Tốt (Mọi sự bình an)</span></div>`;
-        else if (!cungPhi.isTot && !huynhLong.isTot) htmlIn += `<div><b>Đánh giá:</b> <span style="color: #c0392b;">Xấu (Cần làm phước hồi hướng)</span></div>`;
-        else htmlIn += `<div><b>Đánh giá:</b> Trung Bình (Thành tâm sẽ hóa giải)</div>`;
-        htmlIn += `</div>`;
-
-        // Thời gian hành lễ
-        htmlIn += `<div style="font-size: 19px; line-height: 1.8; margin-bottom: 15px; border-top: 1px dashed #000; padding-top: 15px;">`;
-        htmlIn += `<div style="font-weight: bold; text-transform: uppercase; margin-bottom: 5px;">Thời Gian Hành Lễ:</div>`;
-        
-        let arrHL = [dtLiem, dtDQ, dtHN];
-        arrHL.forEach(dt => {
-            if (dt) {
-                let errText = "";
-                if (dt.phamGio) errText += `[❌ PHẠM GIỜ TRÙNG/KỴ TUỔI] `;
-                if (dt.phamNgay) errText += `[❌ PHẠM NGÀY NHỊ XUNG] `;
-                
                 if (errText !== "") {
-                    htmlIn += `<div><b>- ${dt.tenSuKien}:</b> ${dt.dateStrFormat} - Lúc ${dt.timeStr} (Giờ ${dt.chiGio}) <br><span style="color:#c0392b; font-weight:bold; font-size: 17px; margin-left: 20px;">${errText}</span></div>`;
+                    html += `<div class="danger-box"><b>Lúc ${dt.ten}: ${dateTxt}${rLiem.ten}</b><br>${errText}</div>`;
                 } else {
-                    let kyText = (dt.tenSuKien === "Động Quan") ? "(Không kỵ tuổi)" : `(Kỵ tuổi: ${dt.kyTuoi})`;
-                    htmlIn += `<div><b>- ${dt.tenSuKien}:</b> ${dt.dateStrFormat} - Lúc ${dt.timeStr} (Giờ ${dt.chiGio}) <br><i style="font-size: 17px; margin-left: 20px;">${kyText}</i></div>`;
+                    let kyText = dt.isBury ? `<span class="tag-tot">Không kỵ tuổi người tham dự</span>` : `Kỵ người tham dự mang tuổi: <span class="tag-xau">${rLiem.ky}</span>`;
+                    html += `<div style="background:#fff; padding: 12px; border:1px solid #eee; border-left: 4px solid #8b0000; margin-bottom:10px; border-radius: 4px; font-size: 15px;"><b>Lúc ${dt.ten}: ${dateTxt}${rLiem.ten}</b><br>→ ${kyText}</div>`;
                 }
             }
         });
+
+        html += `<div class="warning-box" style="margin-top: 15px; border-left-color: #ff9800;">
+            <b style="color: #e65100;"><i class="fa-solid fa-bullhorn"></i> GHI CHÚ QUAN TRỌNG:</b>
+            <ul style="margin-top: 8px; margin-bottom: 0; padding-left: 20px; line-height: 1.6; font-size: 14.5px;">
+                <li><b>Tránh Giờ Trùng:</b> Phải tuyệt đối tránh <b>Giờ Tỵ</b> và <b>Giờ Hợi</b>. Kiêng chọn giờ trùng với tuổi <b>${chiSinh}</b> của người mất.</li>
+                <li><b>Tránh Ngày Kỵ Đi Chôn:</b> Tuổi ${chiSinh} <b style="color:#d32f2f;">TUYỆT ĐỐI TRÁNH ĐỘNG QUAN VÀO NGÀY ${kyDay.toUpperCase()}</b>.</li>
+            </ul></div>`;
+        
+        resBox.innerHTML = html;
+        resBox.style.display = "block";
+    }
+
+    function updateSection4() {
+        let nSinh = parseInt(document.getElementById("inpNamSinh").value);
+        let gTinh = document.getElementById("selGioiTinh").value;
+        let nCaiTang = parseInt(document.getElementById("inpNamCaiTang").value);
+
+        let resBox = document.getElementById("resCaiTang");
+        if (!nSinh || !nCaiTang || nCaiTang < nSinh) {
+            resBox.style.display = "none"; return;
+        }
+
+        let tCaiTang = nCaiTang - nSinh + 1;
+        let kqCaiTang = tinhCungPhiBangTay(tCaiTang, gTinh);
+
+        let html = `<div class="res-title">Kết Quả Tuổi Cải Táng</div>
+            <ul style="list-style-type: square; padding-left: 20px; line-height: 1.6; font-size: 15px;">
+                <li>Tuổi mụ vào năm bốc mộ (${nCaiTang}): <b>${tCaiTang} tuổi Âm</b></li>
+                <li>Rơi vào Cung mạng: <b>Cung ${kqCaiTang.cung} (<span class="${kqCaiTang.classColor}">${kqCaiTang.danhGia}</span>)</b></li>
+            </ul>
+        `;
+        if (kqCaiTang.isTot) {
+            html += `<div style="margin-top: 10px;" class="tag-tot">✅ ĐƯỢC CẢI TÁNG (Rơi vào tứ cung Cát: Chấn, Khôn, Cấn, Khảm).</div>`;
+        } else {
+            html += `<div style="margin-top: 10px;" class="tag-xau">❌ KHÔNG NÊN CẢI TÁNG. Năm này cung mạng không thuận lợi.</div>`;
+        }
+        html += `<div class="adv-box" style="margin-top: 15px;"><b>💡 LƯU Ý KHI BỐC NHIỀU MỘ:</b> Nếu cải táng nhiều mộ cùng lúc trong năm, <b>chỉ cần chọn 1 mộ có tuổi Tốt Nhất để làm lễ động thổ trước</b>. Các mộ tiếp theo bốc nối tiếp trong ngày hoặc các ngày sau mà không cần xét tuổi từng mộ nữa.</div>`;
+
+        resBox.innerHTML = html;
+        resBox.style.display = "block";
+    }
+
+    // --- HÀM CẬP NHẬT GIAO DIỆN IN VÀ XUẤT ẢNH ---
+    function updatePrintData() {
+        let hoTen = document.getElementById("inpHoTen").value.trim() || ".............................................";
+        let nSinh = parseInt(document.getElementById("inpNamSinh").value);
+        let gTinh = document.getElementById("selGioiTinh").value;
+        let nMatAL = parseInt(document.getElementById("inpNamMatAL").value);
+        let ngayMatDL = document.getElementById("inpNgayMatDL").value;
+        let gioMatDL = document.getElementById("inpGioMatDL").value;
+        
+        if(!nSinh) return;
+
+        let currentYear = new Date().getFullYear();
+        let yMat = nMatAL ? nMatAL : currentYear;
+
+        let chiSinh = CHI[(nSinh + 8) % 12];
+        let canSinh = CAN[(nSinh + 6) % 10];
+        let chiMat = CHI[(yMat + 8) % 12];
+        let tuoiMu = yMat - nSinh + 1;
+        let danhXung = (tuoiMu >= 90) ? "Đại thọ" : ((tuoiMu >= 60) ? "Hưởng thọ" : "Hưởng dương");
+        
+        let diaChi = document.getElementById("inpDiaChi").value.trim() || ".............................................";
+        let sdt = document.getElementById("inpSDT").value.trim() || ".........................";
+
+        let cp = tinhCungPhiBangTay(tuoiMu, gTinh);
+        let hl = tinhBanTayHuynhLong(chiSinh, chiMat);
+
+        let htmlIn = `<h2 style="text-align: center; font-size: 26px; text-transform: uppercase; margin-bottom: 20px; border-bottom: 3px solid #000; padding-bottom: 10px;">THÔNG TIN TANG SỰ</h2>`;
+        
+        // 1. Thông tin người mất
+        htmlIn += `<div style="font-size: 19px; line-height: 1.8; margin-bottom: 15px;">`;
+        htmlIn += `<div><b>Họ và Tên:</b> ${hoTen.toUpperCase()}</div>`;
+        htmlIn += `<div><b>Giới Tính:</b> ${gTinh == 'nam' ? 'Nam' : 'Nữ'}</div>`;
+        htmlIn += `<div><b>Năm Sanh:</b> ${nSinh} (${canSinh} ${chiSinh})</div>`;
+        if (ngayMatDL) {
+            let [yDL, mDL, dDL] = ngayMatDL.split("-");
+            htmlIn += `<div><b>Mất lúc:</b> ${gioMatDL ? gioMatDL : '...'} ngày ${dDL}/${mDL}/${yDL} (Dương lịch)</div>`;
+        }
+        if (nMatAL) {
+            let dAL = document.getElementById("inpNgayMatAL").value || "...";
+            let mAL = document.getElementById("inpThangMatAL").value || "...";
+            htmlIn += `<div><b>Nhằm ngày Âm:</b> Ngày ${dAL} Tháng ${mAL} Năm ${yMat}</div>`;
+        }
+        htmlIn += `<div><b>${danhXung}:</b> ${tuoiMu} tuổi Âm</div>`;
+        htmlIn += `</div>`;
+        
+        // 2. Cung phi & Huỳnh Long
+        htmlIn += `<div style="font-size: 19px; line-height: 1.8; margin-bottom: 15px; border-top: 1px dashed #000; padding-top: 15px;">`;
+        htmlIn += `<div><b>Cung Lạc Mệnh:</b> Cung ${cp.cung} (${cp.danhGia})</div>`;
+        htmlIn += `<div><b>Bàn Tay Huỳnh Long:</b> Chữ ${hl.cung} (${hl.isTot ? 'Tốt' : 'Xấu'})</div>`;
         htmlIn += `</div>`;
 
-        // Thông tin liên hệ
+        // 3. Thời gian hành lễ
+        let gLiem = document.getElementById("inpGioLiem").value;
+        let ngayLiem = document.getElementById("inpNgayLiem").value;
+        let gDongQuan = document.getElementById("inpGioDongQuan").value;
+        let ngayDQ = document.getElementById("inpNgayDongQuan").value;
+
+        if (gLiem !== "" || gDongQuan !== "") {
+            htmlIn += `<div style="font-size: 19px; line-height: 1.8; margin-bottom: 15px; border-top: 1px dashed #000; padding-top: 15px;">`;
+            htmlIn += `<div style="font-weight: bold; text-transform: uppercase; margin-bottom: 5px;">Thời Gian Hành Lễ:</div>`;
+            
+            if (gLiem !== "") {
+                let rLiem = getKyLiemDongQuan(gLiem);
+                let dateTxt = ngayLiem ? `Ngày ${ngayLiem.split("-").reverse().join("/")} - ` : "";
+                let kyText = `Kỵ tuổi: ${rLiem.ky}`;
+                if (rLiem.chiGio === "Tỵ" || rLiem.chiGio === "Hợi" || rLiem.chiGio === chiSinh) {
+                    kyText = `<span style="color:#c0392b; font-weight:bold;">PHẠM GIỜ TRÙNG HOẶC TỴ/HỢI!</span>`;
+                }
+                htmlIn += `<div><b>- Khâm Liệm:</b> ${dateTxt}${rLiem.ten}<br><i style="margin-left: 20px;">(${kyText})</i></div>`;
+            }
+            if (gDongQuan !== "") {
+                let rDQ = getKyLiemDongQuan(gDongQuan);
+                let dateTxt = ngayDQ ? `Ngày ${ngayDQ.split("-").reverse().join("/")} - ` : "";
+                
+                let kyDay = getNgayKyDiChon(chiSinh);
+                let phamNgayTxt = "";
+                if (ngayDQ) {
+                    let [y, m, d] = ngayDQ.split("-").map(Number);
+                    let jd = getJulianDay(d, m, y);
+                    let chiNgay = CHI[(jd + 1) % 12];
+                    if (chiNgay === kyDay) {
+                        phamNgayTxt = ` <br><span style="color:#c0392b; font-weight:bold; margin-left: 20px;">[❌ ĐẠI KỴ NGÀY ${kyDay.toUpperCase()}]</span>`;
+                    }
+                }
+
+                let kyText = `(Không tính tuổi kỵ người tham dự)`;
+                if (rDQ.chiGio === "Tỵ" || rDQ.chiGio === "Hợi" || rDQ.chiGio === chiSinh) {
+                    kyText = `<span style="color:#c0392b; font-weight:bold;">PHẠM GIỜ TRÙNG HOẶC TỴ/HỢI!</span>`;
+                }
+
+                htmlIn += `<div><b>- Động Quan:</b> ${dateTxt}${rDQ.ten}${phamNgayTxt}<br><i style="margin-left: 20px;">${kyText}</i></div>`;
+            }
+            htmlIn += `</div>`;
+        }
+
+        // 4. Thông tin liên hệ
         htmlIn += `<div style="font-size: 19px; line-height: 1.8; border-top: 1px dashed #000; padding-top: 15px;">`;
         htmlIn += `<div><b>Địa chỉ Tang Quyến:</b> ${diaChi}</div>`;
         htmlIn += `<div><b>Điện thoại liên hệ:</b> ${sdt}</div>`;
@@ -448,7 +516,21 @@
         document.getElementById("printArea").innerHTML = htmlIn;
     }
 
-    // HÀM CHỤP ẢNH BẰNG HTML2CANVAS
+    // --- TRIGGER AUTO CALCULATE ---
+    function calculateAll() {
+        updateSection1();
+        updateSection2();
+        updateSection3();
+        updateSection4();
+        updatePrintData();
+    }
+
+    document.querySelectorAll("input, select").forEach(el => {
+        el.addEventListener("input", calculateAll);
+        el.addEventListener("change", calculateAll);
+    });
+
+    // --- HÀM CHỤP ẢNH ---
     function taiAnhVeMay() {
         let printArea = document.getElementById("printArea");
         printArea.style.display = "block";
