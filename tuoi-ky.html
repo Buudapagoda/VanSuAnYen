@@ -265,7 +265,7 @@
                 <div>- Thọ Mạng: <b>${danhXung} <span style="color:#b30000; font-size:18px;">${tuoiMu}</span> tuổi Âm</b> (Tính tới năm ${yMat})</div>
             </div>
             <table style="width:100%; margin-top:10px; font-size: 15px; border-collapse: collapse;">
-                <tr style="border-bottom: 1px dashed #ccc;"><td style="padding: 8px 0;"><b>Cung Lạc Mệnh:</b> Cung ${cp.cung}</td><td style="text-align:right"><span class="${cp.classColor}">${cp.danhGia}</span></td></tr>
+                <tr style="border-bottom: 1px dashed #ccc;"><td style="padding: 8px 0;"><b>Cung Tử:</b> Cung ${cp.cung}</td><td style="text-align:right"><span class="${cp.classColor}">${cp.danhGia}</span></td></tr>
                 <tr><td style="padding: 8px 0;"><b>Bàn Tay Huỳnh Long:</b> (Khởi ${hl.startChi} đến năm ${chiMat}) Rơi chữ <b>${hl.cung}</b></td><td style="text-align:right">${hl.isTot ? '<span class="tag-tot">TỐT</span>' : '<span class="tag-xau">XẤU</span>'}</td></tr>
             </table>
         `;
@@ -459,7 +459,7 @@
         
         // 2. Cung phi & Huỳnh Long
         htmlIn += `<div style="font-size: 19px; line-height: 1.8; margin-bottom: 15px; border-top: 1px dashed #000; padding-top: 15px;">`;
-        htmlIn += `<div><b>Cung Lạc Mệnh:</b> Cung ${cp.cung} (${cp.danhGia})</div>`;
+        htmlIn += `<div><b>Cung Tử:</b> Cung ${cp.cung} (${cp.danhGia})</div>`;
         htmlIn += `<div><b>Bàn Tay Huỳnh Long:</b> Chữ ${hl.cung} (${hl.isTot ? 'Tốt' : 'Xấu'})</div>`;
         htmlIn += `</div>`;
 
