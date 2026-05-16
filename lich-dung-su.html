@@ -167,7 +167,7 @@
         TAM_SA_SAT_DI_CHON: {
             1: [7, 19], 2: [6, 18, 30], 3: [6, 18, 30],
             4: [4, 16, 28], 5: [3, 15, 27], 6: [3, 15, 27],
-            7: [1, 12, 25], 8: [12, 24], 9: [12, 24],
+            7: [1, 13, 25], 8: [12, 24], 9: [12, 24],
             10: [10, 22], 11: [9, 21], 12: [9, 21]
         },
         TAM_SA_SAT_CUOI_VO: {
@@ -228,24 +228,181 @@
 
     function getJulianDay(d, m, y) { if (m <= 2) { m += 12; y -= 1; } let A = Math.floor(y / 100); let B = 2 - A + Math.floor(A / 4); return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5; }
     
-    function getSolarInfo(d, m) { 
-        let currentVal = m * 100 + d; 
-        let foundTerm = CAL_DATA.SOLAR_TERMS_FIXED[CAL_DATA.SOLAR_TERMS_FIXED.length - 1]; 
-        let calcTerm = foundTerm; 
-        let sortedTerms = [...CAL_DATA.SOLAR_TERMS_FIXED].sort((a, b) => (a.m * 100 + a.d) - (b.m * 100 + b.d)); 
-        for (let i = 0; i < sortedTerms.length; i++) { 
-            let term = sortedTerms[i]; 
-            if (currentVal === (term.m * 100 + term.d)) {
-                foundTerm = term; 
-                calcTerm = term.delay ? (i === 0 ? sortedTerms[sortedTerms.length - 1] : sortedTerms[i - 1]) : term;
-                break;
-            } else if (currentVal > (term.m * 100 + term.d)) { foundTerm = term; calcTerm = term; } 
-            else break;
-        } 
-        if (m === 1 && d < 5) return { name: "Đông chí", chiMonth: 0, calcChiMonth: 0 }; 
-        return { name: foundTerm.name, chiMonth: foundTerm.chiMonth, calcChiMonth: calcTerm.chiMonth }; 
+    // ===============================================================
+    //  TÍNH TIẾT KHÍ - THÁNG KIẾN - TRỰC THEO GIỜ GIAO TIẾT
+    //  Bản này thay cho bảng tiết khí cố định. Múi giờ lấy theo máy
+    //  đang chạy trình duyệt; khi dùng tại Việt Nam sẽ ra giờ Việt Nam.
+    // ===============================================================
+    const SOLAR_TERM_CACHE = {};
+    const SOLAR_TERM_DEFS = [
+        { name: "Tiểu hàn",   angle: 285, chiMonth: 1,  approxM: 1,  approxD: 5  },
+        { name: "Đại hàn",    angle: 300, chiMonth: 1,  approxM: 1,  approxD: 20 },
+        { name: "Lập xuân",   angle: 315, chiMonth: 2,  approxM: 2,  approxD: 4  },
+        { name: "Vũ thủy",    angle: 330, chiMonth: 2,  approxM: 2,  approxD: 19 },
+        { name: "Kinh trập",  angle: 345, chiMonth: 3,  approxM: 3,  approxD: 5  },
+        { name: "Xuân phân",  angle: 0,   chiMonth: 3,  approxM: 3,  approxD: 20 },
+        { name: "Thanh minh", angle: 15,  chiMonth: 4,  approxM: 4,  approxD: 5  },
+        { name: "Cốc vũ",     angle: 30,  chiMonth: 4,  approxM: 4,  approxD: 20 },
+        { name: "Lập hạ",     angle: 45,  chiMonth: 5,  approxM: 5,  approxD: 5  },
+        { name: "Tiểu mãn",   angle: 60,  chiMonth: 5,  approxM: 5,  approxD: 21 },
+        { name: "Mang chủng", angle: 75,  chiMonth: 6,  approxM: 6,  approxD: 5  },
+        { name: "Hạ chí",     angle: 90,  chiMonth: 6,  approxM: 6,  approxD: 21 },
+        { name: "Tiểu thử",   angle: 105, chiMonth: 7,  approxM: 7,  approxD: 7  },
+        { name: "Đại thử",    angle: 120, chiMonth: 7,  approxM: 7,  approxD: 23 },
+        { name: "Lập thu",    angle: 135, chiMonth: 8,  approxM: 8,  approxD: 7  },
+        { name: "Xử thử",     angle: 150, chiMonth: 8,  approxM: 8,  approxD: 23 },
+        { name: "Bạch lộ",    angle: 165, chiMonth: 9,  approxM: 9,  approxD: 7  },
+        { name: "Thu phân",   angle: 180, chiMonth: 9,  approxM: 9,  approxD: 23 },
+        { name: "Hàn lộ",     angle: 195, chiMonth: 10, approxM: 10, approxD: 8  },
+        { name: "Sương giáng",angle: 210, chiMonth: 10, approxM: 10, approxD: 23 },
+        { name: "Lập đông",   angle: 225, chiMonth: 11, approxM: 11, approxD: 7  },
+        { name: "Tiểu tuyết", angle: 240, chiMonth: 11, approxM: 11, approxD: 22 },
+        { name: "Đại tuyết",  angle: 255, chiMonth: 0,  approxM: 12, approxD: 7  },
+        { name: "Đông chí",   angle: 270, chiMonth: 0,  approxM: 12, approxD: 21 }
+    ];
+
+    function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+    function formatHM(dt) { return pad2(dt.getHours()) + ":" + pad2(dt.getMinutes()); }
+    function norm360(x) { x = x % 360; return x < 0 ? x + 360 : x; }
+    function degToRad(d) { return d * Math.PI / 180; }
+    function angleDiff(lon, target) { return ((lon - target + 540) % 360) - 180; }
+    function jdFromDateObj(date) { return date.getTime() / 86400000 + 2440587.5; }
+
+    // Kinh độ biểu kiến Mặt Trời, đủ chính xác để xác định ngày/giờ tiết khí thực dụng.
+    function sunLongitude(jd) {
+        const T = (jd - 2451545.0) / 36525;
+        const L0 = norm360(280.46646 + 36000.76983 * T + 0.0003032 * T * T);
+        const M = norm360(357.52911 + 35999.05029 * T - 0.0001537 * T * T);
+        const C = (1.914602 - 0.004817 * T - 0.000014 * T * T) * Math.sin(degToRad(M))
+                + (0.019993 - 0.000101 * T) * Math.sin(degToRad(2 * M))
+                + 0.000289 * Math.sin(degToRad(3 * M));
+        const trueLong = L0 + C;
+        const omega = 125.04 - 1934.136 * T;
+        return norm360(trueLong - 0.00569 - 0.00478 * Math.sin(degToRad(omega)));
     }
-    
+
+    function findSolarTermTime(year, def) {
+        let center = new Date(year, def.approxM - 1, def.approxD, 12, 0, 0, 0);
+        let lo = new Date(center.getTime() - 4 * 86400000);
+        let hi = new Date(center.getTime() + 4 * 86400000);
+        let flo = angleDiff(sunLongitude(jdFromDateObj(lo)), def.angle);
+        let fhi = angleDiff(sunLongitude(jdFromDateObj(hi)), def.angle);
+
+        // Nếu gặp năm nhuận hoặc sai số biên, mở rộng vùng tìm.
+        if (flo > 0 || fhi < 0) {
+            lo = new Date(center.getTime() - 8 * 86400000);
+            hi = new Date(center.getTime() + 8 * 86400000);
+        }
+
+        for (let i = 0; i < 60; i++) {
+            const mid = new Date((lo.getTime() + hi.getTime()) / 2);
+            const fm = angleDiff(sunLongitude(jdFromDateObj(mid)), def.angle);
+            if (fm < 0) lo = mid; else hi = mid;
+        }
+        return new Date((lo.getTime() + hi.getTime()) / 2);
+    }
+
+    function getSolarTermsForYear(year) {
+        if (SOLAR_TERM_CACHE[year]) return SOLAR_TERM_CACHE[year];
+        const arr = SOLAR_TERM_DEFS.map(def => ({ ...def, time: findSolarTermTime(year, def) }))
+                                   .sort((a, b) => a.time - b.time);
+        SOLAR_TERM_CACHE[year] = arr;
+        return arr;
+    }
+
+    function getSolarTermsAroundYear(year) {
+        return [
+            ...getSolarTermsForYear(year - 1),
+            ...getSolarTermsForYear(year),
+            ...getSolarTermsForYear(year + 1)
+        ].sort((a, b) => a.time - b.time);
+    }
+
+    function getTrucNameByChi(dayChiIdx, chiMonth) {
+        return CAL_DATA.TRUC[(dayChiIdx - chiMonth + 12) % 12];
+    }
+
+    function getSolarInfo(d, m, yOrDate) {
+        let dateObj;
+        if (yOrDate instanceof Date) dateObj = new Date(yOrDate);
+        else dateObj = new Date(yOrDate || new Date().getFullYear(), m - 1, d, 12, 0, 0, 0);
+
+        const start = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 0, 0, 0, 0);
+        const end = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 23, 59, 59, 999);
+        const noon = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 12, 0, 0, 0);
+        const terms = getSolarTermsAroundYear(dateObj.getFullYear());
+
+        let prevAtNoon = terms[0], prevBeforeDay = terms[0], termToday = null;
+        for (let i = 0; i < terms.length; i++) {
+            if (terms[i].time <= noon) prevAtNoon = terms[i];
+            if (terms[i].time < start) prevBeforeDay = terms[i];
+            if (terms[i].time >= start && terms[i].time <= end) termToday = terms[i];
+        }
+
+        let displayName = prevAtNoon.name;
+        let chiMonth = prevAtNoon.chiMonth;
+        let calcChiMonth = prevAtNoon.chiMonth;
+        let giaoTiet = null;
+
+        if (termToday) {
+            const beforeTerm = prevBeforeDay;
+            const afterTerm = termToday;
+            const beforeChiMonth = beforeTerm.chiMonth;
+            const afterChiMonth = afterTerm.chiMonth;
+
+            // Lấy tháng kiến chính tại giữa ngày để các phần đánh giá cũ vẫn chạy ổn.
+            calcChiMonth = (termToday.time <= noon) ? afterChiMonth : beforeChiMonth;
+            chiMonth = calcChiMonth;
+            displayName = `${afterTerm.name} (${formatHM(afterTerm.time)})`;
+
+            giaoTiet = {
+                name: afterTerm.name,
+                time: afterTerm.time,
+                timeText: formatHM(afterTerm.time),
+                beforeChiMonth,
+                afterChiMonth,
+                beforeTermName: beforeTerm.name,
+                afterTermName: afterTerm.name
+            };
+        }
+
+        return { name: displayName, chiMonth, calcChiMonth, termToday, giaoTiet };
+    }
+
+    function getTruc(dayChiIdx, solarInfo) {
+        return getTrucNameByChi(dayChiIdx, solarInfo.calcChiMonth);
+    }
+
+    function getTrucInfo(dayChiIdx, solarInfo) {
+        const main = getTruc(dayChiIdx, solarInfo);
+        if (!solarInfo.giaoTiet) {
+            return { main, display: main, descHtml: CAL_DATA.TRUC_DESC[main], giaoHoa: null };
+        }
+
+        const beforeTruc = getTrucNameByChi(dayChiIdx, solarInfo.giaoTiet.beforeChiMonth);
+        const afterTruc = getTrucNameByChi(dayChiIdx, solarInfo.giaoTiet.afterChiMonth);
+        const display = beforeTruc === afterTruc
+            ? main
+            : `${afterTruc} → ${beforeTruc}`;
+
+        const descHtml = beforeTruc === afterTruc
+            ? CAL_DATA.TRUC_DESC[main]
+            : `<div class="text-left leading-relaxed">
+                   <div class="mb-1"><b class="text-amber-700">Giao tiết ${solarInfo.giaoTiet.name} lúc ${solarInfo.giaoTiet.timeText}</b></div>
+                   <div><b>Trước tiết:</b> Trực ${beforeTruc}</div>
+                   <div class="mb-1">${CAL_DATA.TRUC_DESC[beforeTruc]}</div>
+                   <div><b>Sau tiết:</b> Trực ${afterTruc}</div>
+                   <div>${CAL_DATA.TRUC_DESC[afterTruc]}</div>
+               </div>`;
+
+        return {
+            main,
+            display,
+            descHtml,
+            giaoHoa: { beforeTruc, afterTruc, timeText: solarInfo.giaoTiet.timeText, termName: solarInfo.giaoTiet.name }
+        };
+    }
+
     function getCanChiDay(d, m, y) { let jd = getJulianDay(d, m, y); let jdn = Math.floor(jd + 0.5); let dayCanIdx = (jdn + 9) % 10; let dayChiIdx = (jdn + 1) % 12; return { full: `${CAL_DATA.CAN[dayCanIdx]} ${CAL_DATA.CHI[dayChiIdx]}`, canIdx: dayCanIdx, chiIdx: dayChiIdx, jdn: jdn }; }
     function getTruc(dayChiIdx, solarInfo) { return CAL_DATA.TRUC[(dayChiIdx - solarInfo.chiMonth + 12) % 12]; }
     function getDayRating(cIdx, chIdx) { let ec = CAL_DATA.ELEMENTS.CAN[cIdx]; let ech = CAL_DATA.ELEMENTS.CHI[chIdx]; if (ec === ech) return { name: "Bát Chuyên (Đồng Khí)", color: "text-stone-600", desc: "Ngày bình hòa." }; if ((ec===0&&ech===2)||(ec===2&&ech===1)||(ec===1&&ech===3)||(ec===3&&ech===4)||(ec===4&&ech===0)) return { name: "Bảo Nhật (Đại Cát)", color: "text-green-700", desc: "Rất tốt cho mọi việc." }; if ((ech===0&&ec===2)||(ech===2&&ec===1)||(ech===1&&ec===3)||(ech===3&&ec===4)||(ech===4&&ec===0)) return { name: "Thoa Nhật (Tiểu Cát)", color: "text-blue-700", desc: "Tốt vừa, có thể dùng." }; if ((ec===0&&ec===1)||(ec===1&&ech===4)||(ec===4&&ech===2)||(ec===2&&ech===3)||(ec===3&&ech===0)) return { name: "Chế Nhật (Tiểu Hung)", color: "text-amber-600", desc: "Xấu nhẹ, thận trọng." }; return { name: "Phạt Nhật (Đại Hung)", color: "text-red-600 font-bold", desc: "Can khắc Chi. Kỵ làm đại sự." }; }
@@ -335,8 +492,9 @@
         if (lMonth >= 11 && d.getMonth() < 3 && lYear === d.getFullYear()) lYear -= 1;
 
         const dayInfo = getCanChiDay(d.getDate(), d.getMonth()+1, d.getFullYear());
-        const solarInfo = getSolarInfo(d.getDate(), d.getMonth()+1);
-        const truc = getTruc(dayInfo.chiIdx, solarInfo);
+        const solarInfo = getSolarInfo(d.getDate(), d.getMonth()+1, d);
+        const trucInfo = getTrucInfo(dayInfo.chiIdx, solarInfo);
+        const truc = trucInfo.main;
         const rating = getDayRating(dayInfo.canIdx, dayInfo.chiIdx);
         let isHoangDao = checkNgayHoangDao(lMonth, dayInfo.chiIdx);
         
@@ -353,15 +511,13 @@
         
         let dTomorrow = new Date(solarDate);
         dTomorrow.setDate(dTomorrow.getDate() + 1);
-        let tD = dTomorrow.getDate(); let tM = dTomorrow.getMonth() + 1;
         let isTuTuyet = false; let isTuLy = false;
         let tuTuyetTerms = ["Lập xuân", "Lập hạ", "Lập thu", "Lập đông"];
         let tuLyTerms = ["Xuân phân", "Hạ chí", "Thu phân", "Đông chí"];
-        for (let term of CAL_DATA.SOLAR_TERMS_FIXED) {
-            if (term.d === tD && term.m === tM) {
-                if (tuTuyetTerms.includes(term.name)) isTuTuyet = true;
-                if (tuLyTerms.includes(term.name)) isTuLy = true;
-            }
+        const tomorrowSolarInfo = getSolarInfo(dTomorrow.getDate(), dTomorrow.getMonth()+1, dTomorrow);
+        if (tomorrowSolarInfo.giaoTiet) {
+            if (tuTuyetTerms.includes(tomorrowSolarInfo.giaoTiet.name)) isTuTuyet = true;
+            if (tuLyTerms.includes(tomorrowSolarInfo.giaoTiet.name)) isTuLy = true;
         }
 
         const badDaysList = getBadDaysInfo(lMonth, lDay, dayInfo.canIdx, dayInfo.chiIdx, solarInfo.calcChiMonth, isTuTuyet, isTuLy);
@@ -390,7 +546,7 @@
             hourDetails.push({ can: canGio, chi: chiGio, chiIdx: i, str: `${canGio} ${chiGio}<br><span class="text-[9px] text-gray-500">(${(i*2-1+24)%24}h-${(i*2+1)%24}h)</span>`, isGood: checkGioHoangDao(dayInfo.chiIdx, i), lucDieu: lucDieuStr, isThoTu: isThoTu, isSatChu: isSatChu, isKhongVong: isKhongVong });
         }
         
-        return { solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() }, lunar: { day: lDay, month: lMonth, year: lYear }, text: { day: dayInfo.full }, extra: { truc, tietKhi: solarInfo.name, hyThan: CAL_DATA.HY_THAN[dayInfo.canIdx], taiThan: CAL_DATA.TAI_THAN[dayInfo.canIdx], hacThan: getHacThanDirection(dayInfo.jdn), badDaysList, isXungTuoiCaNhan, tuoiXungNgay, bHoliday, isHoangDao, sao: saoData }, hourDetails, rating };
+        return { solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() }, lunar: { day: lDay, month: lMonth, year: lYear }, text: { day: dayInfo.full }, extra: { truc, trucDisplay: trucInfo.display, trucDescHtml: trucInfo.descHtml, giaoHoaTruc: trucInfo.giaoHoa, tietKhi: solarInfo.name, hyThan: CAL_DATA.HY_THAN[dayInfo.canIdx], taiThan: CAL_DATA.TAI_THAN[dayInfo.canIdx], hacThan: getHacThanDirection(dayInfo.jdn), badDaysList, isXungTuoiCaNhan, tuoiXungNgay, bHoliday, isHoangDao, sao: saoData }, hourDetails, rating };
     }
 
     function saveNote(dateKey) {
@@ -499,7 +655,7 @@
                 </td>
                 <td class="w-[30%] text-center bg-stone-50 align-top p-0 border-r-2 border-black">
                     <div class="header-cell pt-2">Tiết khí</div><div class="py-2 font-bold text-blue-800">${dData.extra.tietKhi}</div>
-                    <div class="header-cell border-t">Trực ${dData.extra.truc}</div><div class="text-[10px] p-2 leading-tight">${CAL_DATA.TRUC_DESC[dData.extra.truc]}</div>
+                    <div class="header-cell border-t">Trực ${dData.extra.trucDisplay || dData.extra.truc}</div><div class="text-[10px] p-2 leading-tight">${dData.extra.trucDescHtml || CAL_DATA.TRUC_DESC[dData.extra.truc]}</div>
                     <div class="header-cell border-t">Nhị Thập Bát Tú</div><div class="p-2 font-bold ${dData.extra.sao.color}">Sao ${dData.extra.sao.name}<br>[ ${dData.extra.sao.type} ]</div>
                 </td>
                 <td class="w-[35%] align-top p-2 text-[11px]">
