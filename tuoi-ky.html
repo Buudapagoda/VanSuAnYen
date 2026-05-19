@@ -171,7 +171,38 @@
     const CHI = ["Tý", "Sửu", "Dần", "Mão", "Thìn", "Tỵ", "Ngọ", "Mùi", "Thân", "Dậu", "Tuất", "Hợi"];
 
     // --- HÀM TIỆN ÍCH ---
+    // Giờ Âm Dương dùng trong Tang sự: lệch 1 tiếng so với giờ địa chi thường.
+    // Tý: 00h00-01h59, Sửu: 02h00-03h59, ... Hợi: 22h00-23h59.
     function getChiIdxFromHour(hour) { return Math.floor(hour / 2) % 12; }
+    function getGioAmDuongRange(chiIdx) {
+        const start = (chiIdx * 2) % 24;
+        const end = (start + 2) % 24;
+        return `${start.toString().padStart(2, '0')}h00 - ${end.toString().padStart(2, '0')}h00`;
+    }
+    function getCungGioHaHuyet(timeStr) {
+        if (!timeStr) return null;
+        const [hhStr, mmStr] = timeStr.split(":");
+        const hh = parseInt(hhStr, 10);
+        const mm = parseInt(mmStr || "0", 10);
+        const chiIdx = getChiIdxFromHour(hh);
+        const xungIdx = (chiIdx + 6) % 12;
+        const tamHopMap = {
+            0: [8, 4], 4: [0, 8], 8: [4, 0],      // Thân Tý Thìn
+            2: [6, 10], 6: [10, 2], 10: [2, 6],   // Dần Ngọ Tuất
+            11: [3, 7], 3: [7, 11], 7: [11, 3],   // Hợi Mão Mùi
+            5: [9, 1], 9: [1, 5], 1: [5, 9]       // Tỵ Dậu Sửu
+        };
+        const kyChi = [chiIdx, xungIdx, ...(tamHopMap[chiIdx] || [])];
+        const kyUnique = [...new Set(kyChi)].map(i => CHI[i]);
+        const timeFmt = `${hh.toString().padStart(2, '0')}h${mm.toString().padStart(2, '0')}`;
+        return {
+            chiIdx,
+            chiGio: CHI[chiIdx],
+            gioText: `${timeFmt} (Giờ ${CHI[chiIdx]}: ${getGioAmDuongRange(chiIdx)})`,
+            tuoiKy: kyUnique.join(", "),
+            tuoiKyChinh: `${CHI[chiIdx]}, ${CHI[xungIdx]}`
+        };
+    }
     function getJulianDay(dd, mm, yyyy) {
         let a = Math.floor((14 - mm) / 12); let y = yyyy + 4800 - a; let m = mm + 12 * a - 3;
         return dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - Math.floor(y / 100) + Math.floor(y / 400) - 32045;
@@ -190,14 +221,160 @@
 
     // --- CÁC THUẬT TOÁN PHONG THỦY ---
 
-    // 1. Cung Phi (Cung Tử / Cải Táng)
+    // 1. Cung Phi theo tuổi mụ / Cung Tử
+    // Lưu ý: riêng tuổi 50 phải nhập Cung Trung, sau đó mới tính tiếp.
+    // Vì vậy từ 51 tuổi trở đi phải lùi 1 bước tính để không bị lệch cung.
     function tinhCungPhiBangTay(tuoiMu, gioiTinh) {
-        let chuc = Math.floor(tuoiMu / 10); if (chuc === 0) chuc = 1; let le = tuoiMu % 10;
-        let arr = (gioiTinh === 'nam') ? ["Cấn", "Chấn", "Tốn", "Ly", "Khôn", "Đoài", "Càn", "Khảm"] : ["Khôn", "Ly", "Tốn", "Chấn", "Cấn", "Khảm", "Càn", "Đoài"];
+        if (tuoiMu === 50) {
+            return {
+                cung: "Trung",
+                isTot: false,
+                classColor: "tag-tb",
+                danhGia: "Nhập Trung"
+            };
+        }
+
+        let tuoiTinh = tuoiMu > 50 ? tuoiMu - 1 : tuoiMu;
+        let chuc = Math.floor(tuoiTinh / 10);
+        if (chuc === 0) chuc = 1;
+        let le = tuoiTinh % 10;
+
+        let arr = (gioiTinh === 'nam')
+            ? ["Cấn", "Chấn", "Tốn", "Ly", "Khôn", "Đoài", "Càn", "Khảm"]
+            : ["Khôn", "Ly", "Tốn", "Chấn", "Cấn", "Khảm", "Càn", "Đoài"];
+
         let cung = arr[(chuc - 1 + (le === 0 ? 0 : le)) % 8];
         let classColor = ["Chấn", "Khôn"].includes(cung) ? "tag-tot" : (["Cấn", "Khảm"].includes(cung) ? "tag-tot" : (["Đoài", "Tốn"].includes(cung) ? "tag-tb" : "tag-xau"));
         let danhGia = ["Chấn", "Khôn"].includes(cung) ? "Tốt Nhất" : (["Cấn", "Khảm"].includes(cung) ? "Tốt Nhì" : (["Đoài", "Tốn"].includes(cung) ? "Trung Bình" : "Xấu Nhất"));
         return { cung: cung, isTot: ["Chấn", "Khôn", "Cấn", "Khảm"].includes(cung), classColor: classColor, danhGia: danhGia };
+    }
+
+
+    // Cung Phi Bát Trạch chuẩn theo năm và giới tính.
+    // Dùng riêng cho Cải Táng để không lẫn với cung tính theo tuổi mụ/cung tử.
+    function tinhCungPhiBatTrach(nam, gioiTinh) {
+        let tong = String(nam).split("").reduce((s, ch) => s + parseInt(ch, 10), 0);
+        while (tong > 9) tong = String(tong).split("").reduce((s, ch) => s + parseInt(ch, 10), 0);
+
+        let soCung;
+        if (nam >= 2000) {
+            soCung = (gioiTinh === 'nam') ? (9 - tong) : (6 + tong);
+        } else {
+            soCung = (gioiTinh === 'nam') ? (10 - tong) : (5 + tong);
+        }
+        soCung = ((soCung - 1) % 9 + 9) % 9 + 1;
+
+        // Nam gặp số 5 quy Khôn, nữ gặp số 5 quy Cấn.
+        if (soCung === 5) soCung = (gioiTinh === 'nam') ? 2 : 8;
+
+        const cungTheoSo = {1: "Khảm", 2: "Khôn", 3: "Chấn", 4: "Tốn", 6: "Càn", 7: "Đoài", 8: "Cấn", 9: "Ly"};
+        const cung = cungTheoSo[soCung];
+        const cungTot = ["Chấn", "Khôn", "Cấn", "Khảm"].includes(cung);
+        return {
+            cung,
+            isTot: cungTot,
+            classColor: cungTot ? "tag-tot" : "tag-xau",
+            danhGia: cungTot ? "Được cải táng" : "Không được cải táng"
+        };
+    }
+
+    // Hướng tốt để chôn lại theo Cung Phi CẢI TÁNG.
+    // Bảng này chép theo ảnh Bát Trạch anh gửi:
+    // Cột dùng để lấy hướng tốt: Sinh Khí, Phước Đức, Thiên Y, Phục Vị.
+    function getHuongTotTheoCungPhi(cung) {
+        const huongCung = {
+            "Càn": "Tây Bắc",
+            "Khảm": "Chánh Bắc",
+            "Cấn": "Đông Bắc",
+            "Chấn": "Chánh Đông",
+            "Tốn": "Đông Nam",
+            "Ly": "Chánh Nam",
+            "Khôn": "Tây Nam",
+            "Đoài": "Chánh Tây"
+        };
+
+        const data = {
+            "Càn": {
+                nhom: "Tây Tứ Trạch",
+                huong: [
+                    { sao: "Sinh Khí", cap: "Tốt nhất", cungHuong: "Đoài" },
+                    { sao: "Phước Đức", cap: "Tốt nhì", cungHuong: "Khôn" },
+                    { sao: "Thiên Y", cap: "Tốt ba", cungHuong: "Cấn" },
+                    { sao: "Phục Vị", cap: "Tốt tư", cungHuong: "Càn" }
+                ]
+            },
+            "Khảm": {
+                nhom: "Đông Tứ Trạch",
+                huong: [
+                    { sao: "Sinh Khí", cap: "Tốt nhất", cungHuong: "Tốn" },
+                    { sao: "Phước Đức", cap: "Tốt nhì", cungHuong: "Ly" },
+                    { sao: "Thiên Y", cap: "Tốt ba", cungHuong: "Chấn" },
+                    { sao: "Phục Vị", cap: "Tốt tư", cungHuong: "Khảm" }
+                ]
+            },
+            "Cấn": {
+                nhom: "Tây Tứ Trạch",
+                huong: [
+                    { sao: "Sinh Khí", cap: "Tốt nhất", cungHuong: "Khôn" },
+                    { sao: "Phước Đức", cap: "Tốt nhì", cungHuong: "Đoài" },
+                    { sao: "Thiên Y", cap: "Tốt ba", cungHuong: "Càn" },
+                    { sao: "Phục Vị", cap: "Tốt tư", cungHuong: "Cấn" }
+                ]
+            },
+            "Chấn": {
+                nhom: "Đông Tứ Trạch",
+                huong: [
+                    { sao: "Sinh Khí", cap: "Tốt nhất", cungHuong: "Ly" },
+                    { sao: "Phước Đức", cap: "Tốt nhì", cungHuong: "Tốn" },
+                    { sao: "Thiên Y", cap: "Tốt ba", cungHuong: "Khảm" },
+                    { sao: "Phục Vị", cap: "Tốt tư", cungHuong: "Chấn" }
+                ]
+            },
+            "Tốn": {
+                nhom: "Đông Tứ Trạch",
+                huong: [
+                    { sao: "Sinh Khí", cap: "Tốt nhất", cungHuong: "Khảm" },
+                    { sao: "Phước Đức", cap: "Tốt nhì", cungHuong: "Chấn" },
+                    { sao: "Thiên Y", cap: "Tốt ba", cungHuong: "Ly" },
+                    { sao: "Phục Vị", cap: "Tốt tư", cungHuong: "Tốn" }
+                ]
+            },
+            "Ly": {
+                nhom: "Đông Tứ Trạch",
+                huong: [
+                    { sao: "Sinh Khí", cap: "Tốt nhất", cungHuong: "Chấn" },
+                    { sao: "Phước Đức", cap: "Tốt nhì", cungHuong: "Khảm" },
+                    { sao: "Thiên Y", cap: "Tốt ba", cungHuong: "Tốn" },
+                    { sao: "Phục Vị", cap: "Tốt tư", cungHuong: "Ly" }
+                ]
+            },
+            "Khôn": {
+                nhom: "Tây Tứ Trạch",
+                huong: [
+                    { sao: "Sinh Khí", cap: "Tốt nhất", cungHuong: "Cấn" },
+                    { sao: "Phước Đức", cap: "Tốt nhì", cungHuong: "Càn" },
+                    { sao: "Thiên Y", cap: "Tốt ba", cungHuong: "Đoài" },
+                    { sao: "Phục Vị", cap: "Tốt tư", cungHuong: "Khôn" }
+                ]
+            },
+            "Đoài": {
+                nhom: "Tây Tứ Trạch",
+                huong: [
+                    { sao: "Sinh Khí", cap: "Tốt nhất", cungHuong: "Càn" },
+                    { sao: "Phước Đức", cap: "Tốt nhì", cungHuong: "Cấn" },
+                    { sao: "Thiên Y", cap: "Tốt ba", cungHuong: "Khôn" },
+                    { sao: "Phục Vị", cap: "Tốt tư", cungHuong: "Đoài" }
+                ]
+            }
+        };
+
+        const result = data[cung];
+        if (!result) return null;
+        result.huong = result.huong.map(h => ({
+            ...h,
+            huong: huongCung[h.cungHuong]
+        }));
+        return result;
     }
 
     // 2. Bàn tay Huỳnh Long
@@ -226,13 +403,13 @@
         let mm = parseInt(parts[1]);
         let timeFmt = `${hh < 10 ? '0'+hh : hh}h${mm < 10 ? '0'+mm : mm}`;
 
-        let chiIdx = Math.floor(hh / 2) % 12; 
+        let chiIdx = getChiIdxFromHour(hh); 
         let xungIdx = (chiIdx + 6) % 12;
         
-        let textGio = `${timeFmt} (Giờ ${CHI[chiIdx]})`;
+        let textGio = `${timeFmt} (Giờ ${CHI[chiIdx]}: ${getGioAmDuongRange(chiIdx)})`;
         let textKy = `${CHI[chiIdx]}, ${CHI[xungIdx]}`;
         
-        return { ten: textGio, ky: textKy, chiGio: CHI[chiIdx] };
+        return { ten: textGio, ky: textKy, chiGio: CHI[chiIdx], chiIdx: chiIdx };
     }
 
     // --- CÁC HÀM CẬP NHẬT GIAO DIỆN ĐỘC LẬP ---
@@ -265,7 +442,7 @@
                 <div>- Thọ Mạng: <b>${danhXung} <span style="color:#b30000; font-size:18px;">${tuoiMu}</span> tuổi Âm</b> (Tính tới năm ${yMat})</div>
             </div>
             <table style="width:100%; margin-top:10px; font-size: 15px; border-collapse: collapse;">
-                <tr style="border-bottom: 1px dashed #ccc;"><td style="padding: 8px 0;"><b>Cung Tử:</b> Cung ${cp.cung}</td><td style="text-align:right"><span class="${cp.classColor}">${cp.danhGia}</span></td></tr>
+                <tr style="border-bottom: 1px dashed #ccc;"><td style="padding: 8px 0;"><b>Cung Lạc Mệnh:</b> Cung ${cp.cung}</td><td style="text-align:right"><span class="${cp.classColor}">${cp.danhGia}</span></td></tr>
                 <tr><td style="padding: 8px 0;"><b>Bàn Tay Huỳnh Long:</b> (Khởi ${hl.startChi} đến năm ${chiMat}) Rơi chữ <b>${hl.cung}</b></td><td style="text-align:right">${hl.isTot ? '<span class="tag-tot">TỐT</span>' : '<span class="tag-xau">XẤU</span>'}</td></tr>
             </table>
         `;
@@ -363,9 +540,17 @@
                 let dateTxt = dt.ngay ? `Ngày ${dt.ngay.split("-").reverse().join("/")} - ` : "";
 
                 if (errText !== "") {
+                    if (dt.isBury) {
+                        const cungHaHuyet = getCungGioHaHuyet(dt.gioStr);
+                        errText += `<b>Cung giờ Hạ Huyệt:</b> Cung ${cungHaHuyet.chiGio} - <b>Tuổi kỵ:</b> ${cungHaHuyet.tuoiKyChinh}<br>`;
+                    }
                     html += `<div class="danger-box"><b>Lúc ${dt.ten}: ${dateTxt}${rLiem.ten}</b><br>${errText}</div>`;
                 } else {
-                    let kyText = dt.isBury ? `<span class="tag-tot">Không kỵ tuổi người tham dự</span>` : `Kỵ người tham dự mang tuổi: <span class="tag-xau">${rLiem.ky}</span>`;
+                    let kyText = `Kỵ người tham dự mang tuổi: <span class="tag-xau">${rLiem.ky}</span>`;
+                    if (dt.isBury) {
+                        const cungHaHuyet = getCungGioHaHuyet(dt.gioStr);
+                        kyText = `<b>Cung giờ Hạ Huyệt:</b> Cung ${cungHaHuyet.chiGio} &nbsp;|&nbsp; <b>Tuổi kỵ lúc hạ huyệt:</b> <span class="tag-xau">${cungHaHuyet.tuoiKyChinh}</span>`;
+                    }
                     html += `<div style="background:#fff; padding: 12px; border:1px solid #eee; border-left: 4px solid #8b0000; margin-bottom:10px; border-radius: 4px; font-size: 15px;"><b>Lúc ${dt.ten}: ${dateTxt}${rLiem.ten}</b><br>→ ${kyText}</div>`;
                 }
             }
@@ -393,19 +578,35 @@
         }
 
         let tCaiTang = nCaiTang - nSinh + 1;
-        let kqCaiTang = tinhCungPhiBangTay(tCaiTang, gTinh);
+        let kqCaiTang = tinhCungPhiBatTrach(nCaiTang, gTinh);
+        // Phần hướng chôn lại lấy theo KẾT QUẢ CUNG PHI CẢI TÁNG, không lấy mặc định cung nào khác.
+        let huongTot = getHuongTotTheoCungPhi(kqCaiTang.cung);
 
-        let html = `<div class="res-title">Kết Quả Tuổi Cải Táng</div>
+        let html = `<div class="res-title">Kết Quả Cải Táng Theo Cung Phi</div>
             <ul style="list-style-type: square; padding-left: 20px; line-height: 1.6; font-size: 15px;">
-                <li>Tuổi mụ vào năm bốc mộ (${nCaiTang}): <b>${tCaiTang} tuổi Âm</b></li>
-                <li>Rơi vào Cung mạng: <b>Cung ${kqCaiTang.cung} (<span class="${kqCaiTang.classColor}">${kqCaiTang.danhGia}</span>)</b></li>
+                <li>Tuổi mụ vào năm bốc mộ (${nCaiTang}): <b>${tCaiTang} tuổi Âm</b> <i>(chỉ để tham khảo, không dùng làm cung tử)</i></li>
+                <li>Năm định cải táng: <b>${nCaiTang} (${getCanChiYear(nCaiTang)})</b></li>
+                <li>Tính <b>Cung Phi năm cải táng</b>: <b>Cung ${kqCaiTang.cung} (<span class="${kqCaiTang.classColor}">${kqCaiTang.danhGia}</span>)</b></li>
             </ul>
         `;
         if (kqCaiTang.isTot) {
-            html += `<div style="margin-top: 10px;" class="tag-tot">✅ ĐƯỢC CẢI TÁNG (Rơi vào tứ cung Cát: Chấn, Khôn, Cấn, Khảm).</div>`;
+            html += `<div style="margin-top: 10px;" class="tag-tot">✅ ĐƯỢC CẢI TÁNG: Cung Phi rơi vào 1 trong 4 cung tốt: Chấn - Khôn - Cấn - Khảm.</div>`;
         } else {
-            html += `<div style="margin-top: 10px;" class="tag-xau">❌ KHÔNG NÊN CẢI TÁNG. Năm này cung mạng không thuận lợi.</div>`;
+            html += `<div style="margin-top: 10px;" class="tag-xau">❌ KHÔNG ĐƯỢC CẢI TÁNG: Cung Phi rơi vào 1 trong 4 cung xấu: Đoài - Tốn - Càn - Ly.</div>`;
         }
+
+        if (huongTot) {
+            html += `<div class="adv-box" style="margin-top: 15px;">
+                <b>🧭 Gợi ý hướng chôn lại theo Cung Phi người mất:</b><br>
+                Năm cải táng <b>${nCaiTang} (${getCanChiYear(nCaiTang)})</b> tính ra <b>Cung Phi ${kqCaiTang.cung}</b> - <b>${huongTot.nhom}</b>.<br>
+                Nếu đất nhà bằng phẳng, địa hình không bắt buộc xoay hướng khác, nên ưu tiên chọn hướng tốt theo thứ tự:
+                <ol style="margin-top: 8px; margin-bottom: 0; padding-left: 22px; line-height: 1.7;">
+                    ${huongTot.huong.map(h => `<li><b>${h.sao}</b> (${h.cap}): Cung ${kqCaiTang.cung} kết hợp Cung ${h.cungHuong}, hướng <b>${h.huong}</b>.</li>`).join("")}
+                </ol>
+            </div>`;
+        }
+
+        html += `<div class="warning-box" style="margin-top: 15px;"><b>📌 LƯU Ý HƯỚNG MỘ:</b> Hướng tốt chỉ áp dụng khi địa hình thực tế cho phép. Nếu đất bị dốc, nước chảy, đường đi, mộ phần xung quanh hoặc thế đất bắt buộc khác thì ưu tiên địa hình trước, rồi mới phối hướng theo Cung Phi.</div>`;
         html += `<div class="adv-box" style="margin-top: 15px;"><b>💡 LƯU Ý KHI BỐC NHIỀU MỘ:</b> Nếu cải táng nhiều mộ cùng lúc trong năm, <b>chỉ cần chọn 1 mộ có tuổi Tốt Nhất để làm lễ động thổ trước</b>. Các mộ tiếp theo bốc nối tiếp trong ngày hoặc các ngày sau mà không cần xét tuổi từng mộ nữa.</div>`;
 
         resBox.innerHTML = html;
@@ -459,7 +660,7 @@
         
         // 2. Cung phi & Huỳnh Long
         htmlIn += `<div style="font-size: 19px; line-height: 1.8; margin-bottom: 15px; border-top: 1px dashed #000; padding-top: 15px;">`;
-        htmlIn += `<div><b>Cung Tử:</b> Cung ${cp.cung} (${cp.danhGia})</div>`;
+        htmlIn += `<div><b>Cung Lạc Mệnh:</b> Cung ${cp.cung} (${cp.danhGia})</div>`;
         htmlIn += `<div><b>Bàn Tay Huỳnh Long:</b> Chữ ${hl.cung} (${hl.isTot ? 'Tốt' : 'Xấu'})</div>`;
         htmlIn += `</div>`;
 
@@ -497,9 +698,10 @@
                     }
                 }
 
-                let kyText = `(Không tính tuổi kỵ người tham dự)`;
+                const cungHaHuyet = getCungGioHaHuyet(gDongQuan);
+                let kyText = `Cung giờ Hạ Huyệt: Cung ${cungHaHuyet.chiGio} - Tuổi kỵ: ${cungHaHuyet.tuoiKyChinh}`;
                 if (rDQ.chiGio === "Tỵ" || rDQ.chiGio === "Hợi" || rDQ.chiGio === chiSinh) {
-                    kyText = `<span style="color:#c0392b; font-weight:bold;">PHẠM GIỜ TRÙNG HOẶC TỴ/HỢI!</span>`;
+                    kyText += ` - PHẠM GIỜ TRÙNG HOẶC TỴ/HỢI!`;
                 }
 
                 htmlIn += `<div><b>- Động Quan:</b> ${dateTxt}${rDQ.ten}${phamNgayTxt}<br><i style="margin-left: 20px;">${kyText}</i></div>`;
