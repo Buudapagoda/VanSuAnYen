@@ -157,6 +157,23 @@
         SAT_CHU_DUONG_MAP: {1:[0], 2:[1], 3:[1], 4:[10], 5:[4], 6:[4], 7:[1], 8:[4], 9:[1], 10:[4], 11:[7], 12:[4]},
         SAT_CHU_AM_MAP: {1:[5], 2:[0], 3:[7], 4:[3], 5:[8], 6:[10], 7:[1], 8:[11], 9:[6], 10:[9], 11:[2], 12:[4]},
         THO_TU_MAP: {1:10, 2:4, 3:11, 4:5, 5:0, 6:6, 7:1, 8:7, 9:2, 10:8, 11:3, 12:9},
+        // Ngày Thọ Tử luận theo tháng tiết khí:
+        // Nếu trong tháng có ngày chính chủ Can Chi thì chỉ ngày đó là Thọ Tử.
+        // Nếu không có ngày chính chủ mà có đủ 3 ngày cùng Địa Chi thì cả 3 ngày đó là Thọ Tử.
+        THO_TU_CHINH_CHU_MAP: {
+            1: { can: 2, chi: 10 },  // Bính Tuất
+            2: { can: 8, chi: 4 },   // Nhâm Thìn
+            3: { can: 7, chi: 11 },  // Tân Hợi
+            4: { can: 3, chi: 5 },   // Đinh Tỵ
+            5: { can: 4, chi: 0 },   // Mậu Tý
+            6: { can: 2, chi: 6 },   // Bính Ngọ
+            7: { can: 1, chi: 1 },   // Ất Sửu
+            8: { can: 9, chi: 7 },   // Quý Mùi
+            9: { can: 0, chi: 2 },   // Giáp Dần
+            10: { can: 4, chi: 8 },  // Mậu Thân
+            11: { can: 7, chi: 3 },  // Tân Mão
+            12: { can: 7, chi: 9 }   // Tân Dậu
+        },
         GIO_SAT_CHU_MAP: {1:2, 2:5, 3:8, 4:4, 5:9, 6:3, 7:2, 8:5, 9:8, 10:4, 11:9, 12:3}, GIO_THO_TU_MAP: [1, 6, 6, 5, 5, 6, 7, 6, 9, 5, 7, 6],
         TAM_SA_SAT_CAT_NHA: {
             1: [5, 6, 17, 18, 29, 30], 2: [4, 5, 16, 17, 28, 29], 3: [4, 5, 16, 17, 28, 29],
@@ -410,7 +427,74 @@
     function getHacThanDirection(jdn) { let stdIdx = (jdn + 49) % 60; if (stdIdx >= 29 && stdIdx <= 44) return "Trên Trời (Khỏi lo)"; if (stdIdx >= 45 && stdIdx <= 50) return "Đông Bắc"; if (stdIdx >= 51 && stdIdx <= 55) return "Chính Đông"; if (stdIdx >= 56 || stdIdx <= 1) return "Đông Nam"; if (stdIdx >= 2 && stdIdx <= 6) return "Chính Nam"; if (stdIdx >= 7 && stdIdx <= 12) return "Tây Nam"; if (stdIdx >= 13 && stdIdx <= 17) return "Chính Tây"; if (stdIdx >= 18 && stdIdx <= 23) return "Tây Bắc"; if (stdIdx >= 24 && stdIdx <= 28) return "Chính Bắc"; return ""; }
     function checkXungTuoi(dayChiIdx) { const uYear = document.getElementById("birthYear").value; if(!uYear || uYear === "") return false; const uChiIdx = (uYear - 4) % 12; let diff = Math.abs(uChiIdx - dayChiIdx); return diff === 6 || diff === 0; }
 
-    function getBadDaysInfo(lMonth, lDay, dCanIdx, dChiIdx, solarChiMonth, isTuTuyet, isTuLy) { 
+    const THO_TU_MONTH_CACHE = {};
+
+    function getTietKhiMonthNumber(dateObj) {
+        const info = getSolarInfo(dateObj.getDate(), dateObj.getMonth() + 1, dateObj);
+        return (info.calcChiMonth + 10) % 12 + 1;
+    }
+
+    function getTietKhiMonthSummary(dateObj, fsMonth) {
+        const cur = new Date(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate(), 12, 0, 0, 0);
+
+        let start = new Date(cur);
+        while (true) {
+            const prev = new Date(start);
+            prev.setDate(prev.getDate() - 1);
+            if (getTietKhiMonthNumber(prev) !== fsMonth) break;
+            start = prev;
+        }
+
+        let end = new Date(cur);
+        while (true) {
+            const next = new Date(end);
+            next.setDate(next.getDate() + 1);
+            if (getTietKhiMonthNumber(next) !== fsMonth) break;
+            end = next;
+        }
+
+        const key = `${fsMonth}_${start.getFullYear()}_${start.getMonth()+1}_${start.getDate()}_${end.getFullYear()}_${end.getMonth()+1}_${end.getDate()}`;
+        if (THO_TU_MONTH_CACHE[key]) return THO_TU_MONTH_CACHE[key];
+
+        const rule = CAL_DATA.THO_TU_CHINH_CHU_MAP[fsMonth];
+        const sameChiDays = [];
+        let hasChinhChu = false;
+
+        for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+            const cc = getCanChiDay(d.getDate(), d.getMonth() + 1, d.getFullYear());
+            if (cc.chiIdx === rule.chi) {
+                sameChiDays.push({
+                    canIdx: cc.canIdx,
+                    chiIdx: cc.chiIdx,
+                    dateKey: `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`
+                });
+            }
+            if (cc.canIdx === rule.can && cc.chiIdx === rule.chi) {
+                hasChinhChu = true;
+            }
+        }
+
+        THO_TU_MONTH_CACHE[key] = { start, end, sameChiDays, hasChinhChu };
+        return THO_TU_MONTH_CACHE[key];
+    }
+
+    function isNgayThoTuTheoTietKhi(dateObj, fsMonth, dCanIdx, dChiIdx) {
+        const rule = CAL_DATA.THO_TU_CHINH_CHU_MAP[fsMonth];
+        if (!rule) return false;
+
+        const summary = getTietKhiMonthSummary(dateObj, fsMonth);
+
+        // Có ngày chính chủ: chỉ đúng ngày Can Chi chính chủ là Thọ Tử.
+        if (summary.hasChinhChu) {
+            return dCanIdx === rule.can && dChiIdx === rule.chi;
+        }
+
+        // Không có ngày chính chủ: nếu tháng tiết khí có đủ 3 ngày cùng con giáp,
+        // thì cả 3 ngày ấy là Thọ Tử; nếu chỉ có 2 ngày thì không lấy.
+        return dChiIdx === rule.chi && summary.sameChiDays.length >= 3;
+    }
+
+    function getBadDaysInfo(lMonth, lDay, dCanIdx, dChiIdx, solarChiMonth, isTuTuyet, isTuLy, solarDate) { 
         let notes = []; let fsMonth = (solarChiMonth + 10) % 12 + 1;
         const duongCongKyDates = { 1:[13], 2:[11], 3:[9], 4:[7], 5:[5], 6:[3], 7:[1, 29], 8:[27], 9:[25], 10:[23], 11:[21], 12:[19] };
         if (duongCongKyDates[lMonth] && duongCongKyDates[lMonth].includes(lDay)) notes.push({ name: "Dương Công Kỵ", desc: "Đại hung nhật. Trăm sự đều kỵ." });
@@ -422,7 +506,7 @@
         if (isTuLy) notes.push({ name: "Tứ Ly", desc: "Âm Dương phân ly." });
         
         if (dChiIdx === CAL_DATA.TAM_TANG_MAP[fsMonth]) notes.push({ name: "Tam Tang", desc: "Đại kỵ khởi công, cưới hỏi, an táng." }); 
-        if (dChiIdx === CAL_DATA.THO_TU_MAP[fsMonth]) notes.push({ name: "Thọ Tử", desc: "Trăm sự đều kỵ." }); 
+        if (isNgayThoTuTheoTietKhi(solarDate, fsMonth, dCanIdx, dChiIdx)) notes.push({ name: "Thọ Tử", desc: "Trăm sự đều kỵ." }); 
         if (CAL_DATA.SAT_CHU_DUONG_MAP[fsMonth] && CAL_DATA.SAT_CHU_DUONG_MAP[fsMonth].includes(dChiIdx)) notes.push({ name: "Sát Chủ Dương", desc: "Kỵ việc người sống." }); 
         if (CAL_DATA.SAT_CHU_AM_MAP[fsMonth] && CAL_DATA.SAT_CHU_AM_MAP[fsMonth].includes(dChiIdx)) notes.push({ name: "Sát Chủ Âm", desc: "Kỵ việc người chết." }); 
         
@@ -520,7 +604,7 @@
             if (tuLyTerms.includes(tomorrowSolarInfo.giaoTiet.name)) isTuLy = true;
         }
 
-        const badDaysList = getBadDaysInfo(lMonth, lDay, dayInfo.canIdx, dayInfo.chiIdx, solarInfo.calcChiMonth, isTuTuyet, isTuLy);
+        const badDaysList = getBadDaysInfo(lMonth, lDay, dayInfo.canIdx, dayInfo.chiIdx, solarInfo.calcChiMonth, isTuTuyet, isTuLy, d);
 
         let partsT = formatter.formatToParts(dTomorrow);
         let lDayT = 1;
