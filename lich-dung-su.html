@@ -139,7 +139,24 @@
 
     // --- 1. DỮ LIỆU CẤU HÌNH ---
     const TASK_RULES = {
-        XAY_NHA: { name: "Xây Dựng / Sửa Nhà", goodTruc: ["Kiến", "Mãn", "Bình", "Thành"], badTruc: ["Phá", "Bế", "Nguy"], badDays: ["Tam Tang", "Sát Chủ Dương", "Thọ Tử", "Trùng Nhật", "Dương Công Kỵ", "Trùng Phục", "Tứ Tuyệt", "Tháng Cô Hồn", "Tam Sa Sát (Cất Nhà)"], goodStars: "Thiên Đức, Nguyệt Đức" },
+        // Xây dựng chỉ lấy nhóm ngày kỵ việc người sống / trần gian.
+        // Không lấy các ngày chuyên về Tang sự như Trùng Tang, Phục Tang, Phục Táng,
+        // Sát Chủ Âm, Trùng Phục, Tam Sa Sát (Đi Chôn)... để tránh lọc sai.
+        XAY_NHA: { 
+            name: "Xây Dựng / Sửa Nhà", 
+            goodTruc: ["Mãn", "Bình", "Định", "Thành"], 
+            badTruc: ["Kiến", "Phá", "Nguy"], 
+            badDays: [
+                "Tam Nương", 
+                "Nguyệt Kỵ", 
+                "Sát Chủ Dương", 
+                "Thọ Tử", 
+                "Dương Công Kỵ", 
+                "Tứ Tuyệt", 
+                "Tam Sa Sát (Cất Nhà)"
+            ], 
+            goodStars: "Thiên Đức, Nguyệt Đức" 
+        },
         CUOI_HOI: { name: "Đám Cưới / Giá Thú", goodTruc: ["Định", "Thành", "Thu"], badTruc: ["Phá", "Nguy", "Chấp"], badDays: ["Trùng Nhật", "Tam Tang", "Trùng Tang", "Phục Tang", "Phục Táng", "Sát Chủ Dương", "Thọ Tử", "Dương Công Kỵ", "Trùng Phục", "Tứ Tuyệt", "Tứ Ly", "Cô Thần", "Quả Tú", "Tháng Cô Hồn", "Tam Sa Sát (Cưới Vợ)"], goodStars: "Tục Thế, Thiên Hỷ" },
         KHAI_TRUONG: { name: "Khai Trương / Kinh Doanh", goodTruc: ["Khai", "Mãn", "Thành"], badTruc: ["Bế", "Phá", "Nguy"], badDays: ["Tam Tang", "Sát Chủ Dương", "Thọ Tử", "Dương Công Kỵ", "Tứ Tuyệt", "Tháng Cô Hồn"], goodStars: "Nguyệt Tài, Lộc Mã" },
         TANG_SU: { name: "Tang Sự / An Táng", goodTruc: ["Chấp", "Nguy", "Thu"], badTruc: ["Kiến", "Phá"], badDays: ["Trùng Tang", "Phục Tang", "Phục Táng", "Tam Tang", "Trùng Nhật", "Thọ Tử", "Sát Chủ Âm", "Dương Công Kỵ", "Trùng Phục", "Tam Sa Sát (Đi Chôn)"], goodStars: "Thiên Ân, Tục Thế" }
@@ -152,8 +169,11 @@
         ELEMENTS: { CAN: [1,1,3,3,4,4,0,0,2,2], CHI: [2,4,1,1,4,3,3,4,0,0,4,2] }, 
         HY_THAN: ["Đông Bắc", "Tây Bắc", "Tây Nam", "Chính Nam", "Đông Nam", "Đông Bắc", "Tây Bắc", "Tây Nam", "Chính Nam", "Đông Nam"],
         TAI_THAN: ["Đông Nam", "Đông Nam", "Chính Đông", "Chính Đông", "Chính Bắc", "Chính Nam", "Tây Nam", "Tây Nam", "Chính Tây", "Tây Bắc"],
-        TRUNG_PHUC_MAP: {1:11, 2:11, 3:11, 4:2, 5:2, 6:2, 7:5, 8:5, 9:5, 10:8, 11:8, 12:8}, TAM_TANG_MAP: {1:4, 2:4, 3:4, 4:7, 5:7, 6:7, 7:10, 8:10, 9:10, 10:1, 11:1, 12:1},
-        TRUNG_TANG_MAP: {1:[0], 2:[1], 3:[5], 4:[2], 5:[3], 6:[5], 7:[6], 8:[7], 9:[5], 10:[8], 11:[9], 12:[5]},
+        // Trùng Phục: theo nhóm Địa Chi trùng Dần - Thân - Tỵ - Hợi, chuyên dùng để cảnh báo Tang sự.
+        // Phục Tang: tách riêng theo Thiên Can từng tháng tiết khí; không gom lẫn với Trùng Tang.
+        TRUNG_PHUC_CHI: [2, 5, 8, 11], // Dần, Tỵ, Thân, Hợi
+        PHUC_TANG_CAN_MAP: {1:[0], 2:[1], 3:[5], 4:[2], 5:[3], 6:[5], 7:[6], 8:[7], 9:[5], 10:[8], 11:[9], 12:[5]},
+        TAM_TANG_MAP: {1:4, 2:4, 3:4, 4:7, 5:7, 6:7, 7:10, 8:10, 9:10, 10:1, 11:1, 12:1},
         SAT_CHU_DUONG_MAP: {1:[0], 2:[1], 3:[1], 4:[10], 5:[4], 6:[4], 7:[1], 8:[4], 9:[1], 10:[4], 11:[7], 12:[4]},
         SAT_CHU_AM_MAP: {1:[5], 2:[0], 3:[7], 4:[3], 5:[8], 6:[10], 7:[1], 8:[11], 9:[6], 10:[9], 11:[2], 12:[4]},
         THO_TU_MAP: {1:10, 2:4, 3:11, 4:5, 5:0, 6:6, 7:1, 8:7, 9:2, 10:8, 11:3, 12:9},
@@ -423,9 +443,31 @@
     function getCanChiDay(d, m, y) { let jd = getJulianDay(d, m, y); let jdn = Math.floor(jd + 0.5); let dayCanIdx = (jdn + 9) % 10; let dayChiIdx = (jdn + 1) % 12; return { full: `${CAL_DATA.CAN[dayCanIdx]} ${CAL_DATA.CHI[dayChiIdx]}`, canIdx: dayCanIdx, chiIdx: dayChiIdx, jdn: jdn }; }
     function getTruc(dayChiIdx, solarInfo) { return CAL_DATA.TRUC[(dayChiIdx - solarInfo.chiMonth + 12) % 12]; }
     function getDayRating(cIdx, chIdx) { let ec = CAL_DATA.ELEMENTS.CAN[cIdx]; let ech = CAL_DATA.ELEMENTS.CHI[chIdx]; if (ec === ech) return { name: "Bát Chuyên (Đồng Khí)", color: "text-stone-600", desc: "Ngày bình hòa." }; if ((ec===0&&ech===2)||(ec===2&&ech===1)||(ec===1&&ech===3)||(ec===3&&ech===4)||(ec===4&&ech===0)) return { name: "Bảo Nhật (Đại Cát)", color: "text-green-700", desc: "Rất tốt cho mọi việc." }; if ((ech===0&&ec===2)||(ech===2&&ec===1)||(ech===1&&ec===3)||(ech===3&&ec===4)||(ech===4&&ec===0)) return { name: "Thoa Nhật (Tiểu Cát)", color: "text-blue-700", desc: "Tốt vừa, có thể dùng." }; if ((ec===0&&ec===1)||(ec===1&&ech===4)||(ec===4&&ech===2)||(ec===2&&ech===3)||(ec===3&&ech===0)) return { name: "Chế Nhật (Tiểu Hung)", color: "text-amber-600", desc: "Xấu nhẹ, thận trọng." }; return { name: "Phạt Nhật (Đại Hung)", color: "text-red-600 font-bold", desc: "Can khắc Chi. Kỵ làm đại sự." }; }
-    function getTuoiXungTrongNgay(dayCanIdx, dayChiIdx) { let xungChiIdx = (dayChiIdx + 6) % 12; let badAges = []; let canXung1 = (dayCanIdx + 4) % 10; badAges.push(CAL_DATA.CAN[canXung1] + " " + CAL_DATA.CHI[xungChiIdx]); let canXung2 = (dayCanIdx + 6) % 10; badAges.push(CAL_DATA.CAN[canXung2] + " " + CAL_DATA.CHI[xungChiIdx]); badAges.push(CAL_DATA.CAN[canXung2] + " " + CAL_DATA.CHI[dayChiIdx]); return badAges.join(", "); }
+    function getTuoiXungTrongNgay(dayCanIdx, dayChiIdx) {
+        // Tuổi kỵ ngày: lấy Địa Chi đối xung làm chính.
+        // Ví dụ ngày Ngọ thì kỵ nhóm tuổi Tý; ngày Dậu thì kỵ nhóm tuổi Mão.
+        const xungChiIdx = (dayChiIdx + 6) % 12;
+        const tuoiTheoChi = [];
+        for (let canIdx = 0; canIdx < 10; canIdx++) {
+            // Trong vòng Lục thập hoa giáp, Can và Chi phải cùng chẵn/lẻ mới ghép thành năm hợp lệ.
+            if (canIdx % 2 === xungChiIdx % 2) {
+                tuoiTheoChi.push(CAL_DATA.CAN[canIdx] + " " + CAL_DATA.CHI[xungChiIdx]);
+            }
+        }
+        return tuoiTheoChi.join(", ");
+    }
     function getHacThanDirection(jdn) { let stdIdx = (jdn + 49) % 60; if (stdIdx >= 29 && stdIdx <= 44) return "Trên Trời (Khỏi lo)"; if (stdIdx >= 45 && stdIdx <= 50) return "Đông Bắc"; if (stdIdx >= 51 && stdIdx <= 55) return "Chính Đông"; if (stdIdx >= 56 || stdIdx <= 1) return "Đông Nam"; if (stdIdx >= 2 && stdIdx <= 6) return "Chính Nam"; if (stdIdx >= 7 && stdIdx <= 12) return "Tây Nam"; if (stdIdx >= 13 && stdIdx <= 17) return "Chính Tây"; if (stdIdx >= 18 && stdIdx <= 23) return "Tây Bắc"; if (stdIdx >= 24 && stdIdx <= 28) return "Chính Bắc"; return ""; }
-    function checkXungTuoi(dayChiIdx) { const uYear = document.getElementById("birthYear").value; if(!uYear || uYear === "") return false; const uChiIdx = (uYear - 4) % 12; let diff = Math.abs(uChiIdx - dayChiIdx); return diff === 6 || diff === 0; }
+    function getNamCanChiFromYear(year) {
+        const canIdx = ((year + 6) % 10 + 10) % 10;
+        const chiIdx = ((year - 4) % 12 + 12) % 12;
+        return { canIdx, chiIdx, name: CAL_DATA.CAN[canIdx] + " " + CAL_DATA.CHI[chiIdx] };
+    }
+    function checkXungTuoi(dayChiIdx) {
+        const uYear = parseInt(document.getElementById("birthYear").value, 10);
+        if (!uYear) return false;
+        const uChiIdx = getNamCanChiFromYear(uYear).chiIdx;
+        return ((uChiIdx - dayChiIdx + 12) % 12) === 6;
+    }
 
     const THO_TU_MONTH_CACHE = {};
 
@@ -522,18 +564,19 @@
         }
         // ----------------------
 
-        let hasTrungTang = CAL_DATA.TRUNG_TANG_MAP[fsMonth] && CAL_DATA.TRUNG_TANG_MAP[fsMonth].includes(dCanIdx);
-        if (hasTrungTang) {
-            if (fsMonth === 6 && dCanIdx === 5) notes.push({ name: "Phục Tang", desc: "Kỵ chôn cất." });
-            else notes.push({ name: "Trùng Tang", desc: "Đại kỵ an táng." });
+        const hasPhucTang = CAL_DATA.PHUC_TANG_CAN_MAP[fsMonth] && CAL_DATA.PHUC_TANG_CAN_MAP[fsMonth].includes(dCanIdx);
+        if (hasPhucTang) {
+            notes.push({ name: "Phục Tang", desc: "Kỵ chôn cất, cải táng, xả tang." });
+        }
+
+        if (CAL_DATA.TRUNG_PHUC_CHI.includes(dChiIdx)) {
+            notes.push({ name: "Trùng Phục", desc: "Kỵ việc tang sự, an táng, cải táng." });
         }
         
         if (dChiIdx === 5 || dChiIdx === 11) {
             if (fsMonth === 8 && dCanIdx === 1) notes.push({ name: "Phục Táng", desc: "Đại kỵ an táng." });
             else notes.push({ name: "Trùng Nhật", desc: "Đại kỵ đất đai, tang sự." });
         }
-        
-        if (dChiIdx === CAL_DATA.TRUNG_PHUC_MAP[fsMonth]) notes.push({ name: "Trùng Phục", desc: "Kỵ tang sự." });
         
         let season = [1,2,3].includes(fsMonth)?0:[4,5,6].includes(fsMonth)?1:[7,8,9].includes(fsMonth)?2:3;
         let ct=[5,8,11,2][season], qt=[1,4,7,10][season];
@@ -544,24 +587,62 @@
 
     function evaluateTaskDetailed(task, truc, badDaysList, isXungTuoiCaNhan) { 
         let isGood = true, isVeryGood = false, successReasons = [], failReasons = [], warningReasons = [];
+
         if (task === "ALL") {
             let fatal = badDaysList.filter(b => ["Sát Chủ Dương", "Sát Chủ Âm", "Thọ Tử", "Tam Tang", "Trùng Nhật", "Trùng Tang", "Phục Tang", "Phục Táng", "Dương Công Kỵ", "Trùng Phục", "Tứ Tuyệt", "Tứ Ly", "Tam Sa Sát (Cất Nhà)", "Tam Sa Sát (Đi Chôn)", "Tam Sa Sát (Cưới Vợ)"].includes(b.name));
             isGood = !isXungTuoiCaNhan && fatal.length === 0 && !["Phá", "Bế"].includes(truc);
             isVeryGood = isGood && badDaysList.length === 0 && ["Kiến", "Mãn", "Bình", "Định", "Thành", "Khai"].includes(truc);
             return { isGood, isVeryGood, successReasons, failReasons, warningReasons, taskName: "Khảo Sát Chung", goodStars: "" };
         }
-        const rules = TASK_RULES[task]; 
-        if (isXungTuoiCaNhan) { if (task === "TANG_SU") warningReasons.push("Ngày Xung tuổi: Kỵ hạ huyệt (hợp Hỏa thiêu)."); else { isGood = false; failReasons.push("Ngày Xung tuổi bản mệnh."); } } 
+
+        const rules = TASK_RULES[task];
+
+        // Nếu có nhập năm tuổi âm lịch: loại ngày xung khỏi kết quả tốt.
+        // Riêng Tang sự vẫn để cảnh báo như logic cũ.
+        if (isXungTuoiCaNhan) { 
+            if (task === "TANG_SU") warningReasons.push("Ngày Xung tuổi: Kỵ hạ huyệt (hợp Hỏa thiêu)."); 
+            else { 
+                isGood = false; 
+                failReasons.push("Ngày Xung tuổi bản mệnh."); 
+            } 
+        }
+
         const fatalBadDays = badDaysList.filter(b => rules.badDays.includes(b.name));
-        const minorBadDays = badDaysList.filter(b => !rules.badDays.includes(b.name) && b.name !== "Sát Chủ Dương" && b.name !== "Sát Chủ Âm"); 
+
+        let minorBadDays = [];
+        if (task === "XAY_NHA") {
+            // Xây dựng: không cảnh báo các ngày chuyên Tang sự, để lịch lọc không bị loại oan.
+            // Chỉ giữ cảnh báo những ngày vẫn liên quan việc người sống / trần gian.
+            const xayNhaWarningDays = [
+                "Tứ Ly", "Tháng Cô Hồn", "Tam Tang"
+            ];
+            minorBadDays = badDaysList.filter(b =>
+                xayNhaWarningDays.includes(b.name) && !rules.badDays.includes(b.name)
+            );
+        } else {
+            minorBadDays = badDaysList.filter(b =>
+                !rules.badDays.includes(b.name) &&
+                b.name !== "Sát Chủ Dương" &&
+                b.name !== "Sát Chủ Âm"
+            );
+        }
         
-        if (fatalBadDays.length > 0) { isGood = false; failReasons.push(`Đại Kỵ: ${fatalBadDays.map(b=>b.name).join(", ")}.`); }
+        if (fatalBadDays.length > 0) { 
+            isGood = false; 
+            failReasons.push(`Đại Kỵ: ${fatalBadDays.map(b=>b.name).join(", ")}.`); 
+        }
+
         if (minorBadDays.length > 0) warningReasons.push(`Thứ Kỵ: ${minorBadDays.map(b=>b.name).join(", ")}.`); 
         else if (fatalBadDays.length === 0) successReasons.push(`Sạch ngày kỵ.`);
         
-        if (rules.badTruc.includes(truc)) { isGood = false; failReasons.push(`Trực ${truc} Đại Kỵ.`); } 
-        else if (rules.goodTruc.includes(truc)) successReasons.push(`Trực ${truc} Đại Cát.`); 
-        else successReasons.push(`Trực ${truc} bình hòa.`);
+        if (rules.badTruc.includes(truc)) { 
+            isGood = false; 
+            failReasons.push(`Trực ${truc} Đại Kỵ.`); 
+        } else if (rules.goodTruc.includes(truc)) {
+            successReasons.push(`Trực ${truc} Đại Cát.`); 
+        } else {
+            successReasons.push(`Trực ${truc} bình hòa.`);
+        }
         
         if (isGood && minorBadDays.length === 0 && rules.goodTruc.includes(truc) && !isXungTuoiCaNhan) isVeryGood = true;
         return { isGood, isVeryGood, successReasons, failReasons, warningReasons, taskName: rules.name, goodStars: rules.goodStars }; 
