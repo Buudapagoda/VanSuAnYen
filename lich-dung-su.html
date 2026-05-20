@@ -59,8 +59,8 @@
     
     <div class="flex gap-2 items-center shrink-0">
         <div class="flex items-center bg-stone-800 px-2 py-1.5 rounded border border-stone-600 shadow-inner">
-            <label class="text-stone-400 font-bold mr-2 uppercase text-[10px]">Tuổi (ÂL):</label>
-            <input type="number" id="birthYear" placeholder="Vd: 1993" onchange="render()" class="bg-transparent text-white w-16 md:w-20 font-bold outline-none text-center placeholder-stone-600">
+            <label class="text-stone-400 font-bold mr-2 uppercase text-[10px]">Năm sinh ÂL:</label>
+            <input type="number" id="birthYear" placeholder="VD: 1993" onchange="render()" class="bg-transparent text-white w-16 md:w-20 font-bold outline-none text-center placeholder-stone-600">
         </div>
 
         <div class="flex items-center bg-stone-800 px-2 py-1.5 rounded border border-stone-600 shadow-inner">
@@ -153,12 +153,13 @@
                 "Thọ Tử", 
                 "Dương Công Kỵ", 
                 "Tứ Tuyệt", 
-                "Tam Sa Sát (Cất Nhà)"
+                "Tam Sa Sát (Cất Nhà)",
+                "Ngày Cô Hồn"
             ], 
             goodStars: "Thiên Đức, Nguyệt Đức" 
         },
-        CUOI_HOI: { name: "Đám Cưới / Giá Thú", goodTruc: ["Định", "Thành", "Thu"], badTruc: ["Phá", "Nguy", "Chấp"], badDays: ["Trùng Nhật", "Tam Tang", "Trùng Tang", "Phục Tang", "Phục Táng", "Sát Chủ Dương", "Thọ Tử", "Dương Công Kỵ", "Trùng Phục", "Tứ Tuyệt", "Tứ Ly", "Cô Thần", "Quả Tú", "Tháng Cô Hồn", "Tam Sa Sát (Cưới Vợ)"], goodStars: "Tục Thế, Thiên Hỷ" },
-        KHAI_TRUONG: { name: "Khai Trương / Kinh Doanh", goodTruc: ["Khai", "Mãn", "Thành"], badTruc: ["Bế", "Phá", "Nguy"], badDays: ["Tam Tang", "Sát Chủ Dương", "Thọ Tử", "Dương Công Kỵ", "Tứ Tuyệt", "Tháng Cô Hồn"], goodStars: "Nguyệt Tài, Lộc Mã" },
+        CUOI_HOI: { name: "Đám Cưới / Giá Thú", goodTruc: ["Định", "Thành", "Thu"], badTruc: ["Phá", "Nguy", "Chấp"], badDays: ["Trùng Nhật", "Tam Tang", "Trùng Tang", "Phục Tang", "Phục Táng", "Sát Chủ Dương", "Thọ Tử", "Dương Công Kỵ", "Trùng Phục", "Tứ Tuyệt", "Tứ Ly", "Cô Thần", "Quả Tú", "Tháng Cô Hồn", "Ngày Cô Hồn", "Tam Sa Sát (Cưới Vợ)"], goodStars: "Tục Thế, Thiên Hỷ" },
+        KHAI_TRUONG: { name: "Khai Trương / Kinh Doanh", goodTruc: ["Khai", "Mãn", "Thành"], badTruc: ["Bế", "Phá", "Nguy"], badDays: ["Tam Tang", "Sát Chủ Dương", "Thọ Tử", "Dương Công Kỵ", "Tứ Tuyệt", "Tháng Cô Hồn", "Ngày Cô Hồn"], goodStars: "Nguyệt Tài, Lộc Mã" },
         TANG_SU: { name: "Tang Sự / An Táng", goodTruc: ["Chấp", "Nguy", "Thu"], badTruc: ["Kiến", "Phá"], badDays: ["Trùng Tang", "Phục Tang", "Phục Táng", "Tam Tang", "Trùng Nhật", "Thọ Tử", "Sát Chủ Âm", "Dương Công Kỵ", "Trùng Phục", "Tam Sa Sát (Đi Chôn)"], goodStars: "Thiên Ân, Tục Thế" }
     };
 
@@ -540,7 +541,7 @@
         let notes = []; let fsMonth = (solarChiMonth + 10) % 12 + 1;
         const duongCongKyDates = { 1:[13], 2:[11], 3:[9], 4:[7], 5:[5], 6:[3], 7:[1, 29], 8:[27], 9:[25], 10:[23], 11:[21], 12:[19] };
         if (duongCongKyDates[lMonth] && duongCongKyDates[lMonth].includes(lDay)) notes.push({ name: "Dương Công Kỵ", desc: "Đại hung nhật. Trăm sự đều kỵ." });
-        if (lDay === 2 || lDay === 16) notes.push({ name: "Ngày Sóc Vọng", desc: "Cúng thí thực, năng lượng âm tà." });
+        if (lDay === 2 || lDay === 16) notes.push({ name: "Ngày Cô Hồn", desc: "Ngày mùng 2 và 16 Âm lịch hằng tháng, âm khí vượng; kỵ việc trên trần gian." });
         if (lMonth === 7) notes.push({ name: "Tháng Cô Hồn", desc: "Tháng 7 ÂL âm khí vượng." });
         if ([3, 7, 13, 18, 22, 27].includes(lDay)) notes.push({ name: "Tam Nương", desc: "Kỵ khai trương, xuất hành, cưới hỏi." }); 
         if ([5, 14, 23].includes(lDay)) notes.push({ name: "Nguyệt Kỵ", desc: "Kỵ xuất hành đi xa, khởi công." }); 
@@ -589,7 +590,7 @@
         let isGood = true, isVeryGood = false, successReasons = [], failReasons = [], warningReasons = [];
 
         if (task === "ALL") {
-            let fatal = badDaysList.filter(b => ["Sát Chủ Dương", "Sát Chủ Âm", "Thọ Tử", "Tam Tang", "Trùng Nhật", "Trùng Tang", "Phục Tang", "Phục Táng", "Dương Công Kỵ", "Trùng Phục", "Tứ Tuyệt", "Tứ Ly", "Tam Sa Sát (Cất Nhà)", "Tam Sa Sát (Đi Chôn)", "Tam Sa Sát (Cưới Vợ)"].includes(b.name));
+            let fatal = badDaysList.filter(b => ["Sát Chủ Dương", "Sát Chủ Âm", "Thọ Tử", "Tam Tang", "Trùng Nhật", "Trùng Tang", "Phục Tang", "Phục Táng", "Dương Công Kỵ", "Trùng Phục", "Tứ Tuyệt", "Tứ Ly", "Tam Sa Sát (Cất Nhà)", "Tam Sa Sát (Đi Chôn)", "Tam Sa Sát (Cưới Vợ)", "Ngày Cô Hồn"].includes(b.name));
             isGood = !isXungTuoiCaNhan && fatal.length === 0 && !["Phá", "Bế"].includes(truc);
             isVeryGood = isGood && badDaysList.length === 0 && ["Kiến", "Mãn", "Bình", "Định", "Thành", "Khai"].includes(truc);
             return { isGood, isVeryGood, successReasons, failReasons, warningReasons, taskName: "Khảo Sát Chung", goodStars: "" };
@@ -597,14 +598,12 @@
 
         const rules = TASK_RULES[task];
 
-        // Nếu có nhập năm tuổi âm lịch: loại ngày xung khỏi kết quả tốt.
-        // Riêng Tang sự vẫn để cảnh báo như logic cũ.
+        // Nếu có nhập Năm sinh Âm lịch ở ô trên: dùng để tính Địa Chi tuổi và loại/cảnh báo ngày xung.
+        // Áp dụng chung cho Xây dựng và Tang sự; Tang sự hiển thị là kỵ hạ huyệt.
         if (isXungTuoiCaNhan) { 
-            if (task === "TANG_SU") warningReasons.push("Ngày Xung tuổi: Kỵ hạ huyệt (hợp Hỏa thiêu)."); 
-            else { 
-                isGood = false; 
-                failReasons.push("Ngày Xung tuổi bản mệnh."); 
-            } 
+            isGood = false;
+            if (task === "TANG_SU") failReasons.push("Ngày Xung tuổi người mất: kỵ động quan / hạ huyệt.");
+            else failReasons.push("Ngày Xung tuổi bản mệnh.");
         }
 
         const fatalBadDays = badDaysList.filter(b => rules.badDays.includes(b.name));
