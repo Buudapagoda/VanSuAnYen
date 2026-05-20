@@ -170,10 +170,11 @@
         ELEMENTS: { CAN: [1,1,3,3,4,4,0,0,2,2], CHI: [2,4,1,1,4,3,3,4,0,0,4,2] }, 
         HY_THAN: ["Đông Bắc", "Tây Bắc", "Tây Nam", "Chính Nam", "Đông Nam", "Đông Bắc", "Tây Bắc", "Tây Nam", "Chính Nam", "Đông Nam"],
         TAI_THAN: ["Đông Nam", "Đông Nam", "Chính Đông", "Chính Đông", "Chính Bắc", "Chính Nam", "Tây Nam", "Tây Nam", "Chính Tây", "Tây Bắc"],
-        // Trùng Phục: theo nhóm Địa Chi trùng Dần - Thân - Tỵ - Hợi, chuyên dùng để cảnh báo Tang sự.
-        // Phục Tang: tách riêng theo Thiên Can từng tháng tiết khí; không gom lẫn với Trùng Tang.
-        TRUNG_PHUC_CHI: [2, 5, 8, 11], // Dần, Tỵ, Thân, Hợi
-        PHUC_TANG_CAN_MAP: {1:[0], 2:[1], 3:[5], 4:[2], 5:[3], 6:[5], 7:[6], 8:[7], 9:[5], 10:[8], 11:[9], 12:[5]},
+        // Phục Tang / Trùng Phục theo Ngọc Hạp Thông Thư.
+        // Luận theo THÁNG TIẾT KHÍ (fsMonth), rồi xét THIÊN CAN của ngày.
+        // Th1 Canh, Th2 Tân, Th3 Kỷ, Th4 Nhâm, Th5 Quý, Th6 Mậu,
+        // Th7 Giáp, Th8 Ất, Th9 Kỷ, Th10 Nhâm, Th11 Quý, Th12 Kỷ.
+        PHUC_TANG_CAN_MAP: {1:[6], 2:[7], 3:[5], 4:[8], 5:[9], 6:[4], 7:[0], 8:[1], 9:[5], 10:[8], 11:[9], 12:[5]},
         TAM_TANG_MAP: {1:4, 2:4, 3:4, 4:7, 5:7, 6:7, 7:10, 8:10, 9:10, 10:1, 11:1, 12:1},
         SAT_CHU_DUONG_MAP: {1:[0], 2:[1], 3:[1], 4:[10], 5:[4], 6:[4], 7:[1], 8:[4], 9:[1], 10:[4], 11:[7], 12:[4]},
         SAT_CHU_AM_MAP: {1:[5], 2:[0], 3:[7], 4:[3], 5:[8], 6:[10], 7:[1], 8:[11], 9:[6], 10:[9], 11:[2], 12:[4]},
@@ -567,11 +568,10 @@
 
         const hasPhucTang = CAL_DATA.PHUC_TANG_CAN_MAP[fsMonth] && CAL_DATA.PHUC_TANG_CAN_MAP[fsMonth].includes(dCanIdx);
         if (hasPhucTang) {
-            notes.push({ name: "Phục Tang", desc: "Kỵ chôn cất, cải táng, xả tang." });
-        }
-
-        if (CAL_DATA.TRUNG_PHUC_CHI.includes(dChiIdx)) {
-            notes.push({ name: "Trùng Phục", desc: "Kỵ việc tang sự, an táng, cải táng." });
+            notes.push({
+                name: "Phục Tang",
+                desc: "Theo Ngọc Hạp Thông Thư: luận theo tháng tiết khí và Thiên Can của ngày; kỵ việc tang sự, an táng, cải táng."
+            });
         }
         
         if (dChiIdx === 5 || dChiIdx === 11) {
