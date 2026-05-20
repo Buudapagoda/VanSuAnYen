@@ -222,31 +222,57 @@
     // --- CÁC THUẬT TOÁN PHONG THỦY ---
 
     // 1. Cung Phi theo tuổi mụ / Cung Tử
-    // Lưu ý: riêng tuổi 50 phải nhập Cung Trung, sau đó mới tính tiếp.
-    // Vì vậy từ 51 tuổi trở đi phải lùi 1 bước tính để không bị lệch cung.
+    // Quy tắc anh chốt:
+    // - Không nhập Trung cung.
+    // - Nam: 10 tuổi khởi Cấn, đếm thuận chiều kim đồng hồ.
+    // - Nữ: 10 tuổi khởi Khôn, đếm nghịch chiều kim đồng hồ.
+    // - Hết hàng chục rồi đếm tiếp hàng lẻ: ví dụ 34 tuổi = 10,20,30,31,32,33,34.
+    // - Áp dụng chung cho phần Cung Tử và phần Cải Táng.
     function tinhCungPhiBangTay(tuoiMu, gioiTinh) {
-        if (tuoiMu === 50) {
+        if (!tuoiMu || tuoiMu < 1) {
             return {
-                cung: "Trung",
+                cung: "",
                 isTot: false,
                 classColor: "tag-tb",
-                danhGia: "Nhập Trung"
+                danhGia: "Chưa đủ dữ liệu"
             };
         }
 
-        let tuoiTinh = tuoiMu > 50 ? tuoiMu - 1 : tuoiMu;
-        let chuc = Math.floor(tuoiTinh / 10);
-        if (chuc === 0) chuc = 1;
-        let le = tuoiTinh % 10;
+        const vongNamThuan = ["Cấn", "Chấn", "Tốn", "Ly", "Khôn", "Đoài", "Càn", "Khảm"];
+        const vongNuNghich = ["Khôn", "Ly", "Tốn", "Chấn", "Cấn", "Khảm", "Càn", "Đoài"];
+        const vong = (gioiTinh === "nam") ? vongNamThuan : vongNuNghich;
 
-        let arr = (gioiTinh === 'nam')
-            ? ["Cấn", "Chấn", "Tốn", "Ly", "Khôn", "Đoài", "Càn", "Khảm"]
-            : ["Khôn", "Ly", "Tốn", "Chấn", "Cấn", "Khảm", "Càn", "Đoài"];
+        // Tuổi tròn chục: 10, 20, 30... lấy đúng theo số chục.
+        // Tuổi có lẻ: lấy cung của hàng chục rồi đếm tiếp từng tuổi lẻ.
+        let chuc = Math.floor(tuoiMu / 10);
+        let le = tuoiMu % 10;
 
-        let cung = arr[(chuc - 1 + (le === 0 ? 0 : le)) % 8];
-        let classColor = ["Chấn", "Khôn"].includes(cung) ? "tag-tot" : (["Cấn", "Khảm"].includes(cung) ? "tag-tot" : (["Đoài", "Tốn"].includes(cung) ? "tag-tb" : "tag-xau"));
-        let danhGia = ["Chấn", "Khôn"].includes(cung) ? "Tốt Nhất" : (["Cấn", "Khảm"].includes(cung) ? "Tốt Nhì" : (["Đoài", "Tốn"].includes(cung) ? "Trung Bình" : "Xấu Nhất"));
-        return { cung: cung, isTot: ["Chấn", "Khôn", "Cấn", "Khảm"].includes(cung), classColor: classColor, danhGia: danhGia };
+        if (chuc === 0) {
+            chuc = 1;
+        }
+
+        let buocDem = (chuc - 1) + le;
+        let cung = vong[((buocDem % 8) + 8) % 8];
+
+        // Đánh giá cung theo quy ước đang dùng trong chương trình.
+        const cungTotNhat = ["Chấn", "Khôn"];
+        const cungTotNhi = ["Cấn", "Khảm"];
+        const cungTrungBinh = ["Đoài", "Tốn"];
+
+        let classColor = cungTotNhat.includes(cung) ? "tag-tot"
+            : (cungTotNhi.includes(cung) ? "tag-tot"
+            : (cungTrungBinh.includes(cung) ? "tag-tb" : "tag-xau"));
+
+        let danhGia = cungTotNhat.includes(cung) ? "Tốt Nhất"
+            : (cungTotNhi.includes(cung) ? "Tốt Nhì"
+            : (cungTrungBinh.includes(cung) ? "Trung Bình" : "Xấu Nhất"));
+
+        return {
+            cung: cung,
+            isTot: [...cungTotNhat, ...cungTotNhi].includes(cung),
+            classColor: classColor,
+            danhGia: danhGia
+        };
     }
 
 
@@ -578,27 +604,33 @@
         }
 
         let tCaiTang = nCaiTang - nSinh + 1;
-        let kqCaiTang = tinhCungPhiBatTrach(nCaiTang, gTinh);
-        // Phần hướng chôn lại lấy theo KẾT QUẢ CUNG PHI CẢI TÁNG, không lấy mặc định cung nào khác.
+
+        // Cải táng cũng dùng Cung Tử theo tuổi mụ:
+        // Nam khởi Cấn 10 thuận, nữ khởi Khôn 10 nghịch, không nhập Trung cung.
+        let kqCaiTang = tinhCungPhiBangTay(tCaiTang, gTinh);
+
+        // Phần hướng chôn lại lấy theo KẾT QUẢ CUNG TỬ CẢI TÁNG.
         let huongTot = getHuongTotTheoCungPhi(kqCaiTang.cung);
 
-        let html = `<div class="res-title">Kết Quả Cải Táng Theo Cung Phi</div>
+        let html = `<div class="res-title">Kết Quả Cải Táng Theo Cung Tử</div>
             <ul style="list-style-type: square; padding-left: 20px; line-height: 1.6; font-size: 15px;">
-                <li>Tuổi mụ vào năm bốc mộ (${nCaiTang}): <b>${tCaiTang} tuổi Âm</b> <i>(chỉ để tham khảo, không dùng làm cung tử)</i></li>
                 <li>Năm định cải táng: <b>${nCaiTang} (${getCanChiYear(nCaiTang)})</b></li>
-                <li>Tính <b>Cung Phi năm cải táng</b>: <b>Cung ${kqCaiTang.cung} (<span class="${kqCaiTang.classColor}">${kqCaiTang.danhGia}</span>)</b></li>
+                <li>Tuổi mụ vào năm bốc mộ (${nCaiTang}): <b>${tCaiTang} tuổi Âm</b></li>
+                <li>Cách tính: <b>${gTinh === 'nam' ? 'Nam khởi Cấn 10, đếm thuận chiều kim đồng hồ' : 'Nữ khởi Khôn 10, đếm nghịch chiều kim đồng hồ'}</b>, hết chẵn đến lẻ, không nhập Trung cung.</li>
+                <li>Tính <b>Cung Tử cải táng</b>: <b>Cung ${kqCaiTang.cung} (<span class="${kqCaiTang.classColor}">${kqCaiTang.danhGia}</span>)</b></li>
             </ul>
         `;
+
         if (kqCaiTang.isTot) {
-            html += `<div style="margin-top: 10px;" class="tag-tot">✅ ĐƯỢC CẢI TÁNG: Cung Phi rơi vào 1 trong 4 cung tốt: Chấn - Khôn - Cấn - Khảm.</div>`;
+            html += `<div style="margin-top: 10px;" class="tag-tot">✅ ĐƯỢC CẢI TÁNG: Cung Tử rơi vào 1 trong 4 cung tốt: Chấn - Khôn - Cấn - Khảm.</div>`;
         } else {
-            html += `<div style="margin-top: 10px;" class="tag-xau">❌ KHÔNG ĐƯỢC CẢI TÁNG: Cung Phi rơi vào 1 trong 4 cung xấu: Đoài - Tốn - Càn - Ly.</div>`;
+            html += `<div style="margin-top: 10px;" class="tag-xau">❌ KHÔNG ĐƯỢC CẢI TÁNG: Cung Tử rơi vào 1 trong 4 cung xấu: Đoài - Tốn - Càn - Ly.</div>`;
         }
 
         if (huongTot) {
             html += `<div class="adv-box" style="margin-top: 15px;">
-                <b>🧭 Gợi ý hướng chôn lại theo Cung Phi người mất:</b><br>
-                Năm cải táng <b>${nCaiTang} (${getCanChiYear(nCaiTang)})</b> tính ra <b>Cung Phi ${kqCaiTang.cung}</b> - <b>${huongTot.nhom}</b>.<br>
+                <b>🧭 Gợi ý hướng chôn lại theo Cung Tử cải táng:</b><br>
+                Năm cải táng <b>${nCaiTang} (${getCanChiYear(nCaiTang)})</b>, tuổi mụ <b>${tCaiTang}</b> tính ra <b>Cung ${kqCaiTang.cung}</b> - <b>${huongTot.nhom}</b>.<br>
                 Nếu đất nhà bằng phẳng, địa hình không bắt buộc xoay hướng khác, nên ưu tiên chọn hướng tốt theo thứ tự:
                 <ol style="margin-top: 8px; margin-bottom: 0; padding-left: 22px; line-height: 1.7;">
                     ${huongTot.huong.map(h => `<li><b>${h.sao}</b> (${h.cap}): Cung ${kqCaiTang.cung} kết hợp Cung ${h.cungHuong}, hướng <b>${h.huong}</b>.</li>`).join("")}
@@ -606,12 +638,13 @@
             </div>`;
         }
 
-        html += `<div class="warning-box" style="margin-top: 15px;"><b>📌 LƯU Ý HƯỚNG MỘ:</b> Hướng tốt chỉ áp dụng khi địa hình thực tế cho phép. Nếu đất bị dốc, nước chảy, đường đi, mộ phần xung quanh hoặc thế đất bắt buộc khác thì ưu tiên địa hình trước, rồi mới phối hướng theo Cung Phi.</div>`;
+        html += `<div class="warning-box" style="margin-top: 15px;"><b>📌 LƯU Ý HƯỚNG MỘ:</b> Hướng tốt chỉ áp dụng khi địa hình thực tế cho phép. Nếu đất bị dốc, nước chảy, đường đi, mộ phần xung quanh hoặc thế đất bắt buộc khác thì ưu tiên địa hình trước, rồi mới phối hướng theo Cung Tử.</div>`;
         html += `<div class="adv-box" style="margin-top: 15px;"><b>💡 LƯU Ý KHI BỐC NHIỀU MỘ:</b> Nếu cải táng nhiều mộ cùng lúc trong năm, <b>chỉ cần chọn 1 mộ có tuổi Tốt Nhất để làm lễ động thổ trước</b>. Các mộ tiếp theo bốc nối tiếp trong ngày hoặc các ngày sau mà không cần xét tuổi từng mộ nữa.</div>`;
 
         resBox.innerHTML = html;
         resBox.style.display = "block";
     }
+
 
     // --- HÀM CẬP NHẬT GIAO DIỆN IN VÀ XUẤT ẢNH ---
     function updatePrintData() {
