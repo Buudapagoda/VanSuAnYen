@@ -244,6 +244,62 @@
         return html;
     }
 
+
+    // 5. Hàm tính Kim Lâu theo Cung có Trung cung
+    // Quy ước theo cách anh đang dùng:
+    // - Dưới 50 tuổi: lấy tổng chữ số tuổi mụ, luận theo bảng thường.
+    //   Ví dụ 34 => 3 + 4 = 7 => Tốn => Kim Lâu Súc.
+    // - Từ 50 tuổi trở lên hoặc khi luận có Trung cung: số 5 nhập Trung,
+    //   nên các cung phía sau được đẩy tiếp; ví dụ 71 => 7 + 1 = 8 => Tốn => Kim Lâu Súc.
+    // - Các cung phạm: Khôn = Thân, Càn = Thê, Cấn = Tử, Tốn = Súc.
+    function rutSoKimLau(tuoiMu) {
+        let so = tuoiMu;
+        while (so > 9) {
+            so = String(so).split('').reduce((tong, kyTu) => tong + parseInt(kyTu), 0);
+        }
+        return so;
+    }
+
+    function getKimLauDetails(tuoiMu) {
+        const soRut = rutSoKimLau(tuoiMu);
+        const coTrungCung = tuoiMu >= 50 || String(tuoiMu).includes('5');
+
+        const bangDuoi50 = {
+            1: { cung: "Khôn", ten: "Kim Lâu Thân", desc: "Kỵ trực tiếp bản thân gia chủ." },
+            3: { cung: "Càn", ten: "Kim Lâu Thê", desc: "Kỵ người phối ngẫu, vợ/chồng." },
+            6: { cung: "Cấn", ten: "Kim Lâu Tử", desc: "Kỵ con cái." },
+            7: { cung: "Tốn", ten: "Kim Lâu Súc", desc: "Kỵ lục súc, tài sản, việc chăn nuôi/làm ăn; khi xét xây nhà vẫn tính là phạm Kim Lâu." }
+        };
+
+        const bangCoTrungCung = {
+            1: { cung: "Khôn", ten: "Kim Lâu Thân", desc: "Kỵ trực tiếp bản thân gia chủ." },
+            3: { cung: "Càn", ten: "Kim Lâu Thê", desc: "Kỵ người phối ngẫu, vợ/chồng." },
+            6: { cung: "Cấn", ten: "Kim Lâu Tử", desc: "Kỵ con cái." },
+            8: { cung: "Tốn", ten: "Kim Lâu Súc", desc: "Kỵ lục súc, tài sản, việc chăn nuôi/làm ăn; khi xét xây nhà vẫn tính là phạm Kim Lâu." }
+        };
+
+        const bangDangDung = coTrungCung ? bangCoTrungCung : bangDuoi50;
+        const ketQua = bangDangDung[soRut];
+
+        if (!ketQua) {
+            return {
+                isBad: false,
+                soRut,
+                coTrungCung,
+                cung: "",
+                ten: "Không phạm Kim Lâu",
+                desc: "Tuổi này không rơi vào các cung Kim Lâu Thân, Thê, Tử, Súc."
+            };
+        }
+
+        return {
+            isBad: true,
+            soRut,
+            coTrungCung,
+            ...ketQua
+        };
+    }
+
     function xemTuoi() {
         let namSinh = parseInt(document.getElementById("namSinh").value);
         let namXay = parseInt(document.getElementById("namXay").value);
@@ -262,8 +318,8 @@
         details.innerHTML = `<li><strong>Tuổi Mụ:</strong> <b class='blue-text'>${tuoiMu} tuổi</b> (Cầm tinh con ${CHI[namSinh % 12]})</li>`;
 
         // Phân loại lỗi
-        let hardErrors = []; // Lỗi tuyệt đối không được cúng (Tam Tai, Hoang Ốc, KL Thân)
-        let softErrors = []; // Lỗi có điều kiện (KL Thê, KL Tử)
+        let hardErrors = []; // Các lỗi lớn cần tránh khi tự đứng cúng
+        let softErrors = []; // Giữ lại biến này để không ảnh hưởng cấu trúc cũ
 
         // --- 1. XỬ LÝ TAM TAI ---
         let isTamTai = checkTamTai(namSinh, namXay);
@@ -285,43 +341,28 @@
         }
         details.innerHTML += `<li><strong>Hoang Ốc:</strong> ${hoangOcText}</li>`;
 
-        // --- 3. XỬ LÝ KIM LÂU (CHI TIẾT RÕ RÀNG) ---
-        let klMod = tuoiMu % 9;
+        // --- 3. XỬ LÝ KIM LÂU THEO CUNG CÓ TRUNG CUNG ---
+        let kimLau = getKimLauDetails(tuoiMu);
         let klText = "";
-        
-        if (klMod === 1) { 
-            klText = `<span class='alert'>Phạm Kim Lâu Thân (Số 1)</span>
+        let cachTinh = kimLau.coTrungCung
+            ? "Có tính Trung cung: số 5 nhập Trung, các số sau đi tiếp cung."
+            : "Dưới 50 tuổi: lấy tổng chữ số tuổi mụ để luận cung.";
+
+        if (kimLau.isBad) {
+            klText = `<span class='alert'>${tuoiMu} tuổi rơi vào cung ${kimLau.cung} - phạm ${kimLau.ten}</span>
                       <div class='detail-sub-list'>
-                          - <b>Tác hại:</b> Kỵ trực tiếp bản thân gia chủ. Nếu cố xây sẽ dễ ốm đau, tai nạn, công việc trắc trở.<br>
-                          - <b>Kết luận:</b> <span class='alert'>Bắt buộc phải mượn tuổi, không có ngoại lệ.</span>
-                      </div>`; 
-            hardErrors.push("Kim Lâu Thân");
-        }
-        else if (klMod === 3) { 
-            klText = `<span class='highlight'>Phạm Kim Lâu Thê (Số 3)</span>
+                          - <b>Cách tính:</b> ${tuoiMu} tuổi → rút số còn <b>${kimLau.soRut}</b>. ${cachTinh}<br>
+                          - <b>Cung phạm:</b> ${kimLau.cung}.<br>
+                          - <b>Ý nghĩa:</b> ${kimLau.desc}<br>
+                          - <b>Kết luận:</b> <span class='alert'>Năm này phạm Kim Lâu, nên mượn tuổi nếu muốn khởi công xây nhà.</span>
+                      </div>`;
+            hardErrors.push(kimLau.ten);
+        } else {
+            klText = `<span class='success'>Không phạm Kim Lâu.</span>
                       <div class='detail-sub-list'>
-                          - <b>Tác hại:</b> Kỵ người vợ/chồng. Dễ gây bất hòa, tai ương hoặc ốm đau cho người phối ngẫu.<br>
-                          - <b>Ngoại lệ:</b> <span class='success'>Nếu gia chủ hiện đang <b>ĐỘC THÂN, CHƯA VỢ/CHỒNG</b> hoặc đã <b>GÓA</b> thì Kim Lâu này vô hiệu. Hoàn toàn có thể tự cúng.</span>
-                      </div>`; 
-            softErrors.push("Kim Lâu Thê");
-        }
-        else if (klMod === 6) { 
-            klText = `<span class='highlight'>Phạm Kim Lâu Tử (Số 6)</span>
-                      <div class='detail-sub-list'>
-                          - <b>Tác hại:</b> Kỵ con cái. Ảnh hưởng xấu đến sức khỏe, sự phát triển, con cái dễ ốm đau khó nuôi.<br>
-                          - <b>Ngoại lệ:</b> <span class='success'>Nếu gia chủ <b>CHƯA CÓ CON CÁI</b> thì Kim Lâu này vô hiệu. Hoàn toàn có thể tự cúng.</span>
-                      </div>`; 
-            softErrors.push("Kim Lâu Tử");
-        }
-        else if (klMod === 8) { 
-            klText = `<span class='success'>Phạm Kim Lâu Lục Súc (Số 8)</span>
-                      <div class='detail-sub-list'>
-                          - <b>Tác hại:</b> Kỵ chăn nuôi gia súc, gia cầm quy mô lớn (làm trang trại dễ dịch bệnh, thua lỗ).<br>
-                          - <b>Ngoại lệ:</b> <span class='success'>Nếu bạn chỉ xây nhà ở, kinh doanh bình thường (không làm trang trại) thì <b>KHÔNG ẢNH HƯỞNG</b>, hoàn toàn có thể tự cúng.</span>
-                      </div>`; 
-        }
-        else {
-            klText = "<span class='success'>Sạch sẽ, không phạm Kim Lâu.</span>";
+                          - <b>Cách tính:</b> ${tuoiMu} tuổi → rút số còn <b>${kimLau.soRut}</b>. ${cachTinh}<br>
+                          - <b>Kết luận:</b> Tuổi này không rơi vào Khôn, Càn, Cấn, Tốn nên không phạm Kim Lâu.
+                      </div>`;
         }
         details.innerHTML += `<li><strong>Kim Lâu:</strong> ${klText}</li>`;
 
@@ -370,7 +411,7 @@
             
             for (let i = namXay - 70; i <= namXay - 25; i++) {
                 let tMu = namXay - i + 1;
-                let checkKL = [1, 3, 6, 8].includes(tMu % 9); 
+                let checkKL = getKimLauDetails(tMu).isBad; 
                 let checkTT = checkTamTai(i, namXay);
                 let hoCheck = getHoangOcDetails(tMu);
 
