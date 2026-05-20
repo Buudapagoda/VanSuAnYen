@@ -160,7 +160,7 @@
         },
         CUOI_HOI: { name: "Đám Cưới / Giá Thú", goodTruc: ["Định", "Thành", "Thu"], badTruc: ["Phá", "Nguy", "Chấp"], badDays: ["Trùng Nhật", "Tam Tang", "Trùng Tang", "Phục Tang", "Phục Táng", "Sát Chủ Dương", "Thọ Tử", "Dương Công Kỵ", "Trùng Phục", "Tứ Tuyệt", "Tứ Ly", "Cô Thần", "Quả Tú", "Tháng Cô Hồn", "Ngày Cô Hồn", "Tam Sa Sát (Cưới Vợ)"], goodStars: "Tục Thế, Thiên Hỷ" },
         KHAI_TRUONG: { name: "Khai Trương / Kinh Doanh", goodTruc: ["Khai", "Mãn", "Thành"], badTruc: ["Bế", "Phá", "Nguy"], badDays: ["Tam Tang", "Sát Chủ Dương", "Thọ Tử", "Dương Công Kỵ", "Tứ Tuyệt", "Tháng Cô Hồn", "Ngày Cô Hồn"], goodStars: "Nguyệt Tài, Lộc Mã" },
-        TANG_SU: { name: "Tang Sự / An Táng", goodTruc: ["Chấp", "Nguy", "Thu"], badTruc: ["Kiến", "Phá"], badDays: ["Trùng Tang", "Phục Tang", "Phục Táng", "Tam Tang", "Trùng Nhật", "Thọ Tử", "Sát Chủ Âm", "Dương Công Kỵ", "Trùng Phục", "Tam Sa Sát (Đi Chôn)"], goodStars: "Thiên Ân, Tục Thế" }
+        TANG_SU: { name: "Tang Sự / An Táng", goodTruc: [], badTruc: [], badDays: ["Trùng Tang", "Phục Tang", "Phục Táng", "Tam Tang", "Trùng Nhật", "Sát Chủ Âm", "Dương Công Kỵ", "Trùng Phục", "Tam Sa Sát (Đi Chôn)"], goodStars: "Thiên Ân, Tục Thế" }
     };
 
     const CAL_DATA = {
@@ -175,6 +175,13 @@
         // Th1 Canh, Th2 Tân, Th3 Kỷ, Th4 Nhâm, Th5 Quý, Th6 Mậu,
         // Th7 Giáp, Th8 Ất, Th9 Kỷ, Th10 Nhâm, Th11 Quý, Th12 Kỷ.
         PHUC_TANG_CAN_MAP: {1:[6], 2:[7], 3:[5], 4:[8], 5:[9], 6:[4], 7:[0], 8:[1], 9:[5], 10:[8], 11:[9], 12:[5]},
+        // Trùng Tang: dùng riêng cho Tang Sự / An Táng.
+        // Luận theo THÁNG TIẾT KHÍ (fsMonth), rồi xét THIÊN CAN của ngày.
+        // Theo bảng anh cung cấp: Th1 Giáp, Th2 Ất, Th3 Kỷ, Th4 Bính, Th5 Đinh,
+        // Th6 Kỷ, Th7 Canh, Th8 Tân, Th9 Kỷ, Th10 Nhâm, Th11 Quý, Th12 Kỷ.
+        // Lưu ý: anh ghi "Tháng 3,6,9,12 thuộc Kỷ" và dòng sau ghi "Tháng 9 Nhâm";
+        // bản này giữ Tháng 9 = Kỷ, Tháng 10 = Nhâm để đủ 12 tháng và không bị trùng mâu thuẫn.
+        TRUNG_TANG_CAN_MAP: {1:[0], 2:[1], 3:[5], 4:[2], 5:[3], 6:[5], 7:[6], 8:[7], 9:[5], 10:[8], 11:[9], 12:[5]},
         TAM_TANG_MAP: {1:4, 2:4, 3:4, 4:7, 5:7, 6:7, 7:10, 8:10, 9:10, 10:1, 11:1, 12:1},
         SAT_CHU_DUONG_MAP: {1:[0], 2:[1], 3:[1], 4:[10], 5:[4], 6:[4], 7:[1], 8:[4], 9:[1], 10:[4], 11:[7], 12:[4]},
         SAT_CHU_AM_MAP: {1:[5], 2:[0], 3:[7], 4:[3], 5:[8], 6:[10], 7:[1], 8:[11], 9:[6], 10:[9], 11:[2], 12:[4]},
@@ -464,11 +471,54 @@
         const chiIdx = ((year - 4) % 12 + 12) % 12;
         return { canIdx, chiIdx, name: CAL_DATA.CAN[canIdx] + " " + CAL_DATA.CHI[chiIdx] };
     }
-    function checkXungTuoi(dayChiIdx) {
-        const uYear = parseInt(document.getElementById("birthYear").value, 10);
+    function getNhapNamSinhAL() {
+        return parseInt(document.getElementById("birthYear").value, 10);
+    }
+
+    // XÂY DỰNG: kỵ ngày xung bổn mạng theo Lục Xung.
+    // Ví dụ: tuổi Tý kỵ ngày Ngọ, tuổi Mão kỵ ngày Dậu.
+    function checkXungTuoiXayDung(dayChiIdx) {
+        const uYear = getNhapNamSinhAL();
         if (!uYear) return false;
         const uChiIdx = getNamCanChiFromYear(uYear).chiIdx;
         return ((uChiIdx - dayChiIdx + 12) % 12) === 6;
+    }
+
+    // TANG SỰ: ngày kỵ theo tuổi người mất, không dùng Lục Xung thường.
+    // Thân Tý Thìn kỵ ngày Tỵ; Dần Ngọ Tuất kỵ ngày Hợi;
+    // Hợi Mão Mùi kỵ ngày Thân; Tỵ Dậu Sửu kỵ ngày Dần.
+    function getNgayKyTangSuTheoTuoiChi(chiSinhIdx) {
+        if ([8, 0, 4].includes(chiSinhIdx)) return 5;   // Thân Tý Thìn -> Tỵ
+        if ([2, 6, 10].includes(chiSinhIdx)) return 11; // Dần Ngọ Tuất -> Hợi
+        if ([11, 3, 7].includes(chiSinhIdx)) return 8;  // Hợi Mão Mùi -> Thân
+        if ([5, 9, 1].includes(chiSinhIdx)) return 2;   // Tỵ Dậu Sửu -> Dần
+        return null;
+    }
+
+    function getThongTinKyTangSuTheoNamSinh() {
+        const uYear = getNhapNamSinhAL();
+        if (!uYear) return null;
+        const tuoi = getNamCanChiFromYear(uYear);
+        const kyChiIdx = getNgayKyTangSuTheoTuoiChi(tuoi.chiIdx);
+        if (kyChiIdx === null) return null;
+        return {
+            namSinh: uYear,
+            tuoiCanChi: tuoi.name,
+            chiSinhIdx: tuoi.chiIdx,
+            kyChiIdx,
+            kyNgay: CAL_DATA.CHI[kyChiIdx]
+        };
+    }
+
+    function checkKyTangSuTheoTuoi(dayChiIdx) {
+        const info = getThongTinKyTangSuTheoNamSinh();
+        if (!info) return false;
+        return dayChiIdx === info.kyChiIdx;
+    }
+
+    function getXungFlagByTask(task, extra) {
+        if (task === "TANG_SU") return extra.isKyTangSuTheoTuoi;
+        return extra.isXungTuoiXayDung;
     }
 
     const THO_TU_MONTH_CACHE = {};
@@ -573,6 +623,14 @@
                 desc: "Theo Ngọc Hạp Thông Thư: luận theo tháng tiết khí và Thiên Can của ngày; kỵ việc tang sự, an táng, cải táng."
             });
         }
+
+        const hasTrungTang = CAL_DATA.TRUNG_TANG_CAN_MAP && CAL_DATA.TRUNG_TANG_CAN_MAP[fsMonth] && CAL_DATA.TRUNG_TANG_CAN_MAP[fsMonth].includes(dCanIdx);
+        if (hasTrungTang) {
+            notes.push({
+                name: "Trùng Tang",
+                desc: "Luận theo tháng tiết khí và Thiên Can của ngày; đại kỵ trong Tang Sự / An Táng."
+            });
+        }
         
         if (dChiIdx === 5 || dChiIdx === 11) {
             if (fsMonth === 8 && dCanIdx === 1) notes.push({ name: "Phục Táng", desc: "Đại kỵ an táng." });
@@ -598,12 +656,13 @@
 
         const rules = TASK_RULES[task];
 
-        // Nếu có nhập Năm sinh Âm lịch ở ô trên: dùng để tính Địa Chi tuổi và loại/cảnh báo ngày xung.
-        // Áp dụng chung cho Xây dựng và Tang sự; Tang sự hiển thị là kỵ hạ huyệt.
+        // Ô Năm sinh ÂL dùng chung, nhưng luật xét khác nhau theo từng việc:
+        // - Xây dựng: kỵ ngày Lục Xung với bổn mạng.
+        // - Tang sự: kỵ ngày theo nhóm tuổi người mất: Thân Tý Thìn -> Tỵ, Dần Ngọ Tuất -> Hợi, Hợi Mão Mùi -> Thân, Tỵ Dậu Sửu -> Dần.
         if (isXungTuoiCaNhan) { 
             isGood = false;
-            if (task === "TANG_SU") failReasons.push("Ngày Xung tuổi người mất: kỵ động quan / hạ huyệt.");
-            else failReasons.push("Ngày Xung tuổi bản mệnh.");
+            if (task === "TANG_SU") failReasons.push("Ngày kỵ theo tuổi người mất: kỵ động quan / hạ huyệt.");
+            else failReasons.push("Ngày Xung tuổi bản mệnh theo Lục Xung.");
         }
 
         const fatalBadDays = badDaysList.filter(b => rules.badDays.includes(b.name));
@@ -618,6 +677,11 @@
             minorBadDays = badDaysList.filter(b =>
                 xayNhaWarningDays.includes(b.name) && !rules.badDays.includes(b.name)
             );
+        } else if (task === "TANG_SU") {
+            // Tang sự chỉ xét nhóm ngày liên quan người âm.
+            // Tam Nương, Thọ Tử, Ngày Cô Hồn... là nhóm việc trần gian/người sống,
+            // không dùng để loại hoặc cảnh báo khi lọc Tang Sự.
+            minorBadDays = [];
         } else {
             minorBadDays = badDaysList.filter(b =>
                 !rules.badDays.includes(b.name) &&
@@ -634,16 +698,21 @@
         if (minorBadDays.length > 0) warningReasons.push(`Thứ Kỵ: ${minorBadDays.map(b=>b.name).join(", ")}.`); 
         else if (fatalBadDays.length === 0) successReasons.push(`Sạch ngày kỵ.`);
         
-        if (rules.badTruc.includes(truc)) { 
-            isGood = false; 
-            failReasons.push(`Trực ${truc} Đại Kỵ.`); 
-        } else if (rules.goodTruc.includes(truc)) {
-            successReasons.push(`Trực ${truc} Đại Cát.`); 
+        if (task !== "TANG_SU") {
+            if (rules.badTruc.includes(truc)) { 
+                isGood = false; 
+                failReasons.push(`Trực ${truc} Đại Kỵ.`); 
+            } else if (rules.goodTruc.includes(truc)) {
+                successReasons.push(`Trực ${truc} Đại Cát.`); 
+            } else {
+                successReasons.push(`Trực ${truc} bình hòa.`);
+            }
         } else {
-            successReasons.push(`Trực ${truc} bình hòa.`);
+            successReasons.push("Tang Sự không xét kỵ theo Trực.");
         }
         
-        if (isGood && minorBadDays.length === 0 && rules.goodTruc.includes(truc) && !isXungTuoiCaNhan) isVeryGood = true;
+        if (task !== "TANG_SU" && isGood && minorBadDays.length === 0 && rules.goodTruc.includes(truc) && !isXungTuoiCaNhan) isVeryGood = true;
+        if (task === "TANG_SU" && isGood && minorBadDays.length === 0 && !isXungTuoiCaNhan) isVeryGood = true;
         return { isGood, isVeryGood, successReasons, failReasons, warningReasons, taskName: rules.name, goodStars: rules.goodStars }; 
     }
 
@@ -671,7 +740,9 @@
         let saoData = CAL_DATA.NHI_THAP_BAT_TU[saoIdx];
 
         const tuoiXungNgay = getTuoiXungTrongNgay(dayInfo.canIdx, dayInfo.chiIdx);
-        const isXungTuoiCaNhan = checkXungTuoi(dayInfo.chiIdx);
+        const thongTinKyTangSu = getThongTinKyTangSuTheoNamSinh();
+        const isXungTuoiXayDung = checkXungTuoiXayDung(dayInfo.chiIdx);
+        const isKyTangSuTheoTuoi = checkKyTangSuTheoTuoi(dayInfo.chiIdx);
         
         let dTomorrow = new Date(solarDate);
         dTomorrow.setDate(dTomorrow.getDate() + 1);
@@ -710,7 +781,7 @@
             hourDetails.push({ can: canGio, chi: chiGio, chiIdx: i, str: `${canGio} ${chiGio}<br><span class="text-[9px] text-gray-500">(${(i*2-1+24)%24}h-${(i*2+1)%24}h)</span>`, isGood: checkGioHoangDao(dayInfo.chiIdx, i), lucDieu: lucDieuStr, isThoTu: isThoTu, isSatChu: isSatChu, isKhongVong: isKhongVong });
         }
         
-        return { solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() }, lunar: { day: lDay, month: lMonth, year: lYear }, text: { day: dayInfo.full }, extra: { truc, trucDisplay: trucInfo.display, trucDescHtml: trucInfo.descHtml, giaoHoaTruc: trucInfo.giaoHoa, tietKhi: solarInfo.name, hyThan: CAL_DATA.HY_THAN[dayInfo.canIdx], taiThan: CAL_DATA.TAI_THAN[dayInfo.canIdx], hacThan: getHacThanDirection(dayInfo.jdn), badDaysList, isXungTuoiCaNhan, tuoiXungNgay, bHoliday, isHoangDao, sao: saoData }, hourDetails, rating };
+        return { solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() }, lunar: { day: lDay, month: lMonth, year: lYear }, text: { day: dayInfo.full }, extra: { truc, trucDisplay: trucInfo.display, trucDescHtml: trucInfo.descHtml, giaoHoaTruc: trucInfo.giaoHoa, tietKhi: solarInfo.name, hyThan: CAL_DATA.HY_THAN[dayInfo.canIdx], taiThan: CAL_DATA.TAI_THAN[dayInfo.canIdx], hacThan: getHacThanDirection(dayInfo.jdn), badDaysList, isXungTuoiXayDung, isKyTangSuTheoTuoi, thongTinKyTangSu, tuoiXungNgay, bHoliday, isHoangDao, sao: saoData }, hourDetails, rating };
     }
 
     function saveNote(dateKey) {
@@ -749,7 +820,7 @@
         for(let d=1; d<=days; d++) {
             let cur = new Date(y, m, d), isSel = cur.toDateString()===selDate.toDateString(), data = getCalendarData(cur); 
             let dateKey = `${y}_${m+1}_${d}`, hasNote = safeGetNote('note_' + dateKey);
-            let evalDetail = evaluateTaskDetailed(filterTask, data.extra.truc, data.extra.badDaysList, data.extra.isXungTuoiCaNhan);
+            let evalDetail = evaluateTaskDetailed(filterTask, data.extra.truc, data.extra.badDaysList, getXungFlagByTask(filterTask, data.extra));
             let dotIndicator = evalDetail.isGood ? (evalDetail.isVeryGood ? `<div class="absolute bottom-1 right-1 text-yellow-400 text-[10px]"><i class="fa-solid fa-star"></i></div>` : `<div class="good-day-dot"></div>`) : "";
             html += `<div class="calendar-cell ${isSel ? 'selected' : ''}" onclick="onSelectDate(${y},${m},${d})">
                 ${data.extra.bHoliday ? `<div class="buddhist-lotus-bg text-pink-400"><i class="fa-solid fa-dharmachakra"></i></div>` : ""}
@@ -780,7 +851,7 @@
         // 3. KHỐI GỢI Ý GIỜ HOÀNG ĐẠO
         let hourSuggestionHtml = "";
         if (uYear && uYear !== "") {
-            let uChiIdx = (uYear - 4) % 12; let recommendedHours = [];
+            let uChiIdx = getNamCanChiFromYear(parseInt(uYear, 10)).chiIdx; let recommendedHours = [];
             dData.hourDetails.forEach(h => {
                 let isXungGio = Math.abs(uChiIdx - h.chiIdx) === 6; 
                 if (h.isGood && !isXungGio && !h.isThoTu && !h.isSatChu && !h.isKhongVong) {
@@ -797,7 +868,7 @@
         // 4. PHÂN TÍCH CÔNG VIỆC
         let taskHtml = "";
         if (filterTask !== "ALL") {
-            let res = evaluateTaskDetailed(filterTask, dData.extra.truc, dData.extra.badDaysList, dData.extra.isXungTuoiCaNhan);
+            let res = evaluateTaskDetailed(filterTask, dData.extra.truc, dData.extra.badDaysList, getXungFlagByTask(filterTask, dData.extra));
             taskHtml = `<table class="paper-table mt-[-2px]"><tr><td class="p-0 border-2 ${res.isGood?'bg-green-50 border-green-600':'bg-red-50 border-red-400'}"><div class="header-cell p-2 ${res.isGood?'bg-green-200 text-green-900':'bg-red-100 text-red-900'}">${res.taskName.toUpperCase()}</div><div class="p-3 text-sm"><ul class="list-disc pl-5 font-medium">${(res.isGood?res.successReasons:res.failReasons).map(r=>`<li class="mb-1">${r}</li>`).join('')}</ul></div></td></tr></table>`;
         }
 
@@ -830,7 +901,8 @@
                         <div><b class="text-blue-700">Tài Thần:</b> ${taiThanStr}</div>
                         <div class="border-t border-stone-300 pt-1"><b class="text-gray-700">Hạc Thần:</b> <span class="text-red-700 font-bold">${dData.extra.hacThan}</span></div>
                     </div>
-                    <div class="mt-2 pt-1 border-t"><b class="text-gray-700">Xung Ngày:</b> <span class="text-red-700 font-bold">${dData.extra.tuoiXungNgay}</span></div>
+                    <div class="mt-2 pt-1 border-t"><b class="text-gray-700">Xung ngày xây dựng:</b> <span class="text-red-700 font-bold">${dData.extra.tuoiXungNgay}</span></div>
+                    <div class="mt-1"><b class="text-gray-700">Kỵ Tang Sự theo tuổi:</b> <span class="text-red-700 font-bold">${dData.extra.thongTinKyTangSu ? ('Tuổi ' + dData.extra.thongTinKyTangSu.tuoiCanChi + ' kỵ ngày ' + dData.extra.thongTinKyTangSu.kyNgay) : 'Nhập Năm sinh ÂL để xem'}</span></div>
                 </td>
             </tr></table>
 
