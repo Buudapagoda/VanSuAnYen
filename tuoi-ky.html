@@ -41,6 +41,9 @@
     .danger-box { background-color: #f8d7da; border-left: 4px solid #dc3545; padding: 12px; border-radius: 4px; font-size: 14.5px; color: #721c24; margin-top: 10px; }
     .info-person { font-size: 15.5px; }
 
+    
+    .input-danger { border: 3px solid #d32f2f !important; background: #ffebee !important; box-shadow: 0 0 8px rgba(211,47,47,0.5); }
+
     /* KHU VỰC IN ẨN TRÊN WEB */
     #printArea { display: none; }
 
@@ -112,7 +115,7 @@
     </div>
 
     <div class="section-box">
-        <div class="section-title">III. Thời Gian Hành Lễ & Kỵ Đi Chôn</div>
+        <div class="section-title">III. Thời Gian Hành Lễ & Ngày/Giờ Kỵ Tuổi</div>
         <div class="form-row form-row-inline">
             <div>
                 <label>Lúc Khâm Liệm:</label>
@@ -412,7 +415,7 @@
         return { cung: cungHL, isTot: ["Nhĩ", "Tề", "Tảng", "Tỷ", "Phúc", "Trường"].includes(cungHL), startChi: start };
     }
 
-    // 3. Luật Ngày Kỵ Đi Chôn
+    // 3. Luật Ngày/Giờ Kỵ theo nhóm tuổi người mất
     function getNgayKyDiChon(chiSinh) {
         if (["Thân", "Tý", "Thìn"].includes(chiSinh)) return "Tỵ";
         if (["Dần", "Ngọ", "Tuất"].includes(chiSinh)) return "Hợi";
@@ -438,7 +441,21 @@
         return { ten: textGio, ky: textKy, chiGio: CHI[chiIdx], chiIdx: chiIdx };
     }
 
-    // --- CÁC HÀM CẬP NHẬT GIAO DIỆN ĐỘC LẬP ---
+    
+    function danhDauGioTrung(inputId, chiSinh) {
+        const el = document.getElementById(inputId);
+        if (!el || !el.value) { if(el) el.classList.remove('input-danger'); return; }
+        const r = getKyLiemDongQuan(el.value);
+        const kyDay = getNgayKyDiChon(chiSinh);
+        const biPham = (r.chiGio === "Tỵ" || r.chiGio === "Hợi" || r.chiGio === kyDay);
+        if (biPham) {
+            el.classList.add('input-danger');
+        } else {
+            el.classList.remove('input-danger');
+        }
+    }
+
+// --- CÁC HÀM CẬP NHẬT GIAO DIỆN ĐỘC LẬP ---
 
     function updateSection1() {
         let nSinh = parseInt(document.getElementById("inpNamSinh").value);
@@ -549,8 +566,8 @@
                 let errText = "";
                 
                 // Phạm Giờ
-                if (rLiem.chiGio === "Tỵ" || rLiem.chiGio === "Hợi" || rLiem.chiGio === chiSinh) {
-                    errText += `[❌ PHẠM GIỜ TRÙNG HOẶC GIỜ TỴ/HỢI] <br>`;
+                if (rLiem.chiGio === "Tỵ" || rLiem.chiGio === "Hợi" || rLiem.chiGio === kyDay) {
+                    errText += `[❌ PHẠM GIỜ TRÙNG / TỴ-HỢI / GIỜ KỴ TUỔI ${chiSinh}: GIỜ ${rLiem.chiGio}] <br>`;
                 }
                 
                 // Phạm Ngày
@@ -585,8 +602,8 @@
         html += `<div class="warning-box" style="margin-top: 15px; border-left-color: #ff9800;">
             <b style="color: #e65100;"><i class="fa-solid fa-bullhorn"></i> GHI CHÚ QUAN TRỌNG:</b>
             <ul style="margin-top: 8px; margin-bottom: 0; padding-left: 20px; line-height: 1.6; font-size: 14.5px;">
-                <li><b>Tránh Giờ Trùng:</b> Phải tuyệt đối tránh <b>Giờ Tỵ</b> và <b>Giờ Hợi</b>. Kiêng chọn giờ trùng với tuổi <b>${chiSinh}</b> của người mất.</li>
-                <li><b>Tránh Ngày Kỵ Đi Chôn:</b> Tuổi ${chiSinh} <b style="color:#d32f2f;">TUYỆT ĐỐI TRÁNH ĐỘNG QUAN VÀO NGÀY ${kyDay.toUpperCase()}</b>.</li>
+                <li><b>Tránh Giờ Trùng:</b> Phải tuyệt đối tránh <b>Giờ Tỵ</b> và <b>Giờ Hợi</b>.</li>
+                <li><b>Tránh ngày/giờ kỵ theo tuổi người mất:</b> Tuổi ${chiSinh} thuộc nhóm kỵ <b style="color:#d32f2f;">ngày giờ ${kyDay.toUpperCase()}</b>, không phải kỵ trực tiếp ngày/giờ ${chiSinh}.</li>
             </ul></div>`;
         
         resBox.innerHTML = html;
@@ -711,10 +728,20 @@
                 let rLiem = getKyLiemDongQuan(gLiem);
                 let dateTxt = ngayLiem ? `Ngày ${ngayLiem.split("-").reverse().join("/")} - ` : "";
                 let kyText = `Kỵ tuổi: ${rLiem.ky}`;
-                if (rLiem.chiGio === "Tỵ" || rLiem.chiGio === "Hợi" || rLiem.chiGio === chiSinh) {
-                    kyText = `<span style="color:#c0392b; font-weight:bold;">PHẠM GIỜ TRÙNG HOẶC TỴ/HỢI!</span>`;
+                let kyDay = getNgayKyDiChon(chiSinh);
+                let phamNgayTxt = "";
+                if (ngayLiem) {
+                    let [y, m, d] = ngayLiem.split("-").map(Number);
+                    let jd = getJulianDay(d, m, y);
+                    let chiNgay = CHI[(jd + 1) % 12];
+                    if (chiNgay === kyDay) {
+                        phamNgayTxt = ` <br><span style="color:#c0392b; font-weight:bold; margin-left: 20px;">[❌ KỴ TUỔI ${chiSinh}: NGÀY ${kyDay.toUpperCase()}]</span>`;
+                    }
                 }
-                htmlIn += `<div><b>- Khâm Liệm:</b> ${dateTxt}${rLiem.ten}<br><i style="margin-left: 20px;">(${kyText})</i></div>`;
+                if (rLiem.chiGio === "Tỵ" || rLiem.chiGio === "Hợi" || rLiem.chiGio === kyDay) {
+                    kyText = `<span style="color:#c0392b; font-weight:bold;">PHẠM GIỜ TRÙNG / TỴ-HỢI / GIỜ KỴ TUỔI ${chiSinh}: GIỜ ${rLiem.chiGio}</span>`;
+                }
+                htmlIn += `<div><b>- Khâm Liệm:</b> ${dateTxt}${rLiem.ten}${phamNgayTxt}<br><i style="margin-left: 20px;">(${kyText})</i></div>`;
             }
             if (gDongQuan !== "") {
                 let rDQ = getKyLiemDongQuan(gDongQuan);
@@ -733,8 +760,8 @@
 
                 const cungHaHuyet = getCungGioHaHuyet(gDongQuan);
                 let kyText = `Cung giờ Hạ Huyệt: Cung ${cungHaHuyet.chiGio} - Tuổi kỵ: ${cungHaHuyet.tuoiKyChinh}`;
-                if (rDQ.chiGio === "Tỵ" || rDQ.chiGio === "Hợi" || rDQ.chiGio === chiSinh) {
-                    kyText += ` - PHẠM GIỜ TRÙNG HOẶC TỴ/HỢI!`;
+                if (rDQ.chiGio === "Tỵ" || rDQ.chiGio === "Hợi" || rDQ.chiGio === kyDay) {
+                    kyText += ` - PHẠM GIỜ TRÙNG / TỴ-HỢI / GIỜ KỴ TUỔI ${chiSinh}: GIỜ ${rDQ.chiGio}!`;
                 }
 
                 htmlIn += `<div><b>- Động Quan:</b> ${dateTxt}${rDQ.ten}${phamNgayTxt}<br><i style="margin-left: 20px;">${kyText}</i></div>`;
@@ -756,6 +783,12 @@
         updateSection1();
         updateSection2();
         updateSection3();
+        if(document.getElementById("inpNamSinh").value){
+            let ns=parseInt(document.getElementById("inpNamSinh").value);
+            let chiSinh=CHI[(ns + 8) % 12];
+            danhDauGioTrung("inpGioLiem", chiSinh);
+            danhDauGioTrung("inpGioDongQuan", chiSinh);
+        }
         updateSection4();
         updatePrintData();
     }
