@@ -158,9 +158,49 @@
             ], 
             goodStars: "Thiên Đức, Nguyệt Đức" 
         },
-        CUOI_HOI: { name: "Đám Cưới / Giá Thú", goodTruc: ["Định", "Thành", "Thu"], badTruc: ["Phá", "Nguy", "Chấp"], badDays: ["Trùng Nhật", "Tam Tang", "Trùng Tang", "Phục Tang", "Phục Táng", "Sát Chủ Dương", "Thọ Tử", "Dương Công Kỵ", "Trùng Phục", "Tứ Tuyệt", "Tứ Ly", "Cô Thần", "Quả Tú", "Tháng Cô Hồn", "Ngày Cô Hồn", "Tam Sa Sát (Cưới Vợ)"], goodStars: "Tục Thế, Thiên Hỷ" },
-        KHAI_TRUONG: { name: "Khai Trương / Kinh Doanh", goodTruc: ["Khai", "Mãn", "Thành"], badTruc: ["Bế", "Phá", "Nguy"], badDays: ["Tam Tang", "Sát Chủ Dương", "Thọ Tử", "Dương Công Kỵ", "Tứ Tuyệt", "Tháng Cô Hồn", "Ngày Cô Hồn"], goodStars: "Nguyệt Tài, Lộc Mã" },
-        TANG_SU: { name: "Tang Sự / An Táng", goodTruc: [], badTruc: [], badDays: ["Trùng Tang", "Phục Tang", "Phục Táng", "Tam Tang", "Trùng Nhật", "Sát Chủ Âm", "Trùng Phục", "Tam Sa Sát (Đi Chôn)"], goodStars: "Thiên Ân, Tục Thế" }
+        // Đám cưới chỉ lọc nhóm ngày kỵ việc người sống / hôn nhân.
+        // Không lấy các ngày chuyên âm trạch như Trùng Tang, Phục Tang, Phục Táng, Trùng Nhật...
+        // Bản tinh gọn: bỏ Kim Thần Thất Sát, Dương Công Kỵ, Không Phòng, Tử Biệt, Trực Bình, Trực Thu/Thâu.
+        CUOI_HOI: { 
+            name: "Đám Cưới / Giá Thú", 
+            goodTruc: ["Định", "Thành", "Khai", "Mãn"], 
+            badTruc: ["Phá"], 
+            badDays: [
+                "Ngày Hợi",
+                "Sát Chủ Dương", 
+                "Thọ Tử", 
+                "Tứ Tuyệt", 
+                "Tứ Ly", 
+                "Tam Nương", 
+                "Nguyệt Kỵ", 
+                "Tam Sa Sát (Cưới Vợ)",
+                "Xích Khẩu",
+                "Hoàng Thiên",
+                "Chu Tước",
+                "Tháng Cô Hồn", 
+                "Ngày Cô Hồn"
+            ], 
+            goodStars: "Tục Thế, Thiên Hỷ" 
+        },
+        // Khai trương chỉ lọc nhóm ngày kỵ việc trên trần gian, không lọc nhóm âm trạch / tang sự.
+        KHAI_TRUONG: { 
+            name: "Khai Trương / Kinh Doanh", 
+            goodTruc: ["Khai", "Mãn", "Thành"], 
+            badTruc: ["Bế", "Phá", "Nguy"], 
+            badDays: [
+                "Sát Chủ Dương", 
+                "Thọ Tử", 
+                "Dương Công Kỵ", 
+                "Tứ Tuyệt", 
+                "Tứ Ly",
+                "Tam Nương", 
+                "Nguyệt Kỵ", 
+                "Tháng Cô Hồn", 
+                "Ngày Cô Hồn"
+            ], 
+            goodStars: "Nguyệt Tài, Lộc Mã" 
+        },
+        TANG_SU: { name: "Tang Sự / An Táng", goodTruc: [], badTruc: [], badDays: ["Trùng Tang", "Phục Tang", "Phục Táng", "Tam Tang", "Trùng Nhật", "Sát Chủ Âm", "Dương Công Kỵ", "Trùng Phục", "Tam Sa Sát (Đi Chôn)"], goodStars: "Thiên Ân, Tục Thế" }
     };
 
     const CAL_DATA = {
@@ -221,6 +261,40 @@
             4: [5, 6, 17, 18, 29, 30], 5: [4, 5, 16, 17, 28, 29], 6: [4, 5, 16, 17, 28, 29],
             7: [2, 3, 14, 15, 26, 27], 8: [1, 2, 13, 14, 25, 26], 9: [1, 2, 13, 14, 25, 26],
             10: [11, 12, 23, 24], 11: [10, 11, 22, 23], 12: [10, 11, 22, 23]
+        },
+        TU_BIET_DAYS: [1, 7, 9, 15, 17, 23, 25],
+        XICH_KHAU_MAP: {
+            1: [3, 9, 15],
+            2: [2, 6, 14],
+            3: [1, 7, 13],
+            4: [6, 11, 12, 18, 19],
+            5: [5, 11, 17, 27],
+            6: [4, 10, 16],
+            7: [3, 9, 15],
+            8: [2, 8, 14],
+            9: [1, 7, 13, 15],
+            10: [6, 12, 18],
+            11: [3, 5, 11, 17],
+            12: [4, 10, 16]
+        },
+        // Kim Thần Thất Sát luận theo Thiên Can năm âm lịch và Địa Chi ngày.
+        // Giáp/Kỷ: Ngọ Mùi Thân Dậu; Ất/Canh: Thìn Tỵ;
+        // Bính/Tân: Dần Mão Ngọ Mùi; Đinh/Nhâm: Dần Mão Tuất Hợi; Mậu/Quý: Thân Dậu Tý Sửu.
+        KIM_THAN_THAT_SAT_MAP: {
+            0: [6, 7, 8, 9], 5: [6, 7, 8, 9],
+            1: [4, 5],       6: [4, 5],
+            2: [2, 3, 6, 7], 7: [2, 3, 6, 7],
+            3: [2, 3, 10, 11], 8: [2, 3, 10, 11],
+            4: [8, 9, 0, 1], 9: [8, 9, 0, 1]
+        },
+        // Không Phòng kỵ giá thú, luận theo mùa/tháng âm lịch và Địa Chi ngày.
+        // Xuân 1-3: Dần Sửu Tuất; Hạ 4-6: Tỵ Thìn Hợi;
+        // Thu 7-9: Ngọ Mão Tý; Đông 10-12: Dậu Thân Sửu.
+        KHONG_PHONG_MAP: {
+            1: [2, 1, 10], 2: [2, 1, 10], 3: [2, 1, 10],
+            4: [5, 4, 11], 5: [5, 4, 11], 6: [5, 4, 11],
+            7: [6, 3, 0],  8: [6, 3, 0],  9: [6, 3, 0],
+            10: [9, 8, 1], 11: [9, 8, 1], 12: [9, 8, 1]
         },
         SOLAR_TERMS_FIXED: [{ d: 4, m: 2, name: "Lập xuân", chiMonth: 2 }, { d: 18, m: 2, name: "Vũ thủy", chiMonth: 2 }, 
             { d: 5, m: 3, name: "Kinh trập", chiMonth: 3 }, { d: 20, m: 3, name: "Xuân phân", chiMonth: 3 }, 
@@ -588,7 +662,7 @@
         return dChiIdx === rule.chi && summary.sameChiDays.length >= 3;
     }
 
-    function getBadDaysInfo(lMonth, lDay, dCanIdx, dChiIdx, solarChiMonth, isTuTuyet, isTuLy, solarDate) { 
+    function getBadDaysInfo(lMonth, lDay, lYear, dCanIdx, dChiIdx, solarChiMonth, isTuTuyet, isTuLy, solarDate) { 
         let notes = []; let fsMonth = (solarChiMonth + 10) % 12 + 1;
         const duongCongKyDates = { 1:[13], 2:[11], 3:[9], 4:[7], 5:[5], 6:[3], 7:[1, 29], 8:[27], 9:[25], 10:[23], 11:[21], 12:[19] };
         if (duongCongKyDates[lMonth] && duongCongKyDates[lMonth].includes(lDay)) notes.push({ name: "Dương Công Kỵ", desc: "Đại hung nhật. Trăm sự đều kỵ." });
@@ -598,6 +672,16 @@
         if ([5, 14, 23].includes(lDay)) notes.push({ name: "Nguyệt Kỵ", desc: "Kỵ xuất hành đi xa, khởi công." }); 
         if (isTuTuyet) notes.push({ name: "Tứ Tuyệt", desc: "Ngũ hành mùa cũ tận cùng." });
         if (isTuLy) notes.push({ name: "Tứ Ly", desc: "Âm Dương phân ly." });
+
+        // Các ngày kỵ riêng cho Đám Cưới / Giá Thú.
+        // Những ngày này chỉ có tác dụng khi TASK_RULES.CUOI_HOI đưa vào badDays,
+        // không làm thay đổi cách lọc của Xây Dựng và Tang Sự.
+        if (dChiIdx === 11) notes.push({ name: "Ngày Hợi", desc: "Ngày Hợi: theo bộ lọc cưới hỏi hiện tại, nên tránh giá thú." });
+        if (CAL_DATA.XICH_KHAU_MAP[lMonth] && CAL_DATA.XICH_KHAU_MAP[lMonth].includes(lDay)) notes.push({ name: "Xích Khẩu", desc: "Chủ khẩu thiệt, cãi vã; kỵ hôn nhân và việc vui lớn." });
+        if (lDay === 1) {
+            notes.push({ name: "Hoàng Thiên", desc: "Mùng 1 Âm lịch: Hoàng Thiên, không nên dùng cho giá thú." });
+            notes.push({ name: "Chu Tước", desc: "Mùng 1 Âm lịch: Chu Tước, chủ khẩu thiệt; kỵ hôn nhân." });
+        }
         
         if (dChiIdx === CAL_DATA.TAM_TANG_MAP[fsMonth]) notes.push({ name: "Tam Tang", desc: "Đại kỵ khởi công, cưới hỏi, an táng." }); 
         if (isNgayThoTuTheoTietKhi(solarDate, fsMonth, dCanIdx, dChiIdx)) notes.push({ name: "Thọ Tử", desc: "Trăm sự đều kỵ." }); 
@@ -682,6 +766,25 @@
             // Tam Nương, Thọ Tử, Ngày Cô Hồn... là nhóm việc trần gian/người sống,
             // không dùng để loại hoặc cảnh báo khi lọc Tang Sự.
             minorBadDays = [];
+        } else if (task === "CUOI_HOI") {
+            // Đám cưới: chỉ cảnh báo thêm nhóm ngày hôn nhân / trần gian,
+            // tuyệt đối không lôi các ngày âm trạch vào phần kết quả.
+            const cuoiHoiWarningDays = [
+                "Ngày Hợi", "Tam Nương", "Nguyệt Kỵ", "Xích Khẩu",
+                "Cô Thần", "Quả Tú", "Hoàng Thiên", "Chu Tước",
+                "Tháng Cô Hồn", "Ngày Cô Hồn"
+            ];
+            minorBadDays = badDaysList.filter(b =>
+                cuoiHoiWarningDays.includes(b.name) && !rules.badDays.includes(b.name)
+            );
+        } else if (task === "KHAI_TRUONG") {
+            // Khai trương: chỉ xét việc trên trần gian, không cảnh báo ngày âm trạch / tang sự.
+            const khaiTruongWarningDays = [
+                "Tam Nương", "Nguyệt Kỵ", "Tứ Ly", "Tháng Cô Hồn", "Ngày Cô Hồn"
+            ];
+            minorBadDays = badDaysList.filter(b =>
+                khaiTruongWarningDays.includes(b.name) && !rules.badDays.includes(b.name)
+            );
         } else {
             minorBadDays = badDaysList.filter(b =>
                 !rules.badDays.includes(b.name) &&
@@ -755,7 +858,7 @@
             if (tuLyTerms.includes(tomorrowSolarInfo.giaoTiet.name)) isTuLy = true;
         }
 
-        const badDaysList = getBadDaysInfo(lMonth, lDay, dayInfo.canIdx, dayInfo.chiIdx, solarInfo.calcChiMonth, isTuTuyet, isTuLy, d);
+        const badDaysList = getBadDaysInfo(lMonth, lDay, lYear, dayInfo.canIdx, dayInfo.chiIdx, solarInfo.calcChiMonth, isTuTuyet, isTuLy, d);
 
         let partsT = formatter.formatToParts(dTomorrow);
         let lDayT = 1;
