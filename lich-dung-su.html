@@ -70,6 +70,7 @@
                 <option value="XAY_NHA">Xây Dựng / Sửa Nhà</option>
                 <option value="CUOI_HOI">Đám Cưới / Giá Thú</option>
                 <option value="KHAI_TRUONG">Khai Trương / Kinh Doanh</option>
+                <option value="AN_VI">An Vị Bàn Thờ / Tôn Tượng</option>
                 <option value="TANG_SU">Tang Sự / An Táng</option>
             </select>
         </div>
@@ -199,6 +200,18 @@
                 "Ngày Cô Hồn"
             ], 
             goodStars: "Nguyệt Tài, Lộc Mã" 
+        },
+        AN_VI: {
+            name: "An Vị Bàn Thờ / Tôn Tượng",
+            goodTruc: ["Thành", "Mãn", "Khai", "Định", "Bình"],
+            badTruc: ["Phá", "Bế"],
+            badDays: [
+                "Sát Chủ Dương",
+                "Thọ Tử",
+                "Nguyệt Kỵ",
+                "Dương Công Kỵ"
+            ],
+            goodStars: "Thiên Đức, Nguyệt Đức, Thiên Ân"
         },
         TANG_SU: { name: "Tang Sự / An Táng", goodTruc: [], badTruc: [], badDays: ["Trùng Tang", "Phục Tang", "Phục Táng", "Tam Tang", "Trùng Nhật", "Sát Chủ Âm", "Dương Công Kỵ", "Trùng Phục", "Tam Sa Sát (Đi Chôn)"], goodStars: "Thiên Ân, Tục Thế" }
     };
@@ -728,7 +741,19 @@
         return notes; 
     }
 
-    function evaluateTaskDetailed(task, truc, badDaysList, isXungTuoiCaNhan) { 
+    function getAnViCung(lunarDay, lunarMonthDays) {
+        const vongThangDu = ["An", "Lợi", "Thiên", "Hại", "Sát", "Phú", "Sư", "Tai"];
+        const vongThangThieu = ["Thiên", "Lợi", "An", "Tai", "Sư", "Phú", "Sát", "Hại"];
+        const isThangDu = lunarMonthDays >= 30;
+        const vong = isThangDu ? vongThangDu : vongThangThieu;
+        return {
+            name: vong[(lunarDay - 1) % 8],
+            isThangDu,
+            lunarMonthDays
+        };
+    }
+
+    function evaluateTaskDetailed(task, truc, badDaysList, isXungTuoiCaNhan, anViCung) { 
         let isGood = true, isVeryGood = false, successReasons = [], failReasons = [], warningReasons = [];
 
         if (task === "ALL") {
@@ -739,6 +764,16 @@
         }
 
         const rules = TASK_RULES[task];
+
+        if (task === "AN_VI") {
+            const anViGoodNames = ["An", "Lợi", "Thiên", "Phú", "Sư"];
+            if (!anViCung || !anViGoodNames.includes(anViCung.name)) {
+                isGood = false;
+                failReasons.push(`Cung An Vị rơi vào ${anViCung ? anViCung.name : "không xác định"}: không nên dùng để An Vị.`);
+            } else {
+                successReasons.push(`Cung An Vị rơi vào ${anViCung.name}: tốt cho An Vị.`);
+            }
+        }
 
         // Ô Năm sinh ÂL dùng chung, nhưng luật xét khác nhau theo từng việc:
         // - Xây dựng: kỵ ngày Lục Xung với bổn mạng.
@@ -785,6 +820,9 @@
             minorBadDays = badDaysList.filter(b =>
                 khaiTruongWarningDays.includes(b.name) && !rules.badDays.includes(b.name)
             );
+        } else if (task === "AN_VI") {
+            // An Vị bàn thờ / tôn tượng: chỉ lấy bộ kỵ chính, không loại Tam Nương để tránh lọc quá gắt.
+            minorBadDays = [];
         } else {
             minorBadDays = badDaysList.filter(b =>
                 !rules.badDays.includes(b.name) &&
@@ -865,6 +903,21 @@
         partsT.forEach(p => { if(p.type==="day") lDayT=parseInt(p.value); });
         let isLastDayOfMonth = (lDayT === 1); 
 
+        let lunarMonthDays = lDay;
+        for (let step = 1; step <= 32; step++) {
+            let probeDate = new Date(solarDate);
+            probeDate.setDate(probeDate.getDate() + step);
+            let probeParts = formatter.formatToParts(probeDate);
+            let probeLunarDay = 1;
+            probeParts.forEach(p => { if(p.type === "day") probeLunarDay = parseInt(p.value); });
+            if (probeLunarDay === 1) {
+                lunarMonthDays = lDay + step - 1;
+                break;
+            }
+        }
+
+        const anViCung = getAnViCung(lDay, lunarMonthDays);
+
         let bHoliday = CAL_DATA.BUDDHIST_HOLIDAYS[`${lDay}/${lMonth}`];
         if (!bHoliday && isLastDayOfMonth) {
             if (lDay === 29 && lMonth === 7) bHoliday = CAL_DATA.BUDDHIST_HOLIDAYS["30/7"];
@@ -884,7 +937,7 @@
             hourDetails.push({ can: canGio, chi: chiGio, chiIdx: i, str: `${canGio} ${chiGio}<br><span class="text-[9px] text-gray-500">(${(i*2-1+24)%24}h-${(i*2+1)%24}h)</span>`, isGood: checkGioHoangDao(dayInfo.chiIdx, i), lucDieu: lucDieuStr, isThoTu: isThoTu, isSatChu: isSatChu, isKhongVong: isKhongVong });
         }
         
-        return { solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() }, lunar: { day: lDay, month: lMonth, year: lYear }, text: { day: dayInfo.full }, extra: { truc, trucDisplay: trucInfo.display, trucDescHtml: trucInfo.descHtml, giaoHoaTruc: trucInfo.giaoHoa, tietKhi: solarInfo.name, hyThan: CAL_DATA.HY_THAN[dayInfo.canIdx], taiThan: CAL_DATA.TAI_THAN[dayInfo.canIdx], hacThan: getHacThanDirection(dayInfo.jdn), badDaysList, isXungTuoiXayDung, isKyTangSuTheoTuoi, thongTinKyTangSu, tuoiXungNgay, bHoliday, isHoangDao, sao: saoData }, hourDetails, rating };
+        return { solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() }, lunar: { day: lDay, month: lMonth, year: lYear }, text: { day: dayInfo.full }, extra: { truc, trucDisplay: trucInfo.display, trucDescHtml: trucInfo.descHtml, giaoHoaTruc: trucInfo.giaoHoa, tietKhi: solarInfo.name, hyThan: CAL_DATA.HY_THAN[dayInfo.canIdx], taiThan: CAL_DATA.TAI_THAN[dayInfo.canIdx], hacThan: getHacThanDirection(dayInfo.jdn), badDaysList, isXungTuoiXayDung, isKyTangSuTheoTuoi, thongTinKyTangSu, tuoiXungNgay, bHoliday, isHoangDao, sao: saoData, anViCung }, hourDetails, rating };
     }
 
     function saveNote(dateKey) {
@@ -923,7 +976,7 @@
         for(let d=1; d<=days; d++) {
             let cur = new Date(y, m, d), isSel = cur.toDateString()===selDate.toDateString(), data = getCalendarData(cur); 
             let dateKey = `${y}_${m+1}_${d}`, hasNote = safeGetNote('note_' + dateKey);
-            let evalDetail = evaluateTaskDetailed(filterTask, data.extra.truc, data.extra.badDaysList, getXungFlagByTask(filterTask, data.extra));
+            let evalDetail = evaluateTaskDetailed(filterTask, data.extra.truc, data.extra.badDaysList, getXungFlagByTask(filterTask, data.extra), data.extra.anViCung);
             let dotIndicator = evalDetail.isGood ? (evalDetail.isVeryGood ? `<div class="absolute bottom-1 right-1 text-yellow-400 text-[10px]"><i class="fa-solid fa-star"></i></div>` : `<div class="good-day-dot"></div>`) : "";
             html += `<div class="calendar-cell ${isSel ? 'selected' : ''}" onclick="onSelectDate(${y},${m},${d})">
                 ${data.extra.bHoliday ? `<div class="buddhist-lotus-bg text-pink-400"><i class="fa-solid fa-dharmachakra"></i></div>` : ""}
@@ -946,6 +999,7 @@
         if (dData.rating.name.includes("Cát")) gd.push({n:dData.rating.name,d:dData.rating.desc});
         if (["Kiến","Mãn","Bình","Định","Thành","Khai"].includes(dData.extra.truc)) gd.push({n:"Trực "+dData.extra.truc,d:"Khí tốt."});
         if (dData.extra.sao.type.includes("Kiết")) gd.push({n:"Sao "+dData.extra.sao.name,d:dData.extra.sao.type});
+        if (["An", "Lợi", "Thiên", "Phú", "Sư"].includes(dData.extra.anViCung.name)) gd.push({n:"An Vị: "+dData.extra.anViCung.name,d:`Tháng ${dData.extra.anViCung.isThangDu ? "đủ" : "thiếu"} (${dData.extra.anViCung.lunarMonthDays} ngày).`});
         
         // 2. GHI CHÚ CÁ NHÂN
         let selectedDateKey = `${y}_${m+1}_${selDate.getDate()}`;
@@ -971,7 +1025,7 @@
         // 4. PHÂN TÍCH CÔNG VIỆC
         let taskHtml = "";
         if (filterTask !== "ALL") {
-            let res = evaluateTaskDetailed(filterTask, dData.extra.truc, dData.extra.badDaysList, getXungFlagByTask(filterTask, dData.extra));
+            let res = evaluateTaskDetailed(filterTask, dData.extra.truc, dData.extra.badDaysList, getXungFlagByTask(filterTask, dData.extra), dData.extra.anViCung);
             taskHtml = `<table class="paper-table mt-[-2px]"><tr><td class="p-0 border-2 ${res.isGood?'bg-green-50 border-green-600':'bg-red-50 border-red-400'}"><div class="header-cell p-2 ${res.isGood?'bg-green-200 text-green-900':'bg-red-100 text-red-900'}">${res.taskName.toUpperCase()}</div><div class="p-3 text-sm"><ul class="list-disc pl-5 font-medium">${(res.isGood?res.successReasons:res.failReasons).map(r=>`<li class="mb-1">${r}</li>`).join('')}</ul></div></td></tr></table>`;
         }
 
