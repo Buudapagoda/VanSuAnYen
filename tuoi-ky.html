@@ -47,11 +47,32 @@
     /* KHU VỰC IN ẨN TRÊN WEB */
     #printArea { display: none; }
 
+    /* KHUNG XEM TRƯỚC & CHỈNH SỬA TRƯỚC KHI IN */
+    .print-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 9999; padding: 20px; box-sizing: border-box; overflow-y: auto; }
+    .print-modal.show { display: block; }
+    .print-modal-box { max-width: 920px; margin: 0 auto; background: #f5f5f5; border-radius: 10px; box-shadow: 0 8px 30px rgba(0,0,0,0.35); overflow: hidden; }
+    .print-modal-header { background: #8b0000; color: #fff; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .print-modal-header b { font-size: 17px; text-transform: uppercase; }
+    .print-modal-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .print-modal-actions button { border: none; border-radius: 4px; padding: 10px 13px; font-weight: bold; cursor: pointer; }
+    .btn-print-now { background: #2e7d32; color: #fff; }
+    .btn-save-image-now { background: #1976d2; color: #fff; }
+    .btn-refresh-print { background: #f9a825; color: #111; }
+    .btn-close-print { background: #555; color: #fff; }
+    .print-edit-note { background: #fff8e1; color: #6d4c00; padding: 10px 18px; border-bottom: 1px solid #e0d3a6; font-size: 14px; }
+    .print-paper-wrap { padding: 20px; overflow-x: auto; }
+    .print-paper-wrap #printArea { display: block; margin: 0 auto; min-height: 900px; outline: none; }
+    .print-paper-wrap #printArea:focus { box-shadow: 0 0 0 3px rgba(25,118,210,0.25); }
+
+    /* KHU VỰC IN THẬT: chỉ dùng khi bấm nút IN trong khung xem trước */
+    #printOnlyArea { display: none; }
+
     /* CSS ĐỊNH DẠNG KHI IN BẰNG MÁY IN */
     @media print {
-        body { background-color: #fff; padding: 0; margin: 0; }
-        body > *:not(#printAreaContainer) { display: none; }
-        #printArea { display: block !important; position: static !important; width: 100% !important; padding: 0 !important; border: none !important;}
+        body { background-color: #fff !important; padding: 0 !important; margin: 0 !important; }
+        body.printing > *:not(#printOnlyArea) { display: none !important; }
+        body.printing #printOnlyArea { display: block !important; font-family: 'Times New Roman', Times, serif; color: #000; background: #fff; width: 100%; box-sizing: border-box; }
+        body.printing #printOnlyArea .print-page { display: block !important; width: 100% !important; min-height: auto !important; padding: 0 !important; margin: 0 !important; border: none !important; box-shadow: none !important; outline: none !important; }
     }
 </style>
 </head>
@@ -158,15 +179,33 @@
     </div>
     
     <div class="btn-group">
-        <button class="btn-in" onclick="window.print()"><i class="fa-solid fa-print"></i> In Phiếu Tang Sự</button>
-        <button class="btn-anh" onclick="taiAnhVeMay()"><i class="fa-solid fa-download"></i> Lưu Ảnh Chia Sẻ</button>
+        <button class="btn-in" onclick="openPrintEditor()"><i class="fa-solid fa-print"></i> Xem / Sửa Phiếu Rồi In</button>
+        <button class="btn-anh" onclick="openPrintEditor()"><i class="fa-solid fa-download"></i> Xem / Sửa Rồi Lưu Ảnh</button>
     </div>
 </div>
 
-<div id="printAreaContainer">
-    <div id="printArea" style="font-family: 'Times New Roman', Times, serif; color: #000; padding: 40px; background: #fff; width: 800px; box-sizing: border-box; border: 2px solid #000;">
+<div id="printPreviewModal" class="print-modal">
+    <div class="print-modal-box">
+        <div class="print-modal-header">
+            <b><i class="fa-solid fa-pen-to-square"></i> Xem trước phiếu in</b>
+            <div class="print-modal-actions">
+                <button class="btn-refresh-print" onclick="lamMoiPhieuIn()"><i class="fa-solid fa-rotate-right"></i> Lấy lại dữ liệu gốc</button>
+                <button class="btn-print-now" onclick="inPhieuDaSua()"><i class="fa-solid fa-print"></i> In phiếu này</button>
+                <button class="btn-save-image-now" onclick="taiAnhVeMay()"><i class="fa-solid fa-image"></i> Lưu ảnh này</button>
+                <button class="btn-close-print" onclick="dongKhungIn()"><i class="fa-solid fa-xmark"></i> Đóng</button>
+            </div>
+        </div>
+        <div class="print-edit-note">
+            Có thể bấm trực tiếp vào nội dung bên dưới để sửa chữ, thêm dòng, xoá dòng. Sửa xong bấm “In phiếu này” để in, hoặc bấm “Lưu ảnh này” để tạo ảnh gửi Zalo/điện thoại. Khi bấm “Lấy lại dữ liệu gốc” thì các chỉnh sửa tay sẽ bị thay bằng dữ liệu đang nhập ở form.
+        </div>
+        <div class="print-paper-wrap" id="printAreaContainer">
+            <div id="printArea" contenteditable="true" spellcheck="false" style="font-family: 'Times New Roman', Times, serif; color: #000; padding: 40px; background: #fff; width: 800px; box-sizing: border-box; border: 2px solid #000;">
+            </div>
+        </div>
     </div>
 </div>
+
+<div id="printOnlyArea"></div>
 
 <script>
     // --- THƯ VIỆN DỮ LIỆU ---
@@ -778,6 +817,46 @@
         document.getElementById("printArea").innerHTML = htmlIn;
     }
 
+    // --- HÀM XEM TRƯỚC, CHỈNH SỬA VÀ IN TRỰC TIẾP ---
+    function openPrintEditor() {
+        updatePrintData();
+        const printArea = document.getElementById("printArea");
+        printArea.setAttribute("contenteditable", "true");
+        document.getElementById("printPreviewModal").classList.add("show");
+        setTimeout(() => printArea.focus(), 100);
+    }
+
+    function dongKhungIn() {
+        document.getElementById("printPreviewModal").classList.remove("show");
+    }
+
+    function lamMoiPhieuIn() {
+        updatePrintData();
+        document.getElementById("printArea").focus();
+    }
+
+    function inPhieuDaSua() {
+        const printArea = document.getElementById("printArea");
+        const printOnlyArea = document.getElementById("printOnlyArea");
+
+        // Sao chép đúng nội dung đã sửa tay sang vùng in riêng.
+        // Làm cách này để tránh lỗi trình duyệt in nền trắng khi nội dung nằm trong khung popup.
+        printOnlyArea.innerHTML = `<div class="print-page">${printArea.innerHTML}</div>`;
+        document.body.classList.add("printing");
+
+        setTimeout(() => {
+            window.print();
+        }, 50);
+    }
+
+    window.addEventListener("afterprint", function() {
+        document.body.classList.remove("printing");
+    });
+
+    document.addEventListener("keydown", function(e) {
+        if (e.key === "Escape") dongKhungIn();
+    });
+
     // --- TRIGGER AUTO CALCULATE ---
     function calculateAll() {
         updateSection1();
@@ -798,21 +877,62 @@
         el.addEventListener("change", calculateAll);
     });
 
-    // --- HÀM CHỤP ẢNH ---
+    // --- HÀM CHỤP ẢNH TỪ NỘI DUNG ĐÃ XEM / ĐÃ SỬA ---
     function taiAnhVeMay() {
-        let printArea = document.getElementById("printArea");
-        printArea.style.display = "block";
-        printArea.style.position = "absolute";
-        printArea.style.top = "-9999px"; 
-        printArea.style.left = "0";
+        const modal = document.getElementById("printPreviewModal");
+        const printArea = document.getElementById("printArea");
 
-        html2canvas(printArea, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
-            let link = document.createElement('a');
-            link.download = 'Phieu-Thong-Tin-Tang-Su.png';
-            link.href = canvas.toDataURL("image/png");
-            link.click();
-            printArea.style.display = "none";
-            printArea.style.position = "static";
+        // Nếu người dùng bấm lưu ảnh ở ngoài mà chưa mở khung xem/sửa, tự mở khung trước.
+        // Như vậy ảnh luôn lấy đúng nội dung đang thấy và đã chỉnh sửa.
+        if (!modal.classList.contains("show")) {
+            openPrintEditor();
+            return;
+        }
+
+        const oldEditable = printArea.getAttribute("contenteditable");
+        printArea.setAttribute("contenteditable", "false");
+
+        html2canvas(printArea, {
+            scale: 2,
+            backgroundColor: "#ffffff",
+            useCORS: true,
+            scrollX: 0,
+            scrollY: -window.scrollY
+        }).then(canvas => {
+            canvas.toBlob(async function(blob) {
+                if (!blob) {
+                    alert("Không tạo được ảnh. Vui lòng thử lại.");
+                    printArea.setAttribute("contenteditable", oldEditable || "true");
+                    return;
+                }
+
+                const fileName = "Phieu-Thong-Tin-Tang-Su.png";
+                const file = new File([blob], fileName, { type: "image/png" });
+
+                // Trên điện thoại: nếu trình duyệt hỗ trợ, mở bảng chia sẻ để gửi Zalo/Messenger/lưu ảnh.
+                if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+                    try {
+                        await navigator.share({ files: [file], title: "Phiếu Thông Tin Tang Sự" });
+                    } catch (err) {
+                        // Người dùng bấm hủy chia sẻ thì không cần báo lỗi.
+                    }
+                } else {
+                    // Trên máy tính hoặc trình duyệt không hỗ trợ chia sẻ file: tải ảnh về máy.
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(url), 1000);
+                }
+
+                printArea.setAttribute("contenteditable", oldEditable || "true");
+            }, "image/png", 1);
+        }).catch(err => {
+            alert("Không lưu được ảnh. Vui lòng thử lại hoặc dùng chức năng chụp màn hình trên điện thoại.");
+            printArea.setAttribute("contenteditable", oldEditable || "true");
         });
     }
 </script>
