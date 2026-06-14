@@ -201,15 +201,23 @@
             ], 
             goodStars: "Nguyệt Tài, Lộc Mã" 
         },
+        // An Vị là việc thuộc người sống / trần gian nên lọc chung bộ ngày kỵ như Xây Dựng.
+        // Vẫn giữ riêng bộ Cung An Vị: An, Lợi, Thiên, Phú, Sư.
+        // Không lấy các ngày chuyên âm trạch như Trùng Tang, Phục Tang, Phục Táng,
+        // Sát Chủ Âm, Trùng Phục, Tam Sa Sát (Đi Chôn)...
         AN_VI: {
             name: "An Vị Bàn Thờ / Tôn Tượng",
             goodTruc: ["Thành", "Mãn", "Khai", "Định", "Bình"],
             badTruc: ["Phá", "Bế"],
             badDays: [
+                "Tam Nương",
+                "Nguyệt Kỵ",
                 "Sát Chủ Dương",
                 "Thọ Tử",
-                "Nguyệt Kỵ",
-                "Dương Công Kỵ"
+                "Dương Công Kỵ",
+                "Tứ Tuyệt",
+                "Tam Sa Sát (Cất Nhà)",
+                "Ngày Cô Hồn"
             ],
             goodStars: "Thiên Đức, Nguyệt Đức, Thiên Ân"
         },
@@ -821,8 +829,14 @@
                 khaiTruongWarningDays.includes(b.name) && !rules.badDays.includes(b.name)
             );
         } else if (task === "AN_VI") {
-            // An Vị bàn thờ / tôn tượng: chỉ lấy bộ kỵ chính, không loại Tam Nương để tránh lọc quá gắt.
-            minorBadDays = [];
+            // An Vị: đã lọc trực tiếp các ngày kỵ trần gian trong rules.badDays.
+            // Chỉ cảnh báo thêm Tứ Ly / Tháng Cô Hồn nếu gặp, không lôi ngày âm trạch vào.
+            const anViWarningDays = [
+                "Tứ Ly", "Tháng Cô Hồn"
+            ];
+            minorBadDays = badDaysList.filter(b =>
+                anViWarningDays.includes(b.name) && !rules.badDays.includes(b.name)
+            );
         } else {
             minorBadDays = badDaysList.filter(b =>
                 !rules.badDays.includes(b.name) &&
