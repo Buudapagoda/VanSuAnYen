@@ -546,7 +546,6 @@
     }
 
     function getCanChiDay(d, m, y) { let jd = getJulianDay(d, m, y); let jdn = Math.floor(jd + 0.5); let dayCanIdx = (jdn + 9) % 10; let dayChiIdx = (jdn + 1) % 12; return { full: `${CAL_DATA.CAN[dayCanIdx]} ${CAL_DATA.CHI[dayChiIdx]}`, canIdx: dayCanIdx, chiIdx: dayChiIdx, jdn: jdn }; }
-    function getTruc(dayChiIdx, solarInfo) { return CAL_DATA.TRUC[(dayChiIdx - solarInfo.chiMonth + 12) % 12]; }
     function getDayRating(cIdx, chIdx) { let ec = CAL_DATA.ELEMENTS.CAN[cIdx]; let ech = CAL_DATA.ELEMENTS.CHI[chIdx]; if (ec === ech) return { name: "Bát Chuyên (Đồng Khí)", color: "text-stone-600", desc: "Ngày bình hòa." }; if ((ec===0&&ech===2)||(ec===2&&ech===1)||(ec===1&&ech===3)||(ec===3&&ech===4)||(ec===4&&ech===0)) return { name: "Bảo Nhật (Đại Cát)", color: "text-green-700", desc: "Rất tốt cho mọi việc." }; if ((ech===0&&ec===2)||(ech===2&&ec===1)||(ech===1&&ec===3)||(ech===3&&ec===4)||(ech===4&&ec===0)) return { name: "Thoa Nhật (Tiểu Cát)", color: "text-blue-700", desc: "Tốt vừa, có thể dùng." }; if ((ec===0&&ec===1)||(ec===1&&ech===4)||(ec===4&&ech===2)||(ec===2&&ech===3)||(ec===3&&ech===0)) return { name: "Chế Nhật (Tiểu Hung)", color: "text-amber-600", desc: "Xấu nhẹ, thận trọng." }; return { name: "Phạt Nhật (Đại Hung)", color: "text-red-600 font-bold", desc: "Can khắc Chi. Kỵ làm đại sự." }; }
     function getTuoiXungTrongNgay(dayCanIdx, dayChiIdx) {
         // Tuổi kỵ ngày: lấy Địa Chi đối xung làm chính.
@@ -872,13 +871,119 @@
         return { isGood, isVeryGood, successReasons, failReasons, warningReasons, taskName: rules.name, goodStars: rules.goodStars }; 
     }
 
+    // ===============================================================
+    //  THUẬT TOÁN ÂM LỊCH VIỆT NAM (HỒ NGỌC ĐỨC - CHUẨN UTC+7)
+    //  Đồng bộ tuyệt đối giữa Máy tính, iPhone, Android và mọi trình duyệt.
+    // ===============================================================
+    function INT(d) { return Math.floor(d); }
+
+    function jdFromDate(dd, mm, yy) {
+        let a = INT((14 - mm) / 12);
+        let y = yy + 4800 - a;
+        let m = mm + 12 * a - 3;
+        let jd = dd + INT((153 * m + 2) / 5) + 365 * y + INT(y / 4) - INT(y / 100) + INT(y / 400) - 32045;
+        if (jd < 2299161) {
+            jd = dd + INT((153 * m + 2) / 5) + 365 * y + INT(y / 4) - 32083;
+        }
+        return jd;
+    }
+
+    function getNewMoonDay(k, timeZone) {
+        let T = k / 1236.85;
+        let T2 = T * T;
+        let T3 = T2 * T;
+        let dr = Math.PI / 180;
+        let Jd1 = 2415020.75933 + 29.53058868 * k + 0.0001178 * T2 - 0.000000155 * T3;
+        Jd1 = Jd1 + 0.00033 * Math.sin((166.56 + 132.87 * T - 0.009173 * T2) * dr);
+        let M = 359.2242 + 29.10535608 * k - 0.0000333 * T2 - 0.00000347 * T3;
+        let Mpr = 306.0253 + 385.81691806 * k + 0.0107306 * T2 + 0.00001236 * T3;
+        let F = 21.2964 + 390.67050646 * k - 0.0016528 * T2 - 0.00000239 * T3;
+        let C1 = (0.1734 - 0.000393 * T) * Math.sin(M * dr) + 0.0021 * Math.sin(2 * dr * M);
+        C1 = C1 - 0.4068 * Math.sin(Mpr * dr) + 0.0161 * Math.sin(dr * 2 * Mpr);
+        C1 = C1 - 0.0004 * Math.sin(dr * 3 * Mpr);
+        C1 = C1 + 0.0104 * Math.sin(dr * 2 * F) - 0.0051 * Math.sin(dr * (M + Mpr));
+        C1 = C1 - 0.0074 * Math.sin(dr * (M - Mpr)) + 0.0004 * Math.sin(dr * (2 * F + M));
+        C1 = C1 - 0.0004 * Math.sin(dr * (2 * F - M)) - 0.0006 * Math.sin(dr * (2 * F + Mpr));
+        C1 = C1 + 0.0010 * Math.sin(dr * (2 * F - Mpr)) + 0.0005 * Math.sin(dr * (2 * Mpr + M));
+        let deltat;
+        if (T < -11) {
+            deltat = 0.001 + 0.000839 * T + 0.0002261 * T2 - 0.00000845 * T3 - 0.000000081 * T * T3;
+        } else {
+            deltat = -0.000278 + 0.000265 * T + 0.000262 * T2;
+        }
+        let JdNew = Jd1 + C1 - deltat;
+        return INT(JdNew + 0.5 + timeZone / 24);
+    }
+
+    function getSunLongitudeHND(jdn, timeZone) {
+        let T = (jdn - 2451545.5 - timeZone / 24) / 36525;
+        let T2 = T * T;
+        let dr = Math.PI / 180;
+        let M = 357.52910 + 35999.05030 * T - 0.0001559 * T2 - 0.00000048 * T * T2;
+        let L0 = 280.46645 + 36000.76983 * T + 0.0003032 * T2;
+        let DL = (1.914600 - 0.004817 * T - 0.000014 * T2) * Math.sin(dr * M);
+        DL = DL + (0.019993 - 0.000101 * T) * Math.sin(dr * 2 * M) + 0.000290 * Math.sin(dr * 3 * M);
+        let L = L0 + DL;
+        L = L * dr;
+        L = L - Math.PI * 2 * (INT(L / (Math.PI * 2)));
+        return INT(L / Math.PI * 6);
+    }
+
+    function getLunarMonth11(yy, timeZone) {
+        let off = jdFromDate(31, 12, yy) - 2415021;
+        let k = INT(off / 29.530588853);
+        let nm = getNewMoonDay(k, timeZone);
+        let sunLong = getSunLongitudeHND(nm, timeZone);
+        if (sunLong >= 9) nm = getNewMoonDay(k - 1, timeZone);
+        return nm;
+    }
+
+    function getLeapMonthOffset(a11, timeZone) {
+        let k = INT((a11 - 2415021.076998695) / 29.530588853 + 0.5);
+        let last = 0, i = 1;
+        let arc = getSunLongitudeHND(getNewMoonDay(k + i, timeZone), timeZone);
+        do {
+            last = arc;
+            i++;
+            arc = getSunLongitudeHND(getNewMoonDay(k + i, timeZone), timeZone);
+        } while (arc != last && i < 14);
+        return i - 1;
+    }
+
+    function convertSolar2Lunar(dd, mm, yy, timeZone = 7) {
+        let dayNumber = jdFromDate(dd, mm, yy);
+        let k = INT((dayNumber - 2415021.076998695) / 29.530588853);
+        let monthStart = getNewMoonDay(k + 1, timeZone);
+        if (monthStart > dayNumber) monthStart = getNewMoonDay(k, timeZone);
+        let a11 = getLunarMonth11(yy, timeZone);
+        let b11 = a11;
+        let lunarYear;
+        if (a11 >= monthStart) {
+            lunarYear = yy;
+            a11 = getLunarMonth11(yy - 1, timeZone);
+        } else {
+            lunarYear = yy + 1;
+            b11 = getLunarMonth11(yy + 1, timeZone);
+        }
+        let lunarDay = dayNumber - monthStart + 1;
+        let diff = INT((monthStart - a11) / 29);
+        let lunarLeap = 0;
+        let lunarMonth = diff + 11;
+        if (b11 - a11 > 365) {
+            let leapMonthDiff = getLeapMonthOffset(a11, timeZone);
+            if (diff >= leapMonthDiff) {
+                lunarMonth = diff + 10;
+                if (diff == leapMonthDiff) lunarLeap = 1;
+            }
+        }
+        if (lunarMonth > 12) lunarMonth = lunarMonth - 12;
+        if (lunarMonth >= 11 && diff < 4) lunarYear -= 1;
+        return [lunarDay, lunarMonth, lunarYear, lunarLeap];
+    }
+
     function getCalendarData(solarDate) {
         const d = new Date(solarDate);
-        const formatter = new Intl.DateTimeFormat("fr-CA-u-ca-chinese", { day: "numeric", month: "numeric", year: "numeric" });
-        const parts = formatter.formatToParts(d);
-        let lDay=1, lMonth=1, lYear=d.getFullYear();
-        parts.forEach(p => { if(p.type==="day") lDay=parseInt(p.value); if(p.type==="month") lMonth=parseInt(p.value); if(p.type==="relatedYear") lYear=parseInt(p.value); });
-        if (lMonth >= 11 && d.getMonth() < 3 && lYear === d.getFullYear()) lYear -= 1;
+        const [lDay, lMonth, lYear, lLeap] = convertSolar2Lunar(d.getDate(), d.getMonth() + 1, d.getFullYear(), 7);
 
         const dayInfo = getCanChiDay(d.getDate(), d.getMonth()+1, d.getFullYear());
         const solarInfo = getSolarInfo(d.getDate(), d.getMonth()+1, d);
@@ -913,18 +1018,14 @@
 
         const badDaysList = getBadDaysInfo(lMonth, lDay, lYear, dayInfo.canIdx, dayInfo.chiIdx, solarInfo.calcChiMonth, isTuTuyet, isTuLy, d);
 
-        let partsT = formatter.formatToParts(dTomorrow);
-        let lDayT = 1;
-        partsT.forEach(p => { if(p.type==="day") lDayT=parseInt(p.value); });
+        const [lDayT] = convertSolar2Lunar(dTomorrow.getDate(), dTomorrow.getMonth() + 1, dTomorrow.getFullYear(), 7);
         let isLastDayOfMonth = (lDayT === 1); 
 
         let lunarMonthDays = lDay;
         for (let step = 1; step <= 32; step++) {
             let probeDate = new Date(solarDate);
             probeDate.setDate(probeDate.getDate() + step);
-            let probeParts = formatter.formatToParts(probeDate);
-            let probeLunarDay = 1;
-            probeParts.forEach(p => { if(p.type === "day") probeLunarDay = parseInt(p.value); });
+            const [probeLunarDay] = convertSolar2Lunar(probeDate.getDate(), probeDate.getMonth() + 1, probeDate.getFullYear(), 7);
             if (probeLunarDay === 1) {
                 lunarMonthDays = lDay + step - 1;
                 break;
@@ -952,7 +1053,7 @@
             hourDetails.push({ can: canGio, chi: chiGio, chiIdx: i, str: `${canGio} ${chiGio}<br><span class="text-[9px] text-gray-500">(${(i*2-1+24)%24}h-${(i*2+1)%24}h)</span>`, isGood: checkGioHoangDao(dayInfo.chiIdx, i), lucDieu: lucDieuStr, isThoTu: isThoTu, isSatChu: isSatChu, isKhongVong: isKhongVong });
         }
         
-        return { solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() }, lunar: { day: lDay, month: lMonth, year: lYear }, text: { day: dayInfo.full }, extra: { truc, trucDisplay: trucInfo.display, trucDescHtml: trucInfo.descHtml, giaoHoaTruc: trucInfo.giaoHoa, tietKhi: solarInfo.name, hyThan: CAL_DATA.HY_THAN[dayInfo.canIdx], taiThan: CAL_DATA.TAI_THAN[dayInfo.canIdx], hacThan: getHacThanDirection(dayInfo.jdn), badDaysList, isXungTuoiXayDung, isKyTangSuTheoTuoi, thongTinKyTangSu, tuoiXungNgay, bHoliday, isHoangDao, sao: saoData, anViCung }, hourDetails, rating };
+        return { solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() }, lunar: { day: lDay, month: lMonth, year: lYear, leap: lLeap }, text: { day: dayInfo.full }, extra: { truc, trucDisplay: trucInfo.display, trucDescHtml: trucInfo.descHtml, giaoHoaTruc: trucInfo.giaoHoa, tietKhi: solarInfo.name, hyThan: CAL_DATA.HY_THAN[dayInfo.canIdx], taiThan: CAL_DATA.TAI_THAN[dayInfo.canIdx], hacThan: getHacThanDirection(dayInfo.jdn), badDaysList, isXungTuoiXayDung, isKyTangSuTheoTuoi, thongTinKyTangSu, tuoiXungNgay, bHoliday, isHoangDao, sao: saoData, anViCung }, hourDetails, rating };
     }
 
     function saveNote(dateKey) {
@@ -964,7 +1065,18 @@
     let selDate = new Date();
     const els = { grid: document.getElementById("grid"), paper: document.getElementById("paper"), title: document.getElementById("calTitle"), inp: document.getElementById("dateInput"), yakshaBg: document.getElementById("yakshaBg") };
 
-    function init() { render(); document.getElementById("prevMonth").onclick = () => { selDate.setMonth(selDate.getMonth()-1); render(); }; document.getElementById("nextMonth").onclick = () => { selDate.setMonth(selDate.getMonth()+1); render(); }; els.inp.onchange = (e) => { if(e.target.value) { selDate = new Date(e.target.value); render(); } }; }
+    function init() {
+        render();
+        document.getElementById("prevMonth").onclick = () => { selDate.setMonth(selDate.getMonth()-1); render(); };
+        document.getElementById("nextMonth").onclick = () => { selDate.setMonth(selDate.getMonth()+1); render(); };
+        els.inp.onchange = (e) => {
+            if (e.target.value) {
+                const [yy, mm, dd] = e.target.value.split('-').map(Number);
+                selDate = new Date(yy, mm - 1, dd);
+                render();
+            }
+        };
+    }
     function goToday() { selDate = new Date(); render(); }
     function onSelectDate(y, m, d) { selDate = new Date(y, m, d); render(); if (window.innerWidth <= 768) setTimeout(() => { document.getElementById('paper').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); }
 
