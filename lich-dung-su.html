@@ -93,10 +93,9 @@
                     <span class="text-lg font-bold uppercase tracking-widest text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mt-1" id="leftWDay">Thứ ...</span>
                 </div>
                 <div class="text-right flex flex-col items-end">
-                    <span class="text-[10px] text-stone-300 uppercase tracking-widest drop-shadow-md mb-1">Ngày / Tháng Âm Lịch</span>
+                    <span class="text-[10px] text-stone-300 uppercase tracking-widest drop-shadow-md mb-1">Tháng Âm Lịch</span>
                     <span class="text-2xl font-bold text-red-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" id="leftLunarDate">...</span>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-black/60 border border-amber-400/50 text-amber-300 mt-1 shadow" id="leftLunarMonthType">...</span>
-                    <span class="text-[11px] font-bold text-white uppercase tracking-widest drop-shadow-md mt-1.5" id="leftMonthYear">Năm ...</span>
+                    <span class="text-[11px] font-bold text-white uppercase tracking-widest drop-shadow-md mt-2" id="leftMonthYear">Năm ...</span>
                 </div>
             </div>
         </div>
@@ -148,6 +147,33 @@
             .replace(/>/g, "&gt;")
             .replace(/"/g, "&quot;")
             .replace(/'/g, "&#39;");
+    }
+
+    // --- TRẠNG THÁI GIAO DIỆN GỌN CHO GHI CHÚ & SỰ KIỆN ---
+    let activeNoteTab = "NOTE";       // "NOTE" | "ANNUAL"
+    let isEventListExpanded = false;  // Mặc định thu gọn danh sách sự kiện
+    let eventListFilter = "ALL";      // "ALL" | "LUNAR" | "SOLAR"
+    let isReminderExpanded = false;   // Thu gọn nếu có > 2 sự kiện sắp tới
+
+    function switchNoteTab(tab) {
+        activeNoteTab = tab;
+        render();
+    }
+
+    function toggleEventList() {
+        isEventListExpanded = !isEventListExpanded;
+        render();
+    }
+
+    function setEventListFilter(f) {
+        eventListFilter = f;
+        isEventListExpanded = true;
+        render();
+    }
+
+    function toggleReminderBanner() {
+        isReminderExpanded = !isReminderExpanded;
+        render();
     }
 
     // --- QUẢN LÝ SỰ KIỆN LẶP LẠI HẰNG NĂM (GIỖ, SINH NHẬT...) ---
@@ -279,6 +305,8 @@
         });
 
         if (saveAnnualEventsList(list)) {
+            activeNoteTab = "ANNUAL";
+            isEventListExpanded = true;
             render();
         }
     }
@@ -287,6 +315,7 @@
         if (!confirm("Xóa sự kiện hằng năm này?")) return;
         const list = getAnnualEvents().filter(e => e.id !== id);
         if (saveAnnualEventsList(list)) {
+            activeNoteTab = "ANNUAL";
             render();
         }
     }
@@ -299,7 +328,6 @@
         return String(str || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
     }
 
-    // Xuất 1 sự kiện hoặc toàn bộ danh sách sang file .ics cho 15 năm tới để nạp vào Lịch iPhone/Android
     function exportEventsToICS(eventId = null) {
         const all = getAnnualEvents();
         const targets = eventId ? all.filter(e => e.id === eventId) : all;
@@ -1228,7 +1256,6 @@
         const yy = parseInt(parts[0], 10);
         const mm = parseInt(parts[1], 10);
         const dd = parseInt(parts[2], 10);
-        // Chỉ nhảy ngày khi đã gõ đủ năm 4 chữ số hợp lệ (1900 - 2100), tránh lỗi 0002 -> 1902 khi đang gõ
         if (isNaN(yy) || isNaN(mm) || isNaN(dd) || yy < 1900 || yy > 2100 || mm < 1 || mm > 12 || dd < 1 || dd > 31) {
             return;
         }
@@ -1256,7 +1283,6 @@
     function onSelectDate(y, m, d) { selDate = new Date(y, m, d); render(); if (window.innerWidth <= 768) setTimeout(() => { document.getElementById('paper').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); }
 
     function render() {
-        // Không ghi đè ngược ô nhập ngày khi người dùng đang gõ năm
         if (document.activeElement !== els.inp) {
             els.inp.value = formatInputDate(selDate);
         }
@@ -1277,7 +1303,6 @@
 
         document.getElementById("leftMonthYear").innerText = `Năm ${canNam} ${chiNam}`;
         document.getElementById("leftLunarDate").innerHTML = `${dData.lunar.day} / ${dData.lunar.month}${leapBadge}`;
-        document.getElementById("leftLunarMonthType").innerText = `Tháng ${dData.lunar.month}${dData.lunar.leap ? " Nhuận" : ""} • ${thangDuThieuText}`;
         els.yakshaBg.style.backgroundImage = `url('${CAL_DATA.YAKSHA_IMAGES[dData.lunar.month] || CAL_DATA.YAKSHA_IMAGES[1]}')`;
 
         let d1 = new Date(y, m, 1), days = new Date(y, m+1, 0).getDate(), start = d1.getDay()===0?6:d1.getDay()-1, html = "";
@@ -1305,11 +1330,14 @@
             r3 += `<td class="hour-cell border ${h.isKhongVong?'text-red-600 font-bold':''}">${h.lucDieu.replace(" ","<br>")}</td>`;
         });
 
-        // 0. THÔNG BÁO SỰ KIỆN SẮP TỚI (TÍNH TỪ HÔM NAY)
+        // 0. THÔNG BÁO SỰ KIỆN SẮP TỚI (GỌN: HIỆN TỐI ĐA 2 DÒNG, CÒN LẠI GOM VÀO NÚT XEM THÊM)
         const upcomingReminders = getUpcomingAnnualReminders();
         let reminderBannerHtml = "";
         if (upcomingReminders.length > 0) {
-            const itemsHtml = upcomingReminders.map(item => {
+            const visibleReminders = isReminderExpanded ? upcomingReminders : upcomingReminders.slice(0, 2);
+            const hiddenCount = upcomingReminders.length - visibleReminders.length;
+
+            const itemsHtml = visibleReminders.map(item => {
                 const isToday = item.daysLeft === 0;
                 const dStr = `${pad2(item.targetDate.getDate())}/${pad2(item.targetDate.getMonth()+1)}/${item.targetDate.getFullYear()}`;
                 const lStr = `${item.targetLunar.day}/${item.targetLunar.month} ÂL`;
@@ -1317,8 +1345,8 @@
                     ? `<span class="bg-red-600 text-white px-1.5 py-0.5 rounded font-bold text-[10px]">HÔM NAY</span>`
                     : `<span class="bg-amber-600 text-white px-1.5 py-0.5 rounded font-bold text-[10px]">Còn ${item.daysLeft} ngày</span>`;
                 return `<div onclick="onSelectDate(${item.targetDate.getFullYear()},${item.targetDate.getMonth()},${item.targetDate.getDate()})"
-                            class="flex flex-wrap items-center justify-between gap-2 p-2 rounded border cursor-pointer transition ${isToday ? 'bg-red-100 border-red-400 hover:bg-red-200' : 'bg-white border-rose-200 hover:bg-rose-50'}">
-                            <div class="flex items-center gap-2">
+                            class="flex flex-wrap items-center justify-between gap-2 px-2 py-1.5 rounded border cursor-pointer transition text-xs ${isToday ? 'bg-red-100 border-red-400 hover:bg-red-200' : 'bg-white border-rose-200 hover:bg-rose-50'}">
+                            <div class="flex items-center gap-1.5">
                                 ${badge}
                                 <span class="font-bold text-stone-900">${escapeHtml(item.evt.title)}</span>
                                 <span class="text-[11px] text-stone-600">(${item.evt.day}/${item.evt.month} ${item.evt.type === 'LUNAR' ? 'ÂL' : 'DL'})</span>
@@ -1327,12 +1355,19 @@
                         </div>`;
             }).join('');
 
+            const toggleBtnHtml = upcomingReminders.length > 2
+                ? `<button onclick="toggleReminderBanner()" class="text-[11px] underline font-bold text-rose-100 hover:text-white ml-auto">
+                       ${isReminderExpanded ? "Thu gọn ▲" : `Xem thêm (+${hiddenCount}) ▼`}
+                   </button>`
+                : "";
+
             reminderBannerHtml = `
-                <div class="mb-3 border-2 border-rose-500 bg-rose-50 rounded shadow-sm overflow-hidden">
-                    <div class="bg-rose-600 text-white px-3 py-1.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-bell animate-bounce"></i> Nhắc nhở sự kiện quan trọng sắp tới
+                <div class="mb-2 border-2 border-rose-500 bg-rose-50 rounded shadow-sm overflow-hidden">
+                    <div class="bg-rose-600 text-white px-2.5 py-1 font-bold text-[11px] uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-bell"></i> Sắp tới (${upcomingReminders.length})
+                        ${toggleBtnHtml}
                     </div>
-                    <div class="p-2 space-y-1.5">${itemsHtml}</div>
+                    <div class="p-1.5 space-y-1">${itemsHtml}</div>
                 </div>`;
         }
 
@@ -1344,49 +1379,111 @@
         if (dData.extra.sao.type.includes("Kiết")) gd.push({n:"Sao "+dData.extra.sao.name,d:dData.extra.sao.type});
         if (["An", "Lợi", "Thiên", "Phú", "Sư"].includes(dData.extra.anViCung.name)) gd.push({n:"An Vị: "+dData.extra.anViCung.name,d:`Tháng ${dData.extra.anViCung.isThangDu ? "đủ" : "thiếu"} (${dData.extra.anViCung.lunarMonthDays} ngày).`});
         
-        // 2. GHI CHÚ CÁ NHÂN & SỰ KIỆN HẰNG NĂM
+        // 2. KHỐI GỘP GHI CHÚ & SỰ KIỆN HẰNG NĂM (2 TAB GỌN GÀNG)
         let selectedDateKey = `${y}_${m+1}_${selDate.getDate()}`;
         let currentNote = safeGetNote('note_' + selectedDateKey) || "";
         const selectedDateEvents = getEventsForDate(selDate, dData.lunar);
-        const allAnnualEvents = getAnnualEvents();
+        const allAnnualEvents = getAnnualEvents().sort((a, b) => (a.month - b.month) || (a.day - b.day));
+        const filteredAnnualEvents = allAnnualEvents.filter(e => eventListFilter === "ALL" || e.type === eventListFilter);
 
-        const selectedEventsHtml = selectedDateEvents.length > 0
-            ? `<div class="mb-2 p-2 bg-rose-100 border border-rose-400 rounded text-xs">
-                   <div class="font-bold text-rose-900 mb-1"><i class="fa-solid fa-bell"></i> Sự kiện hằng năm trong ngày đang xem:</div>
-                   <ul class="list-disc pl-5 space-y-0.5 text-rose-950 font-semibold">
-                       ${selectedDateEvents.map(e => `<li>${escapeHtml(e.title)} (${e.day}/${e.month} ${e.type === 'LUNAR' ? 'ÂL' : 'DL'} • Báo trước ${e.remindBefore} ngày)</li>`).join('')}
-                   </ul>
+        const todayEventStripHtml = selectedDateEvents.length > 0
+            ? `<div class="mb-2 px-2 py-1 bg-rose-100 border border-rose-400 rounded text-xs text-rose-950 font-semibold flex flex-wrap items-center gap-1.5">
+                   <i class="fa-solid fa-bell text-rose-600"></i>
+                   <span>Hôm nay có:</span>
+                   ${selectedDateEvents.map(e => `<span class="bg-white border border-rose-300 px-1.5 py-0.5 rounded text-[11px] font-bold">${escapeHtml(e.title)} (${e.day}/${e.month} ${e.type === 'LUNAR' ? 'ÂL' : 'DL'})</span>`).join('')}
                </div>`
             : "";
 
-        const allEventsListHtml = allAnnualEvents.length > 0
-            ? `<div class="mt-2 max-h-40 overflow-y-auto custom-scroll border border-rose-200 rounded bg-white divide-y divide-rose-100">
-                   ${allAnnualEvents.map(e => `
-                       <div class="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-rose-50">
-                           <div class="flex flex-wrap items-center gap-1.5">
-                               <span class="px-1.5 py-0.5 rounded font-bold text-[10px] ${e.type === 'LUNAR' ? 'bg-amber-200 text-amber-900' : 'bg-blue-100 text-blue-900'}">
-                                   ${e.day}/${e.month} ${e.type === 'LUNAR' ? 'ÂL' : 'DL'}
-                               </span>
-                               <span class="font-bold text-stone-800">${escapeHtml(e.title)}</span>
-                               <span class="text-[10px] text-stone-500 italic">(Báo trước ${e.remindBefore} ngày)</span>
-                           </div>
-                           <div class="flex items-center gap-1 shrink-0">
-                               <button onclick="exportEventsToICS('${e.id}')" class="text-blue-700 hover:text-blue-900 px-1.5 py-0.5 rounded hover:bg-blue-100 font-bold text-[11px]" title="Nạp sự kiện này vào Lịch điện thoại (15 năm)">
-                                   <i class="fa-solid fa-calendar-plus"></i>
-                               </button>
-                               <button onclick="deleteAnnualEvent('${e.id}')" class="text-red-600 hover:text-red-800 px-1.5 py-0.5 rounded hover:bg-red-100 font-bold text-[11px]" title="Xóa">
-                                   <i class="fa-solid fa-trash"></i>
-                               </button>
-                           </div>
-                       </div>`).join('')}
-               </div>
-               <div class="mt-2 flex flex-wrap items-center justify-between gap-2">
-                   <span class="text-[10px] text-stone-600 italic">* Bấm nút bên phải để nạp vào Lịch iPhone/Android giúp tự đổ chuông khi tắt web.</span>
-                   <button onclick="exportEventsToICS()" class="bg-blue-700 hover:bg-blue-800 text-white px-3 py-1.5 rounded font-bold text-xs shadow transition">
-                       <i class="fa-solid fa-calendar-plus mr-1"></i> Nạp tất cả vào Lịch điện thoại (15 năm)
-                   </button>
-               </div>`
-            : `<div class="mt-2 text-[11px] italic text-stone-500 text-center">Chưa có sự kiện lặp lại nào. Hãy thêm Ngày Giỗ, Sinh nhật... ở trên để lịch tự nhắc mỗi năm!</div>`;
+        let noteAndEventBodyHtml = "";
+        if (activeNoteTab === "NOTE") {
+            noteAndEventBodyHtml = `
+                <div class="p-2 bg-amber-50">
+                    ${todayEventStripHtml}
+                    <div class="flex gap-2">
+                        <textarea id="personalNoteArea" class="flex-1 border border-amber-300 bg-white p-1.5 text-sm outline-none rounded" rows="2" placeholder="Ghi chú riêng cho ngày ${dData.solar.day}/${dData.solar.month}/${dData.solar.year}...">${escapeHtml(currentNote)}</textarea>
+                        <button onclick="saveNote('${selectedDateKey}')" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded font-bold text-sm shadow transition">LƯU</button>
+                    </div>
+                </div>`;
+        } else {
+            const listContentHtml = allAnnualEvents.length === 0
+                ? `<div class="text-[11px] italic text-stone-500 text-center py-1">Chưa có sự kiện nào. Thêm Ngày Giỗ / Sinh nhật ở trên để lịch tự nhắc mỗi năm.</div>`
+                : `
+                    <div class="flex flex-wrap items-center justify-between gap-2 bg-rose-100/70 px-2 py-1.5 rounded border border-rose-200">
+                        <button onclick="toggleEventList()" class="text-xs font-bold text-rose-900 hover:text-rose-700 flex items-center gap-1.5">
+                            <i class="fa-solid ${isEventListExpanded ? 'fa-chevron-up' : 'fa-chevron-down'}"></i>
+                            <span>Đang lưu ${allAnnualEvents.length} sự kiện — ${isEventListExpanded ? 'Thu gọn danh sách' : 'Xem danh sách'}</span>
+                        </button>
+                        <button onclick="exportEventsToICS()" class="bg-blue-700 hover:bg-blue-800 text-white px-2.5 py-1 rounded font-bold text-[11px] shadow transition">
+                            <i class="fa-solid fa-calendar-plus mr-1"></i> Nạp Lịch ĐT (15 năm)
+                        </button>
+                    </div>
+                    ${isEventListExpanded ? `
+                        <div class="mt-2">
+                            <div class="flex items-center gap-1 mb-1.5 text-[11px]">
+                                <button onclick="setEventListFilter('ALL')" class="px-2 py-0.5 rounded font-bold border ${eventListFilter==='ALL' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-stone-700 border-stone-300'}">Tất cả (${allAnnualEvents.length})</button>
+                                <button onclick="setEventListFilter('LUNAR')" class="px-2 py-0.5 rounded font-bold border ${eventListFilter==='LUNAR' ? 'bg-amber-600 text-white border-amber-600' : 'bg-white text-stone-700 border-stone-300'}">Âm lịch (${allAnnualEvents.filter(e=>e.type==='LUNAR').length})</button>
+                                <button onclick="setEventListFilter('SOLAR')" class="px-2 py-0.5 rounded font-bold border ${eventListFilter==='SOLAR' ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-stone-700 border-stone-300'}">Dương lịch (${allAnnualEvents.filter(e=>e.type==='SOLAR').length})</button>
+                            </div>
+                            <div class="max-h-44 overflow-y-auto custom-scroll border border-rose-200 rounded bg-white divide-y divide-rose-100">
+                                ${filteredAnnualEvents.length > 0 ? filteredAnnualEvents.map(e => `
+                                    <div class="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-rose-50">
+                                        <div class="flex flex-wrap items-center gap-1.5">
+                                            <span class="px-1.5 py-0.5 rounded font-bold text-[10px] ${e.type === 'LUNAR' ? 'bg-amber-200 text-amber-900' : 'bg-blue-100 text-blue-900'}">
+                                                ${pad2(e.day)}/${pad2(e.month)} ${e.type === 'LUNAR' ? 'ÂL' : 'DL'}
+                                            </span>
+                                            <span class="font-bold text-stone-800">${escapeHtml(e.title)}</span>
+                                            <span class="text-[10px] text-stone-500 italic">(Báo trước ${e.remindBefore} ngày)</span>
+                                        </div>
+                                        <div class="flex items-center gap-1 shrink-0">
+                                            <button onclick="exportEventsToICS('${e.id}')" class="text-blue-700 hover:text-blue-900 px-1.5 py-0.5 rounded hover:bg-blue-100 font-bold text-[11px]" title="Nạp sự kiện này vào Lịch ĐT (15 năm)">
+                                                <i class="fa-solid fa-calendar-plus"></i>
+                                            </button>
+                                            <button onclick="deleteAnnualEvent('${e.id}')" class="text-red-600 hover:text-red-800 px-1.5 py-0.5 rounded hover:bg-red-100 font-bold text-[11px]" title="Xóa">
+                                                <i class="fa-solid fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>`).join('') : `<div class="p-2 text-center text-[11px] italic text-stone-500">Không có sự kiện nào trong mục này.</div>`}
+                            </div>
+                        </div>
+                    ` : ''}`;
+
+            noteAndEventBodyHtml = `
+                <div class="p-2 bg-rose-50/70 space-y-2">
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-1.5 items-end bg-white p-2 rounded border border-rose-200">
+                        <div class="md:col-span-4">
+                            <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Tên sự kiện</label>
+                            <input type="text" id="evtTitle" placeholder="VD: Giỗ Ông Nội, Sinh nhật..." class="w-full border border-stone-300 rounded px-2 py-1 text-xs outline-none focus:border-rose-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Loại lịch</label>
+                            <select id="evtType" onchange="onChangeEvtType()" class="w-full border border-stone-300 rounded px-1.5 py-1 text-xs font-bold outline-none focus:border-rose-500">
+                                <option value="LUNAR">Âm lịch</option>
+                                <option value="SOLAR">Dương lịch</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-1 md:col-span-2">
+                            <div>
+                                <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Ngày</label>
+                                <input type="number" id="evtDay" min="1" max="30" value="${dData.lunar.day}" class="w-full border border-stone-300 rounded px-1 py-1 text-xs text-center font-bold outline-none focus:border-rose-500">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Tháng</label>
+                                <input type="number" id="evtMonth" min="1" max="12" value="${dData.lunar.month}" class="w-full border border-stone-300 rounded px-1 py-1 text-xs text-center font-bold outline-none focus:border-rose-500">
+                            </div>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Báo trước</label>
+                            <input type="number" id="evtRemind" min="0" max="60" value="3" title="Số ngày báo trước" class="w-full border border-stone-300 rounded px-1 py-1 text-xs text-center font-bold outline-none focus:border-rose-500">
+                        </div>
+                        <div class="md:col-span-2">
+                            <button onclick="addAnnualEvent()" class="w-full bg-rose-600 hover:bg-rose-700 text-white py-1 px-2 rounded font-bold text-xs shadow transition">
+                                <i class="fa-solid fa-plus"></i> THÊM
+                            </button>
+                        </div>
+                    </div>
+                    ${listContentHtml}
+                </div>`;
+        }
 
         // 3. KHỐI GỢI Ý GIỜ HOÀNG ĐẠO
         let hourSuggestionHtml = "";
@@ -1451,58 +1548,16 @@
 
             <table class="paper-table mt-[-2px]">
                 <tr>
-                    <td class="p-0 bg-amber-50 border-2 border-amber-500">
-                        <div class="header-cell p-1 bg-amber-200 text-amber-900 italic">📝 Ghi chú riêng cho ngày ${dData.solar.day}/${dData.solar.month}/${dData.solar.year} (Lưu tại thiết bị này)</div>
-                        <div class="p-2 flex gap-2">
-                            <textarea id="personalNoteArea" class="flex-1 border border-amber-300 p-1.5 text-sm outline-none rounded" rows="2" placeholder="Hôm nay bạn định làm gì?">${escapeHtml(currentNote)}</textarea>
-                            <button onclick="saveNote('${selectedDateKey}')" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded font-bold text-sm shadow transition">LƯU</button>
+                    <td class="p-0 border-2 ${activeNoteTab === 'NOTE' ? 'border-amber-500' : 'border-rose-400'}">
+                        <div class="grid grid-cols-2 text-xs font-bold border-b ${activeNoteTab === 'NOTE' ? 'border-amber-400' : 'border-rose-300'}">
+                            <button onclick="switchNoteTab('NOTE')" class="py-1.5 px-2 text-center transition ${activeNoteTab === 'NOTE' ? 'bg-amber-200 text-amber-950' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}">
+                                📝 Ghi chú ngày ${dData.solar.day}/${dData.solar.month}
+                            </button>
+                            <button onclick="switchNoteTab('ANNUAL')" class="py-1.5 px-2 text-center border-l border-stone-300 transition ${activeNoteTab === 'ANNUAL' ? 'bg-rose-200 text-rose-950' : 'bg-stone-100 text-stone-600 hover:bg-stone-200'}">
+                                🔔 Nhắc hằng năm (${allAnnualEvents.length})
+                            </button>
                         </div>
-                    </td>
-                </tr>
-            </table>
-
-            <table class="paper-table mt-[-2px]">
-                <tr>
-                    <td class="p-0 bg-rose-50/70 border-2 border-rose-400">
-                        <div class="header-cell p-1.5 bg-rose-200 text-rose-900 tracking-wider">
-                            <i class="fa-solid fa-bell"></i> SỰ KIỆN LẶP LẠI HẰNG NĂM (GIỖ, SINH NHẬT, KỶ NIỆM...)
-                        </div>
-                        <div class="p-2.5">
-                            ${selectedEventsHtml}
-                            <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-end bg-white p-2 rounded border border-rose-200">
-                                <div class="md:col-span-4">
-                                    <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Tên sự kiện</label>
-                                    <input type="text" id="evtTitle" placeholder="VD: Giỗ Ông Nội, Sinh nhật..." class="w-full border border-stone-300 rounded px-2 py-1 text-xs outline-none focus:border-rose-500">
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Theo lịch</label>
-                                    <select id="evtType" onchange="onChangeEvtType()" class="w-full border border-stone-300 rounded px-1.5 py-1 text-xs font-bold outline-none focus:border-rose-500">
-                                        <option value="LUNAR">Âm lịch</option>
-                                        <option value="SOLAR">Dương lịch</option>
-                                    </select>
-                                </div>
-                                <div class="grid grid-cols-2 gap-1 md:col-span-2">
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Ngày</label>
-                                        <input type="number" id="evtDay" min="1" max="30" value="${dData.lunar.day}" class="w-full border border-stone-300 rounded px-1.5 py-1 text-xs text-center font-bold outline-none focus:border-rose-500">
-                                    </div>
-                                    <div>
-                                        <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Tháng</label>
-                                        <input type="number" id="evtMonth" min="1" max="12" value="${dData.lunar.month}" class="w-full border border-stone-300 rounded px-1.5 py-1 text-xs text-center font-bold outline-none focus:border-rose-500">
-                                    </div>
-                                </div>
-                                <div class="md:col-span-2">
-                                    <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Báo trước (ngày)</label>
-                                    <input type="number" id="evtRemind" min="0" max="60" value="3" class="w-full border border-stone-300 rounded px-1.5 py-1 text-xs text-center font-bold outline-none focus:border-rose-500">
-                                </div>
-                                <div class="md:col-span-2">
-                                    <button onclick="addAnnualEvent()" class="w-full bg-rose-600 hover:bg-rose-700 text-white py-1.5 px-2 rounded font-bold text-xs shadow transition">
-                                        <i class="fa-solid fa-plus"></i> THÊM
-                                    </button>
-                                </div>
-                            </div>
-                            ${allEventsListHtml}
-                        </div>
+                        ${noteAndEventBodyHtml}
                     </td>
                 </tr>
             </table>
