@@ -34,6 +34,7 @@
     .lunar-text { font-size: 0.7rem; text-align: center; color: #d6d3d1; margin-top: 2px; position: relative; z-index: 2; }
     .good-day-dot { position: absolute; bottom: 4px; right: 4px; width: 10px; height: 10px; background-color: #4ade80; border-radius: 50%; box-shadow: 0 0 8px #4ade80; border: 1px solid #fff; z-index: 2; }
     .note-indicator { position: absolute; top: 4px; left: 4px; font-size: 10px; color: #facc15; z-index: 2; text-shadow: 0 0 3px black; }
+    .event-indicator { position: absolute; bottom: 3px; left: 4px; font-size: 10px; color: #fb7185; z-index: 2; text-shadow: 0 0 4px black; }
 
     .buddhist-lotus-bg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 2rem; opacity: 0.35; z-index: 1; pointer-events: none; filter: drop-shadow(0px 0px 5px rgba(255, 105, 180, 0.8)); }
 
@@ -76,7 +77,7 @@
         </div>
 
         <button onclick="goToday()" class="px-3 py-1.5 bg-stone-700 rounded hover:bg-stone-600 border border-stone-500 font-bold hidden sm:block">Hôm Nay</button>
-        <input type="date" id="dateInput" class="text-black px-1.5 py-1 rounded font-bold font-sans">
+        <input type="date" id="dateInput" min="1900-01-01" max="2100-12-31" class="text-black px-1.5 py-1 rounded font-bold font-sans">
     </div>
   </header>
 
@@ -92,9 +93,10 @@
                     <span class="text-lg font-bold uppercase tracking-widest text-amber-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] mt-1" id="leftWDay">Thứ ...</span>
                 </div>
                 <div class="text-right flex flex-col items-end">
-                    <span class="text-[10px] text-stone-300 uppercase tracking-widest drop-shadow-md mb-1">Tháng Âm Lịch</span>
+                    <span class="text-[10px] text-stone-300 uppercase tracking-widest drop-shadow-md mb-1">Ngày / Tháng Âm Lịch</span>
                     <span class="text-2xl font-bold text-red-400 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]" id="leftLunarDate">...</span>
-                    <span class="text-[11px] font-bold text-white uppercase tracking-widest drop-shadow-md mt-2" id="leftMonthYear">Năm Dương Lịch ...</span>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-black/60 border border-amber-400/50 text-amber-300 mt-1 shadow" id="leftLunarMonthType">...</span>
+                    <span class="text-[11px] font-bold text-white uppercase tracking-widest drop-shadow-md mt-1.5" id="leftMonthYear">Năm ...</span>
                 </div>
             </div>
         </div>
@@ -109,10 +111,11 @@
                 <div class="drop-shadow-md">T2</div><div class="drop-shadow-md">T3</div><div class="drop-shadow-md">T4</div><div class="drop-shadow-md">T5</div><div class="drop-shadow-md">T6</div><div class="text-blue-300 drop-shadow-md">T7</div><div class="text-red-400 drop-shadow-md">CN</div>
             </div>
             <div id="grid" class="calendar-grid-container flex-1 relative"></div>
-            <div class="flex justify-center items-center gap-4 text-[10px] md:text-xs font-bold bg-black/80 text-stone-300 py-1.5 border-t border-white/30 shrink-0">
+            <div class="flex flex-wrap justify-center items-center gap-x-3 gap-y-1 text-[10px] md:text-xs font-bold bg-black/80 text-stone-300 py-1.5 px-2 border-t border-white/30 shrink-0">
                 <div class="flex items-center gap-1"><div class="w-2.5 h-2.5 bg-green-400 rounded-full shadow-[0_0_5px_#4ade80]"></div> Tạm Ổn</div>
                 <div class="flex items-center gap-1 text-yellow-400"><i class="fa-solid fa-star drop-shadow-md text-sm"></i> Cực Kỳ Tốt</div>
                 <div class="flex items-center gap-1 text-pink-400"><i class="fa-solid fa-dharmachakra"></i> Lễ Phật</div>
+                <div class="flex items-center gap-1 text-rose-400"><i class="fa-solid fa-bell"></i> Giỗ / SN</div>
             </div>
         </div>
     </aside>
@@ -138,11 +141,239 @@
         }
     }
 
+    function escapeHtml(str) {
+        return String(str || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#39;");
+    }
+
+    // --- QUẢN LÝ SỰ KIỆN LẶP LẠI HẰNG NĂM (GIỖ, SINH NHẬT...) ---
+    const ANNUAL_EVENTS_KEY = "vansu_annual_events_v1";
+
+    function getAnnualEvents() {
+        try {
+            const raw = localStorage.getItem(ANNUAL_EVENTS_KEY);
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function saveAnnualEventsList(list) {
+        try {
+            localStorage.setItem(ANNUAL_EVENTS_KEY, JSON.stringify(list));
+            return true;
+        } catch (e) {
+            alert("Trình duyệt đang chặn bộ nhớ tạm. Không thể lưu sự kiện!");
+            return false;
+        }
+    }
+
+    function isSolarLeapYear(y) {
+        return (y % 4 === 0 && y % 100 !== 0) || (y % 400 === 0);
+    }
+
+    function isEventOnDate(evt, solarDate, lunarInfo) {
+        if (evt.type === "SOLAR") {
+            const sDay = solarDate.getDate();
+            const sMonth = solarDate.getMonth() + 1;
+            const sYear = solarDate.getFullYear();
+            if (evt.month === 2 && evt.day === 29 && !isSolarLeapYear(sYear)) {
+                return sMonth === 2 && sDay === 28;
+            }
+            return sMonth === evt.month && sDay === evt.day;
+        } else {
+            if (lunarInfo.leap) return false;
+            if (lunarInfo.month !== evt.month) return false;
+            if (evt.day === 30 && lunarInfo.monthDays === 29 && lunarInfo.day === 29) {
+                return true;
+            }
+            return lunarInfo.day === evt.day;
+        }
+    }
+
+    function getEventsForDate(solarDate, lunarInfo) {
+        return getAnnualEvents().filter(evt => isEventOnDate(evt, solarDate, lunarInfo));
+    }
+
+    function getUpcomingAnnualReminders() {
+        const events = getAnnualEvents();
+        if (events.length === 0) return [];
+
+        const maxRemind = Math.min(60, Math.max(0, ...events.map(e => parseInt(e.remindBefore, 10) || 0)));
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const reminders = [];
+
+        for (let offset = 0; offset <= maxRemind; offset++) {
+            const probe = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+            const [lDay, lMonth, lYear, lLeap, monthDays] = convertSolar2Lunar(probe.getDate(), probe.getMonth() + 1, probe.getFullYear(), 7);
+            const lunarInfo = { day: lDay, month: lMonth, year: lYear, leap: lLeap, monthDays };
+
+            events.forEach(evt => {
+                const remindDays = parseInt(evt.remindBefore, 10) || 0;
+                if (offset <= remindDays && isEventOnDate(evt, probe, lunarInfo)) {
+                    reminders.push({
+                        evt,
+                        daysLeft: offset,
+                        targetDate: probe,
+                        targetLunar: lunarInfo
+                    });
+                }
+            });
+        }
+
+        reminders.sort((a, b) => a.daysLeft - b.daysLeft);
+        return reminders;
+    }
+
+    function onChangeEvtType() {
+        const typeEl = document.getElementById("evtType");
+        const dayEl = document.getElementById("evtDay");
+        const monthEl = document.getElementById("evtMonth");
+        if (!typeEl || !dayEl || !monthEl) return;
+
+        if (typeEl.value === "LUNAR") {
+            const [lDay, lMonth] = convertSolar2Lunar(selDate.getDate(), selDate.getMonth() + 1, selDate.getFullYear(), 7);
+            dayEl.value = lDay;
+            monthEl.value = lMonth;
+            dayEl.max = 30;
+        } else {
+            dayEl.value = selDate.getDate();
+            monthEl.value = selDate.getMonth() + 1;
+            dayEl.max = 31;
+        }
+    }
+
+    function addAnnualEvent() {
+        const title = (document.getElementById("evtTitle").value || "").trim();
+        const type = document.getElementById("evtType").value;
+        const day = parseInt(document.getElementById("evtDay").value, 10);
+        const month = parseInt(document.getElementById("evtMonth").value, 10);
+        let remindBefore = parseInt(document.getElementById("evtRemind").value, 10);
+
+        if (!title) {
+            alert("Vui lòng nhập tên sự kiện (VD: Giỗ Ông Nội, Sinh nhật Mẹ...)");
+            return;
+        }
+        const maxDay = type === "LUNAR" ? 30 : 31;
+        if (isNaN(day) || day < 1 || day > maxDay || isNaN(month) || month < 1 || month > 12) {
+            alert(`Ngày/Tháng không hợp lệ (Ngày 1-${maxDay}, Tháng 1-12).`);
+            return;
+        }
+        if (isNaN(remindBefore) || remindBefore < 0) remindBefore = 0;
+        if (remindBefore > 60) remindBefore = 60;
+
+        const list = getAnnualEvents();
+        list.push({
+            id: "evt_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
+            title,
+            type,
+            day,
+            month,
+            remindBefore
+        });
+
+        if (saveAnnualEventsList(list)) {
+            render();
+        }
+    }
+
+    function deleteAnnualEvent(id) {
+        if (!confirm("Xóa sự kiện hằng năm này?")) return;
+        const list = getAnnualEvents().filter(e => e.id !== id);
+        if (saveAnnualEventsList(list)) {
+            render();
+        }
+    }
+
+    function formatIcsDate(dt) {
+        return `${dt.getFullYear()}${pad2(dt.getMonth() + 1)}${pad2(dt.getDate())}`;
+    }
+
+    function escapeIcsText(str) {
+        return String(str || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+    }
+
+    // Xuất 1 sự kiện hoặc toàn bộ danh sách sang file .ics cho 15 năm tới để nạp vào Lịch iPhone/Android
+    function exportEventsToICS(eventId = null) {
+        const all = getAnnualEvents();
+        const targets = eventId ? all.filter(e => e.id === eventId) : all;
+        if (targets.length === 0) {
+            alert("Chưa có sự kiện nào để xuất sang Lịch điện thoại!");
+            return;
+        }
+
+        const startYear = new Date().getFullYear();
+        const endYear = startYear + 14;
+        const lines = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//VanSuAnYen//LichVanSu//VI",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH"
+        ];
+
+        for (let y = startYear; y <= endYear; y++) {
+            const startDt = new Date(y, 0, 1);
+            const endDt = new Date(y, 11, 31);
+            for (let cur = new Date(startDt); cur <= endDt; cur.setDate(cur.getDate() + 1)) {
+                const [lDay, lMonth, lYear, lLeap, monthDays] = convertSolar2Lunar(cur.getDate(), cur.getMonth() + 1, cur.getFullYear(), 7);
+                const lunarInfo = { day: lDay, month: lMonth, year: lYear, leap: lLeap, monthDays };
+
+                targets.forEach(evt => {
+                    if (isEventOnDate(evt, cur, lunarInfo)) {
+                        const nextDay = new Date(cur.getFullYear(), cur.getMonth(), cur.getDate() + 1);
+                        const remind = Math.max(0, parseInt(evt.remindBefore, 10) || 0);
+                        const label = evt.type === "LUNAR"
+                            ? `${evt.title} (${evt.day}/${evt.month} ÂL)`
+                            : `${evt.title} (${evt.day}/${evt.month} DL)`;
+
+                        lines.push("BEGIN:VEVENT");
+                        lines.push(`UID:${evt.id}_${y}@vansuanyen`);
+                        lines.push(`DTSTART;VALUE=DATE:${formatIcsDate(cur)}`);
+                        lines.push(`DTEND;VALUE=DATE:${formatIcsDate(nextDay)}`);
+                        lines.push(`SUMMARY:${escapeIcsText(label)}`);
+                        lines.push(`DESCRIPTION:${escapeIcsText("Tạo từ Lịch Vạn Sự An Yên - Báo trước " + remind + " ngày.")}`);
+
+                        if (remind > 0) {
+                            lines.push("BEGIN:VALARM");
+                            lines.push("ACTION:DISPLAY");
+                            lines.push(`DESCRIPTION:${escapeIcsText("Còn " + remind + " ngày nữa tới: " + label)}`);
+                            lines.push(`TRIGGER:-P${remind - 1}DT17H`);
+                            lines.push("END:VALARM");
+                        }
+
+                        lines.push("BEGIN:VALARM");
+                        lines.push("ACTION:DISPLAY");
+                        lines.push(`DESCRIPTION:${escapeIcsText("Hôm nay: " + label)}`);
+                        lines.push("TRIGGER:PT7H");
+                        lines.push("END:VALARM");
+                        lines.push("END:VEVENT");
+                    }
+                });
+            }
+        }
+
+        lines.push("END:VCALENDAR");
+
+        const blob = new Blob([lines.join("\r\n")], { type: "text/calendar;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = eventId ? "su-kien-lich-van-su.ics" : "tat-ca-ngay-gio-sinh-nhat-15-nam.ics";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+
     // --- 1. DỮ LIỆU CẤU HÌNH ---
     const TASK_RULES = {
-        // Xây dựng chỉ lấy nhóm ngày kỵ việc người sống / trần gian.
-        // Không lấy các ngày chuyên về Tang sự như Trùng Tang, Phục Tang, Phục Táng,
-        // Sát Chủ Âm, Trùng Phục, Tam Sa Sát (Đi Chôn)... để tránh lọc sai.
         XAY_NHA: { 
             name: "Xây Dựng / Sửa Nhà", 
             goodTruc: ["Mãn", "Bình", "Định", "Thành"], 
@@ -159,9 +390,6 @@
             ], 
             goodStars: "Thiên Đức, Nguyệt Đức" 
         },
-        // Đám cưới chỉ lọc nhóm ngày kỵ việc người sống / hôn nhân.
-        // Không lấy các ngày chuyên âm trạch như Trùng Tang, Phục Tang, Phục Táng, Trùng Nhật...
-        // Bản tinh gọn: bỏ Kim Thần Thất Sát, Dương Công Kỵ, Không Phòng, Tử Biệt, Trực Bình, Trực Thu/Thâu.
         CUOI_HOI: { 
             name: "Đám Cưới / Giá Thú", 
             goodTruc: ["Định", "Thành", "Khai", "Mãn"], 
@@ -183,7 +411,6 @@
             ], 
             goodStars: "Tục Thế, Thiên Hỷ" 
         },
-        // Khai trương chỉ lọc nhóm ngày kỵ việc trên trần gian, không lọc nhóm âm trạch / tang sự.
         KHAI_TRUONG: { 
             name: "Khai Trương / Kinh Doanh", 
             goodTruc: ["Khai", "Mãn", "Thành"], 
@@ -199,10 +426,6 @@
             ], 
             goodStars: "Nguyệt Tài, Lộc Mã" 
         },
-        // An Vị là việc thuộc người sống / trần gian nên lọc chung bộ ngày kỵ như Xây Dựng.
-        // Vẫn giữ riêng bộ Cung An Vị: An, Lợi, Thiên, Phú, Sư.
-        // Không lấy các ngày chuyên âm trạch như Trùng Tang, Phục Tang, Phục Táng,
-        // Sát Chủ Âm, Trùng Phục, Tam Sa Sát (Đi Chôn)...
         AN_VI: {
             name: "An Vị Bàn Thờ / Tôn Tượng",
             goodTruc: ["Thành", "Mãn", "Khai", "Định", "Bình"],
@@ -232,38 +455,25 @@
         ELEMENTS: { CAN: [1,1,3,3,4,4,0,0,2,2], CHI: [2,4,1,1,4,3,3,4,0,0,4,2] }, 
         HY_THAN: ["Đông Bắc", "Tây Bắc", "Tây Nam", "Chính Nam", "Đông Nam", "Đông Bắc", "Tây Bắc", "Tây Nam", "Chính Nam", "Đông Nam"],
         TAI_THAN: ["Đông Nam", "Đông Nam", "Chính Đông", "Chính Đông", "Chính Bắc", "Chính Nam", "Tây Nam", "Tây Nam", "Chính Tây", "Tây Bắc"],
-        // Phục Tang / Trùng Phục theo Ngọc Hạp Thông Thư.
-        // Luận theo THÁNG TIẾT KHÍ (fsMonth), rồi xét THIÊN CAN của ngày.
-        // Th1 Canh, Th2 Tân, Th3 Kỷ, Th4 Nhâm, Th5 Quý, Th6 Mậu,
-        // Th7 Giáp, Th8 Ất, Th9 Kỷ, Th10 Nhâm, Th11 Quý, Th12 Kỷ.
         PHUC_TANG_CAN_MAP: {1:[6], 2:[7], 3:[5], 4:[8], 5:[9], 6:[4], 7:[0], 8:[1], 9:[5], 10:[8], 11:[9], 12:[5]},
-        // Trùng Tang: dùng riêng cho Tang Sự / An Táng.
-        // Luận theo THÁNG TIẾT KHÍ (fsMonth), rồi xét THIÊN CAN của ngày.
-        // Theo bảng anh cung cấp: Th1 Giáp, Th2 Ất, Th3 Kỷ, Th4 Bính, Th5 Đinh,
-        // Th6 Kỷ, Th7 Canh, Th8 Tân, Th9 Kỷ, Th10 Nhâm, Th11 Quý, Th12 Kỷ.
-        // Lưu ý: anh ghi "Tháng 3,6,9,12 thuộc Kỷ" và dòng sau ghi "Tháng 9 Nhâm";
-        // bản này giữ Tháng 9 = Kỷ, Tháng 10 = Nhâm để đủ 12 tháng và không bị trùng mâu thuẫn.
         TRUNG_TANG_CAN_MAP: {1:[0], 2:[1], 3:[5], 4:[2], 5:[3], 6:[5], 7:[6], 8:[7], 9:[5], 10:[8], 11:[9], 12:[5]},
         TAM_TANG_MAP: {1:4, 2:4, 3:4, 4:7, 5:7, 6:7, 7:10, 8:10, 9:10, 10:1, 11:1, 12:1},
         SAT_CHU_DUONG_MAP: {1:[0], 2:[1], 3:[1], 4:[10], 5:[4], 6:[4], 7:[1], 8:[4], 9:[1], 10:[4], 11:[7], 12:[4]},
         SAT_CHU_AM_MAP: {1:[5], 2:[0], 3:[7], 4:[3], 5:[8], 6:[10], 7:[1], 8:[11], 9:[6], 10:[9], 11:[2], 12:[4]},
         THO_TU_MAP: {1:10, 2:4, 3:11, 4:5, 5:0, 6:6, 7:1, 8:7, 9:2, 10:8, 11:3, 12:9},
-        // Ngày Thọ Tử luận theo tháng tiết khí:
-        // Nếu trong tháng có ngày chính chủ Can Chi thì chỉ ngày đó là Thọ Tử.
-        // Nếu không có ngày chính chủ mà có đủ 3 ngày cùng Địa Chi thì cả 3 ngày đó là Thọ Tử.
         THO_TU_CHINH_CHU_MAP: {
-            1: { can: 2, chi: 10 },  // Bính Tuất
-            2: { can: 8, chi: 4 },   // Nhâm Thìn
-            3: { can: 7, chi: 11 },  // Tân Hợi
-            4: { can: 3, chi: 5 },   // Đinh Tỵ
-            5: { can: 4, chi: 0 },   // Mậu Tý
-            6: { can: 2, chi: 6 },   // Bính Ngọ
-            7: { can: 1, chi: 1 },   // Ất Sửu
-            8: { can: 9, chi: 7 },   // Quý Mùi
-            9: { can: 0, chi: 2 },   // Giáp Dần
-            10: { can: 4, chi: 8 },  // Mậu Thân
-            11: { can: 7, chi: 3 },  // Tân Mão
-            12: { can: 7, chi: 9 }   // Tân Dậu
+            1: { can: 2, chi: 10 },
+            2: { can: 8, chi: 4 },
+            3: { can: 7, chi: 11 },
+            4: { can: 3, chi: 5 },
+            5: { can: 4, chi: 0 },
+            6: { can: 2, chi: 6 },
+            7: { can: 1, chi: 1 },
+            8: { can: 9, chi: 7 },
+            9: { can: 0, chi: 2 },
+            10: { can: 4, chi: 8 },
+            11: { can: 7, chi: 3 },
+            12: { can: 7, chi: 9 }
         },
         GIO_SAT_CHU_MAP: {1:2, 2:5, 3:8, 4:4, 5:9, 6:3, 7:2, 8:5, 9:8, 10:4, 11:9, 12:3}, GIO_THO_TU_MAP: [1, 6, 6, 5, 5, 6, 7, 6, 9, 5, 7, 6],
         TAM_SA_SAT_CAT_NHA: {
@@ -299,9 +509,6 @@
             11: [3, 5, 11, 17],
             12: [4, 10, 16]
         },
-        // Kim Thần Thất Sát luận theo Thiên Can năm âm lịch và Địa Chi ngày.
-        // Giáp/Kỷ: Ngọ Mùi Thân Dậu; Ất/Canh: Thìn Tỵ;
-        // Bính/Tân: Dần Mão Ngọ Mùi; Đinh/Nhâm: Dần Mão Tuất Hợi; Mậu/Quý: Thân Dậu Tý Sửu.
         KIM_THAN_THAT_SAT_MAP: {
             0: [6, 7, 8, 9], 5: [6, 7, 8, 9],
             1: [4, 5],       6: [4, 5],
@@ -309,9 +516,6 @@
             3: [2, 3, 10, 11], 8: [2, 3, 10, 11],
             4: [8, 9, 0, 1], 9: [8, 9, 0, 1]
         },
-        // Không Phòng kỵ giá thú, luận theo mùa/tháng âm lịch và Địa Chi ngày.
-        // Xuân 1-3: Dần Sửu Tuất; Hạ 4-6: Tỵ Thìn Hợi;
-        // Thu 7-9: Ngọ Mão Tý; Đông 10-12: Dậu Thân Sửu.
         KHONG_PHONG_MAP: {
             1: [2, 1, 10], 2: [2, 1, 10], 3: [2, 1, 10],
             4: [5, 4, 11], 5: [5, 4, 11], 6: [5, 4, 11],
@@ -372,8 +576,6 @@
     
     // ===============================================================
     //  TÍNH TIẾT KHÍ - THÁNG KIẾN - TRỰC THEO GIỜ GIAO TIẾT
-    //  Bản này thay cho bảng tiết khí cố định. Múi giờ lấy theo máy
-    //  đang chạy trình duyệt; khi dùng tại Việt Nam sẽ ra giờ Việt Nam.
     // ===============================================================
     const SOLAR_TERM_CACHE = {};
     const SOLAR_TERM_DEFS = [
@@ -410,7 +612,6 @@
     function angleDiff(lon, target) { return ((lon - target + 540) % 360) - 180; }
     function jdFromDateObj(date) { return date.getTime() / 86400000 + 2440587.5; }
 
-    // Kinh độ biểu kiến Mặt Trời, đủ chính xác để xác định ngày/giờ tiết khí thực dụng.
     function sunLongitude(jd) {
         const T = (jd - 2451545.0) / 36525;
         const L0 = norm360(280.46646 + 36000.76983 * T + 0.0003032 * T * T);
@@ -430,7 +631,6 @@
         let flo = angleDiff(sunLongitude(jdFromDateObj(lo)), def.angle);
         let fhi = angleDiff(sunLongitude(jdFromDateObj(hi)), def.angle);
 
-        // Nếu gặp năm nhuận hoặc sai số biên, mở rộng vùng tìm.
         if (flo > 0 || fhi < 0) {
             lo = new Date(center.getTime() - 8 * 86400000);
             hi = new Date(center.getTime() + 8 * 86400000);
@@ -492,7 +692,6 @@
             const beforeChiMonth = beforeTerm.chiMonth;
             const afterChiMonth = afterTerm.chiMonth;
 
-            // Lấy tháng kiến chính tại giữa ngày để các phần đánh giá cũ vẫn chạy ổn.
             calcChiMonth = (termToday.time <= noon) ? afterChiMonth : beforeChiMonth;
             chiMonth = calcChiMonth;
             displayName = `${afterTerm.name} (${formatHM(afterTerm.time)})`;
@@ -548,12 +747,9 @@
     function getCanChiDay(d, m, y) { let jd = getJulianDay(d, m, y); let jdn = Math.floor(jd + 0.5); let dayCanIdx = (jdn + 9) % 10; let dayChiIdx = (jdn + 1) % 12; return { full: `${CAL_DATA.CAN[dayCanIdx]} ${CAL_DATA.CHI[dayChiIdx]}`, canIdx: dayCanIdx, chiIdx: dayChiIdx, jdn: jdn }; }
     function getDayRating(cIdx, chIdx) { let ec = CAL_DATA.ELEMENTS.CAN[cIdx]; let ech = CAL_DATA.ELEMENTS.CHI[chIdx]; if (ec === ech) return { name: "Bát Chuyên (Đồng Khí)", color: "text-stone-600", desc: "Ngày bình hòa." }; if ((ec===0&&ech===2)||(ec===2&&ech===1)||(ec===1&&ech===3)||(ec===3&&ech===4)||(ec===4&&ech===0)) return { name: "Bảo Nhật (Đại Cát)", color: "text-green-700", desc: "Rất tốt cho mọi việc." }; if ((ech===0&&ec===2)||(ech===2&&ec===1)||(ech===1&&ec===3)||(ech===3&&ec===4)||(ech===4&&ec===0)) return { name: "Thoa Nhật (Tiểu Cát)", color: "text-blue-700", desc: "Tốt vừa, có thể dùng." }; if ((ec===0&&ec===1)||(ec===1&&ech===4)||(ec===4&&ech===2)||(ec===2&&ech===3)||(ec===3&&ech===0)) return { name: "Chế Nhật (Tiểu Hung)", color: "text-amber-600", desc: "Xấu nhẹ, thận trọng." }; return { name: "Phạt Nhật (Đại Hung)", color: "text-red-600 font-bold", desc: "Can khắc Chi. Kỵ làm đại sự." }; }
     function getTuoiXungTrongNgay(dayCanIdx, dayChiIdx) {
-        // Tuổi kỵ ngày: lấy Địa Chi đối xung làm chính.
-        // Ví dụ ngày Ngọ thì kỵ nhóm tuổi Tý; ngày Dậu thì kỵ nhóm tuổi Mão.
         const xungChiIdx = (dayChiIdx + 6) % 12;
         const tuoiTheoChi = [];
         for (let canIdx = 0; canIdx < 10; canIdx++) {
-            // Trong vòng Lục thập hoa giáp, Can và Chi phải cùng chẵn/lẻ mới ghép thành năm hợp lệ.
             if (canIdx % 2 === xungChiIdx % 2) {
                 tuoiTheoChi.push(CAL_DATA.CAN[canIdx] + " " + CAL_DATA.CHI[xungChiIdx]);
             }
@@ -570,8 +766,6 @@
         return parseInt(document.getElementById("birthYear").value, 10);
     }
 
-    // XÂY DỰNG: kỵ ngày xung bổn mạng theo Lục Xung.
-    // Ví dụ: tuổi Tý kỵ ngày Ngọ, tuổi Mão kỵ ngày Dậu.
     function checkXungTuoiXayDung(dayChiIdx) {
         const uYear = getNhapNamSinhAL();
         if (!uYear) return false;
@@ -579,14 +773,11 @@
         return ((uChiIdx - dayChiIdx + 12) % 12) === 6;
     }
 
-    // TANG SỰ: ngày kỵ theo tuổi người mất, không dùng Lục Xung thường.
-    // Thân Tý Thìn kỵ ngày Tỵ; Dần Ngọ Tuất kỵ ngày Hợi;
-    // Hợi Mão Mùi kỵ ngày Thân; Tỵ Dậu Sửu kỵ ngày Dần.
     function getNgayKyTangSuTheoTuoiChi(chiSinhIdx) {
-        if ([8, 0, 4].includes(chiSinhIdx)) return 5;   // Thân Tý Thìn -> Tỵ
-        if ([2, 6, 10].includes(chiSinhIdx)) return 11; // Dần Ngọ Tuất -> Hợi
-        if ([11, 3, 7].includes(chiSinhIdx)) return 8;  // Hợi Mão Mùi -> Thân
-        if ([5, 9, 1].includes(chiSinhIdx)) return 2;   // Tỵ Dậu Sửu -> Dần
+        if ([8, 0, 4].includes(chiSinhIdx)) return 5;
+        if ([2, 6, 10].includes(chiSinhIdx)) return 11;
+        if ([11, 3, 7].includes(chiSinhIdx)) return 8;
+        if ([5, 9, 1].includes(chiSinhIdx)) return 2;
         return null;
     }
 
@@ -673,13 +864,10 @@
 
         const summary = getTietKhiMonthSummary(dateObj, fsMonth);
 
-        // Có ngày chính chủ: chỉ đúng ngày Can Chi chính chủ là Thọ Tử.
         if (summary.hasChinhChu) {
             return dCanIdx === rule.can && dChiIdx === rule.chi;
         }
 
-        // Không có ngày chính chủ: nếu tháng tiết khí có đủ 3 ngày cùng con giáp,
-        // thì cả 3 ngày ấy là Thọ Tử; nếu chỉ có 2 ngày thì không lấy.
         return dChiIdx === rule.chi && summary.sameChiDays.length >= 3;
     }
 
@@ -694,9 +882,6 @@
         if (isTuTuyet) notes.push({ name: "Tứ Tuyệt", desc: "Ngũ hành mùa cũ tận cùng." });
         if (isTuLy) notes.push({ name: "Tứ Ly", desc: "Âm Dương phân ly." });
 
-        // Các ngày kỵ riêng cho Đám Cưới / Giá Thú.
-        // Những ngày này chỉ có tác dụng khi TASK_RULES.CUOI_HOI đưa vào badDays,
-        // không làm thay đổi cách lọc của Xây Dựng và Tang Sự.
         if (dChiIdx === 11) notes.push({ name: "Ngày Hợi", desc: "Ngày Hợi: theo bộ lọc cưới hỏi hiện tại, nên tránh giá thú." });
         if (CAL_DATA.XICH_KHAU_MAP[lMonth] && CAL_DATA.XICH_KHAU_MAP[lMonth].includes(lDay)) notes.push({ name: "Xích Khẩu", desc: "Chủ khẩu thiệt, cãi vã; kỵ hôn nhân và việc vui lớn." });
         if (lDay === 1) {
@@ -709,7 +894,6 @@
         if (CAL_DATA.SAT_CHU_DUONG_MAP[fsMonth] && CAL_DATA.SAT_CHU_DUONG_MAP[fsMonth].includes(dChiIdx)) notes.push({ name: "Sát Chủ Dương", desc: "Kỵ việc người sống." }); 
         if (CAL_DATA.SAT_CHU_AM_MAP[fsMonth] && CAL_DATA.SAT_CHU_AM_MAP[fsMonth].includes(dChiIdx)) notes.push({ name: "Sát Chủ Âm", desc: "Kỵ việc người chết." }); 
         
-        // --- ADD TAM SA SÁT ---
         if (CAL_DATA.TAM_SA_SAT_CAT_NHA[lMonth] && CAL_DATA.TAM_SA_SAT_CAT_NHA[lMonth].includes(lDay)) {
             notes.push({ name: "Tam Sa Sát (Cất Nhà)", desc: "Đại kỵ cất nhà (thượng lương, động thổ)." });
         }
@@ -719,7 +903,6 @@
         if (CAL_DATA.TAM_SA_SAT_CUOI_VO[lMonth] && CAL_DATA.TAM_SA_SAT_CUOI_VO[lMonth].includes(lDay)) {
             notes.push({ name: "Tam Sa Sát (Cưới Vợ)", desc: "Đại kỵ cưới vợ (giá thú)." });
         }
-        // ----------------------
 
         const hasPhucTang = CAL_DATA.PHUC_TANG_CAN_MAP[fsMonth] && CAL_DATA.PHUC_TANG_CAN_MAP[fsMonth].includes(dCanIdx);
         if (hasPhucTang) {
@@ -783,9 +966,6 @@
             }
         }
 
-        // Ô Năm sinh ÂL dùng chung, nhưng luật xét khác nhau theo từng việc:
-        // - Xây dựng: kỵ ngày Lục Xung với bổn mạng.
-        // - Tang sự: kỵ ngày theo nhóm tuổi người mất: Thân Tý Thìn -> Tỵ, Dần Ngọ Tuất -> Hợi, Hợi Mão Mùi -> Thân, Tỵ Dậu Sửu -> Dần.
         if (isXungTuoiCaNhan) { 
             isGood = false;
             if (task === "TANG_SU") failReasons.push("Ngày kỵ theo tuổi người mất: kỵ động quan / hạ huyệt.");
@@ -796,53 +976,21 @@
 
         let minorBadDays = [];
         if (task === "XAY_NHA") {
-            // Xây dựng: không cảnh báo các ngày chuyên Tang sự, để lịch lọc không bị loại oan.
-            // Chỉ giữ cảnh báo những ngày vẫn liên quan việc người sống / trần gian.
-            const xayNhaWarningDays = [
-                "Tứ Ly", "Tháng Cô Hồn", "Tam Tang"
-            ];
-            minorBadDays = badDaysList.filter(b =>
-                xayNhaWarningDays.includes(b.name) && !rules.badDays.includes(b.name)
-            );
+            const xayNhaWarningDays = ["Tứ Ly", "Tháng Cô Hồn", "Tam Tang"];
+            minorBadDays = badDaysList.filter(b => xayNhaWarningDays.includes(b.name) && !rules.badDays.includes(b.name));
         } else if (task === "TANG_SU") {
-            // Tang sự chỉ xét nhóm ngày liên quan người âm.
-            // Tam Nương, Thọ Tử, Ngày Cô Hồn... là nhóm việc trần gian/người sống,
-            // không dùng để loại hoặc cảnh báo khi lọc Tang Sự.
             minorBadDays = [];
         } else if (task === "CUOI_HOI") {
-            // Đám cưới: chỉ cảnh báo thêm nhóm ngày hôn nhân / trần gian,
-            // tuyệt đối không lôi các ngày âm trạch vào phần kết quả.
-            const cuoiHoiWarningDays = [
-                "Ngày Hợi", "Tam Nương", "Nguyệt Kỵ", "Xích Khẩu",
-                "Cô Thần", "Quả Tú", "Hoàng Thiên", "Chu Tước",
-                "Tháng Cô Hồn", "Ngày Cô Hồn"
-            ];
-            minorBadDays = badDaysList.filter(b =>
-                cuoiHoiWarningDays.includes(b.name) && !rules.badDays.includes(b.name)
-            );
+            const cuoiHoiWarningDays = ["Ngày Hợi", "Tam Nương", "Nguyệt Kỵ", "Xích Khẩu", "Cô Thần", "Quả Tú", "Hoàng Thiên", "Chu Tước", "Tháng Cô Hồn", "Ngày Cô Hồn"];
+            minorBadDays = badDaysList.filter(b => cuoiHoiWarningDays.includes(b.name) && !rules.badDays.includes(b.name));
         } else if (task === "KHAI_TRUONG") {
-            // Khai trương: chỉ xét việc trên trần gian, không cảnh báo ngày âm trạch / tang sự.
-            const khaiTruongWarningDays = [
-                "Tam Nương", "Nguyệt Kỵ", "Tứ Ly", "Tháng Cô Hồn", "Ngày Cô Hồn"
-            ];
-            minorBadDays = badDaysList.filter(b =>
-                khaiTruongWarningDays.includes(b.name) && !rules.badDays.includes(b.name)
-            );
+            const khaiTruongWarningDays = ["Tam Nương", "Nguyệt Kỵ", "Tứ Ly", "Tháng Cô Hồn", "Ngày Cô Hồn"];
+            minorBadDays = badDaysList.filter(b => khaiTruongWarningDays.includes(b.name) && !rules.badDays.includes(b.name));
         } else if (task === "AN_VI") {
-            // An Vị: đã lọc trực tiếp các ngày kỵ trần gian trong rules.badDays.
-            // Chỉ cảnh báo thêm Tứ Ly / Tháng Cô Hồn nếu gặp, không lôi ngày âm trạch vào.
-            const anViWarningDays = [
-                "Tứ Ly", "Tháng Cô Hồn"
-            ];
-            minorBadDays = badDaysList.filter(b =>
-                anViWarningDays.includes(b.name) && !rules.badDays.includes(b.name)
-            );
+            const anViWarningDays = ["Tứ Ly", "Tháng Cô Hồn"];
+            minorBadDays = badDaysList.filter(b => anViWarningDays.includes(b.name) && !rules.badDays.includes(b.name));
         } else {
-            minorBadDays = badDaysList.filter(b =>
-                !rules.badDays.includes(b.name) &&
-                b.name !== "Sát Chủ Dương" &&
-                b.name !== "Sát Chủ Âm"
-            );
+            minorBadDays = badDaysList.filter(b => !rules.badDays.includes(b.name) && b.name !== "Sát Chủ Dương" && b.name !== "Sát Chủ Âm");
         }
         
         if (fatalBadDays.length > 0) { 
@@ -873,7 +1021,7 @@
 
     // ===============================================================
     //  THUẬT TOÁN ÂM LỊCH VIỆT NAM (HỒ NGỌC ĐỨC - CHUẨN UTC+7)
-    //  Đồng bộ tuyệt đối giữa Máy tính, iPhone, Android và mọi trình duyệt.
+    //  Trả về: [ngày ÂL, tháng ÂL, năm ÂL, cờ nhuận (0/1), số ngày tháng ÂL (29/30)]
     // ===============================================================
     function INT(d) { return Math.floor(d); }
 
@@ -953,8 +1101,15 @@
     function convertSolar2Lunar(dd, mm, yy, timeZone = 7) {
         let dayNumber = jdFromDate(dd, mm, yy);
         let k = INT((dayNumber - 2415021.076998695) / 29.530588853);
-        let monthStart = getNewMoonDay(k + 1, timeZone);
-        if (monthStart > dayNumber) monthStart = getNewMoonDay(k, timeZone);
+        let monthK = k + 1;
+        let monthStart = getNewMoonDay(monthK, timeZone);
+        while (monthStart > dayNumber) {
+            monthK--;
+            monthStart = getNewMoonDay(monthK, timeZone);
+        }
+        let nextMonthStart = getNewMoonDay(monthK + 1, timeZone);
+        let monthDays = nextMonthStart - monthStart;
+
         let a11 = getLunarMonth11(yy, timeZone);
         let b11 = a11;
         let lunarYear;
@@ -978,12 +1133,14 @@
         }
         if (lunarMonth > 12) lunarMonth = lunarMonth - 12;
         if (lunarMonth >= 11 && diff < 4) lunarYear -= 1;
-        return [lunarDay, lunarMonth, lunarYear, lunarLeap];
+        return [lunarDay, lunarMonth, lunarYear, lunarLeap, monthDays];
     }
 
     function getCalendarData(solarDate) {
         const d = new Date(solarDate);
-        const [lDay, lMonth, lYear, lLeap] = convertSolar2Lunar(d.getDate(), d.getMonth() + 1, d.getFullYear(), 7);
+        const [lDay, lMonth, lYear, lLeap, lunarMonthDays] = convertSolar2Lunar(d.getDate(), d.getMonth() + 1, d.getFullYear(), 7);
+        const isThangDu = lunarMonthDays >= 30;
+        const isLastDayOfMonth = (lDay === lunarMonthDays);
 
         const dayInfo = getCanChiDay(d.getDate(), d.getMonth()+1, d.getFullYear());
         const solarInfo = getSolarInfo(d.getDate(), d.getMonth()+1, d);
@@ -1017,27 +1174,15 @@
         }
 
         const badDaysList = getBadDaysInfo(lMonth, lDay, lYear, dayInfo.canIdx, dayInfo.chiIdx, solarInfo.calcChiMonth, isTuTuyet, isTuLy, d);
-
-        const [lDayT] = convertSolar2Lunar(dTomorrow.getDate(), dTomorrow.getMonth() + 1, dTomorrow.getFullYear(), 7);
-        let isLastDayOfMonth = (lDayT === 1); 
-
-        let lunarMonthDays = lDay;
-        for (let step = 1; step <= 32; step++) {
-            let probeDate = new Date(solarDate);
-            probeDate.setDate(probeDate.getDate() + step);
-            const [probeLunarDay] = convertSolar2Lunar(probeDate.getDate(), probeDate.getMonth() + 1, probeDate.getFullYear(), 7);
-            if (probeLunarDay === 1) {
-                lunarMonthDays = lDay + step - 1;
-                break;
-            }
-        }
-
         const anViCung = getAnViCung(lDay, lunarMonthDays);
 
-        let bHoliday = CAL_DATA.BUDDHIST_HOLIDAYS[`${lDay}/${lMonth}`];
-        if (!bHoliday && isLastDayOfMonth) {
-            if (lDay === 29 && lMonth === 7) bHoliday = CAL_DATA.BUDDHIST_HOLIDAYS["30/7"];
-            if (lDay === 29 && lMonth === 9) bHoliday = CAL_DATA.BUDDHIST_HOLIDAYS["30/9"];
+        let bHoliday = null;
+        if (!lLeap) {
+            bHoliday = CAL_DATA.BUDDHIST_HOLIDAYS[`${lDay}/${lMonth}`] || null;
+            if (!bHoliday && isLastDayOfMonth) {
+                if (lDay === 29 && lMonth === 7) bHoliday = CAL_DATA.BUDDHIST_HOLIDAYS["30/7"];
+                if (lDay === 29 && lMonth === 9) bHoliday = CAL_DATA.BUDDHIST_HOLIDAYS["30/9"];
+            }
         }
 
         let fsMonth = (solarInfo.calcChiMonth + 10) % 12 + 1;
@@ -1053,7 +1198,14 @@
             hourDetails.push({ can: canGio, chi: chiGio, chiIdx: i, str: `${canGio} ${chiGio}<br><span class="text-[9px] text-gray-500">(${(i*2-1+24)%24}h-${(i*2+1)%24}h)</span>`, isGood: checkGioHoangDao(dayInfo.chiIdx, i), lucDieu: lucDieuStr, isThoTu: isThoTu, isSatChu: isSatChu, isKhongVong: isKhongVong });
         }
         
-        return { solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() }, lunar: { day: lDay, month: lMonth, year: lYear, leap: lLeap }, text: { day: dayInfo.full }, extra: { truc, trucDisplay: trucInfo.display, trucDescHtml: trucInfo.descHtml, giaoHoaTruc: trucInfo.giaoHoa, tietKhi: solarInfo.name, hyThan: CAL_DATA.HY_THAN[dayInfo.canIdx], taiThan: CAL_DATA.TAI_THAN[dayInfo.canIdx], hacThan: getHacThanDirection(dayInfo.jdn), badDaysList, isXungTuoiXayDung, isKyTangSuTheoTuoi, thongTinKyTangSu, tuoiXungNgay, bHoliday, isHoangDao, sao: saoData, anViCung }, hourDetails, rating };
+        return {
+            solar: { day: d.getDate(), month: d.getMonth()+1, year: d.getFullYear(), weekday: d.getDay() },
+            lunar: { day: lDay, month: lMonth, year: lYear, leap: lLeap, monthDays: lunarMonthDays, isThangDu },
+            text: { day: dayInfo.full },
+            extra: { truc, trucDisplay: trucInfo.display, trucDescHtml: trucInfo.descHtml, giaoHoaTruc: trucInfo.giaoHoa, tietKhi: solarInfo.name, hyThan: CAL_DATA.HY_THAN[dayInfo.canIdx], taiThan: CAL_DATA.TAI_THAN[dayInfo.canIdx], hacThan: getHacThanDirection(dayInfo.jdn), badDaysList, isXungTuoiXayDung, isKyTangSuTheoTuoi, thongTinKyTangSu, tuoiXungNgay, bHoliday, isHoangDao, sao: saoData, anViCung },
+            hourDetails,
+            rating
+        };
     }
 
     function saveNote(dateKey) {
@@ -1065,24 +1217,49 @@
     let selDate = new Date();
     const els = { grid: document.getElementById("grid"), paper: document.getElementById("paper"), title: document.getElementById("calTitle"), inp: document.getElementById("dateInput"), yakshaBg: document.getElementById("yakshaBg") };
 
+    function formatInputDate(dt) {
+        return `${dt.getFullYear()}-${pad2(dt.getMonth() + 1)}-${pad2(dt.getDate())}`;
+    }
+
+    function applyDateInputValue(val) {
+        if (!val) return;
+        const parts = val.split('-');
+        if (parts.length !== 3) return;
+        const yy = parseInt(parts[0], 10);
+        const mm = parseInt(parts[1], 10);
+        const dd = parseInt(parts[2], 10);
+        // Chỉ nhảy ngày khi đã gõ đủ năm 4 chữ số hợp lệ (1900 - 2100), tránh lỗi 0002 -> 1902 khi đang gõ
+        if (isNaN(yy) || isNaN(mm) || isNaN(dd) || yy < 1900 || yy > 2100 || mm < 1 || mm > 12 || dd < 1 || dd > 31) {
+            return;
+        }
+        const nextDt = new Date(2000, 0, 1);
+        nextDt.setFullYear(yy, mm - 1, dd);
+        if (nextDt.getFullYear() === yy && nextDt.getMonth() === mm - 1 && nextDt.getDate() === dd) {
+            selDate = nextDt;
+            render();
+        }
+    }
+
     function init() {
         render();
         document.getElementById("prevMonth").onclick = () => { selDate.setMonth(selDate.getMonth()-1); render(); };
         document.getElementById("nextMonth").onclick = () => { selDate.setMonth(selDate.getMonth()+1); render(); };
-        els.inp.onchange = (e) => {
-            if (e.target.value) {
-                const [yy, mm, dd] = e.target.value.split('-').map(Number);
-                selDate = new Date(yy, mm - 1, dd);
-                render();
-            }
-        };
+
+        els.inp.addEventListener("change", (e) => {
+            applyDateInputValue(e.target.value);
+        });
+        els.inp.addEventListener("blur", () => {
+            els.inp.value = formatInputDate(selDate);
+        });
     }
     function goToday() { selDate = new Date(); render(); }
     function onSelectDate(y, m, d) { selDate = new Date(y, m, d); render(); if (window.innerWidth <= 768) setTimeout(() => { document.getElementById('paper').scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 100); }
 
     function render() {
-        const offset = selDate.getTimezoneOffset(); const local = new Date(selDate.getTime() - (offset*60*1000));
-        els.inp.value = local.toISOString().split('T')[0];
+        // Không ghi đè ngược ô nhập ngày khi người dùng đang gõ năm
+        if (document.activeElement !== els.inp) {
+            els.inp.value = formatInputDate(selDate);
+        }
         let y = selDate.getFullYear(), m = selDate.getMonth();
         els.title.innerText = `THÁNG ${m+1} NĂM ${y}`;
         const filterTask = document.getElementById("taskFilter").value;
@@ -1092,10 +1269,15 @@
         let wd = ["Chủ Nhật","Thứ Hai","Thứ Ba","Thứ Tư","Thứ Năm","Thứ Sáu","Thứ Bảy"][dData.solar.weekday];
         document.getElementById("leftDay").innerText = dData.solar.day < 10 ? '0'+dData.solar.day : dData.solar.day;
         document.getElementById("leftWDay").innerText = wd;
+
         let namCanIdx = (dData.lunar.year + 6) % 10, canNam = CAL_DATA.CAN[namCanIdx], chiNam = CAL_DATA.CHI[(dData.lunar.year + 8) % 12];
         let thangChiIdx = (dData.lunar.month + 1) % 12, chiThang = CAL_DATA.CHI[thangChiIdx], canThangIdx = ([2, 4, 6, 8, 0][namCanIdx % 5] + dData.lunar.month - 1) % 10, canThang = CAL_DATA.CAN[canThangIdx];
+        const leapBadge = dData.lunar.leap ? ` <span class="text-xs bg-red-600 text-white px-1.5 py-0.5 rounded align-middle">Nhuận</span>` : "";
+        const thangDuThieuText = dData.lunar.isThangDu ? `Tháng Đủ (${dData.lunar.monthDays} ngày)` : `Tháng Thiếu (${dData.lunar.monthDays} ngày)`;
+
         document.getElementById("leftMonthYear").innerText = `Năm ${canNam} ${chiNam}`;
-        document.getElementById("leftLunarDate").innerText = `${dData.lunar.day} / ${dData.lunar.month}`;
+        document.getElementById("leftLunarDate").innerHTML = `${dData.lunar.day} / ${dData.lunar.month}${leapBadge}`;
+        document.getElementById("leftLunarMonthType").innerText = `Tháng ${dData.lunar.month}${dData.lunar.leap ? " Nhuận" : ""} • ${thangDuThieuText}`;
         els.yakshaBg.style.backgroundImage = `url('${CAL_DATA.YAKSHA_IMAGES[dData.lunar.month] || CAL_DATA.YAKSHA_IMAGES[1]}')`;
 
         let d1 = new Date(y, m, 1), days = new Date(y, m+1, 0).getDate(), start = d1.getDay()===0?6:d1.getDay()-1, html = "";
@@ -1103,13 +1285,16 @@
         for(let d=1; d<=days; d++) {
             let cur = new Date(y, m, d), isSel = cur.toDateString()===selDate.toDateString(), data = getCalendarData(cur); 
             let dateKey = `${y}_${m+1}_${d}`, hasNote = safeGetNote('note_' + dateKey);
+            let dayAnnualEvents = getEventsForDate(cur, data.lunar);
             let evalDetail = evaluateTaskDetailed(filterTask, data.extra.truc, data.extra.badDaysList, getXungFlagByTask(filterTask, data.extra), data.extra.anViCung);
             let dotIndicator = evalDetail.isGood ? (evalDetail.isVeryGood ? `<div class="absolute bottom-1 right-1 text-yellow-400 text-[10px]"><i class="fa-solid fa-star"></i></div>` : `<div class="good-day-dot"></div>`) : "";
+            let lunarCellText = `${data.lunar.day}/${data.lunar.month}${data.lunar.leap ? '<span class="text-amber-300 font-bold">N</span>' : ''}`;
             html += `<div class="calendar-cell ${isSel ? 'selected' : ''}" onclick="onSelectDate(${y},${m},${d})">
                 ${data.extra.bHoliday ? `<div class="buddhist-lotus-bg text-pink-400"><i class="fa-solid fa-dharmachakra"></i></div>` : ""}
-                ${hasNote ? `<div class="note-indicator"><i class="fa-solid fa-pen-to-square"></i></div>` : ""}
+                ${hasNote ? `<div class="note-indicator" title="Có ghi chú"><i class="fa-solid fa-pen-to-square"></i></div>` : ""}
+                ${dayAnnualEvents.length > 0 ? `<div class="event-indicator" title="${escapeHtml(dayAnnualEvents.map(e => e.title).join(', '))}"><i class="fa-solid fa-bell"></i></div>` : ""}
                 <div class="day-number ${cur.getDay()===0?'text-red-400':cur.getDay()===6?'text-blue-300':'text-white'}">${d}</div>
-                <div class="lunar-text">${data.lunar.day}/${data.lunar.month}</div>${dotIndicator}</div>`;
+                <div class="lunar-text">${lunarCellText}</div>${dotIndicator}</div>`;
         }
         els.grid.innerHTML = html;
 
@@ -1120,6 +1305,37 @@
             r3 += `<td class="hour-cell border ${h.isKhongVong?'text-red-600 font-bold':''}">${h.lucDieu.replace(" ","<br>")}</td>`;
         });
 
+        // 0. THÔNG BÁO SỰ KIỆN SẮP TỚI (TÍNH TỪ HÔM NAY)
+        const upcomingReminders = getUpcomingAnnualReminders();
+        let reminderBannerHtml = "";
+        if (upcomingReminders.length > 0) {
+            const itemsHtml = upcomingReminders.map(item => {
+                const isToday = item.daysLeft === 0;
+                const dStr = `${pad2(item.targetDate.getDate())}/${pad2(item.targetDate.getMonth()+1)}/${item.targetDate.getFullYear()}`;
+                const lStr = `${item.targetLunar.day}/${item.targetLunar.month} ÂL`;
+                const badge = isToday
+                    ? `<span class="bg-red-600 text-white px-1.5 py-0.5 rounded font-bold text-[10px]">HÔM NAY</span>`
+                    : `<span class="bg-amber-600 text-white px-1.5 py-0.5 rounded font-bold text-[10px]">Còn ${item.daysLeft} ngày</span>`;
+                return `<div onclick="onSelectDate(${item.targetDate.getFullYear()},${item.targetDate.getMonth()},${item.targetDate.getDate()})"
+                            class="flex flex-wrap items-center justify-between gap-2 p-2 rounded border cursor-pointer transition ${isToday ? 'bg-red-100 border-red-400 hover:bg-red-200' : 'bg-white border-rose-200 hover:bg-rose-50'}">
+                            <div class="flex items-center gap-2">
+                                ${badge}
+                                <span class="font-bold text-stone-900">${escapeHtml(item.evt.title)}</span>
+                                <span class="text-[11px] text-stone-600">(${item.evt.day}/${item.evt.month} ${item.evt.type === 'LUNAR' ? 'ÂL' : 'DL'})</span>
+                            </div>
+                            <div class="text-[11px] font-bold text-blue-800">DL: ${dStr} • ${lStr}</div>
+                        </div>`;
+            }).join('');
+
+            reminderBannerHtml = `
+                <div class="mb-3 border-2 border-rose-500 bg-rose-50 rounded shadow-sm overflow-hidden">
+                    <div class="bg-rose-600 text-white px-3 py-1.5 font-bold text-xs uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-bell animate-bounce"></i> Nhắc nhở sự kiện quan trọng sắp tới
+                    </div>
+                    <div class="p-2 space-y-1.5">${itemsHtml}</div>
+                </div>`;
+        }
+
         // 1. CÁC YẾU TỐ CÁT
         let gd = [];
         if (dData.extra.isHoangDao) gd.push({n:"Hoàng Đạo",d:"Mọi việc hanh thông."});
@@ -1128,9 +1344,49 @@
         if (dData.extra.sao.type.includes("Kiết")) gd.push({n:"Sao "+dData.extra.sao.name,d:dData.extra.sao.type});
         if (["An", "Lợi", "Thiên", "Phú", "Sư"].includes(dData.extra.anViCung.name)) gd.push({n:"An Vị: "+dData.extra.anViCung.name,d:`Tháng ${dData.extra.anViCung.isThangDu ? "đủ" : "thiếu"} (${dData.extra.anViCung.lunarMonthDays} ngày).`});
         
-        // 2. GHI CHÚ CÁ NHÂN
+        // 2. GHI CHÚ CÁ NHÂN & SỰ KIỆN HẰNG NĂM
         let selectedDateKey = `${y}_${m+1}_${selDate.getDate()}`;
         let currentNote = safeGetNote('note_' + selectedDateKey) || "";
+        const selectedDateEvents = getEventsForDate(selDate, dData.lunar);
+        const allAnnualEvents = getAnnualEvents();
+
+        const selectedEventsHtml = selectedDateEvents.length > 0
+            ? `<div class="mb-2 p-2 bg-rose-100 border border-rose-400 rounded text-xs">
+                   <div class="font-bold text-rose-900 mb-1"><i class="fa-solid fa-bell"></i> Sự kiện hằng năm trong ngày đang xem:</div>
+                   <ul class="list-disc pl-5 space-y-0.5 text-rose-950 font-semibold">
+                       ${selectedDateEvents.map(e => `<li>${escapeHtml(e.title)} (${e.day}/${e.month} ${e.type === 'LUNAR' ? 'ÂL' : 'DL'} • Báo trước ${e.remindBefore} ngày)</li>`).join('')}
+                   </ul>
+               </div>`
+            : "";
+
+        const allEventsListHtml = allAnnualEvents.length > 0
+            ? `<div class="mt-2 max-h-40 overflow-y-auto custom-scroll border border-rose-200 rounded bg-white divide-y divide-rose-100">
+                   ${allAnnualEvents.map(e => `
+                       <div class="flex items-center justify-between gap-2 px-2 py-1.5 text-xs hover:bg-rose-50">
+                           <div class="flex flex-wrap items-center gap-1.5">
+                               <span class="px-1.5 py-0.5 rounded font-bold text-[10px] ${e.type === 'LUNAR' ? 'bg-amber-200 text-amber-900' : 'bg-blue-100 text-blue-900'}">
+                                   ${e.day}/${e.month} ${e.type === 'LUNAR' ? 'ÂL' : 'DL'}
+                               </span>
+                               <span class="font-bold text-stone-800">${escapeHtml(e.title)}</span>
+                               <span class="text-[10px] text-stone-500 italic">(Báo trước ${e.remindBefore} ngày)</span>
+                           </div>
+                           <div class="flex items-center gap-1 shrink-0">
+                               <button onclick="exportEventsToICS('${e.id}')" class="text-blue-700 hover:text-blue-900 px-1.5 py-0.5 rounded hover:bg-blue-100 font-bold text-[11px]" title="Nạp sự kiện này vào Lịch điện thoại (15 năm)">
+                                   <i class="fa-solid fa-calendar-plus"></i>
+                               </button>
+                               <button onclick="deleteAnnualEvent('${e.id}')" class="text-red-600 hover:text-red-800 px-1.5 py-0.5 rounded hover:bg-red-100 font-bold text-[11px]" title="Xóa">
+                                   <i class="fa-solid fa-trash"></i>
+                               </button>
+                           </div>
+                       </div>`).join('')}
+               </div>
+               <div class="mt-2 flex flex-wrap items-center justify-between gap-2">
+                   <span class="text-[10px] text-stone-600 italic">* Bấm nút bên phải để nạp vào Lịch iPhone/Android giúp tự đổ chuông khi tắt web.</span>
+                   <button onclick="exportEventsToICS()" class="bg-blue-700 hover:bg-blue-800 text-white px-3 py-1.5 rounded font-bold text-xs shadow transition">
+                       <i class="fa-solid fa-calendar-plus mr-1"></i> Nạp tất cả vào Lịch điện thoại (15 năm)
+                   </button>
+               </div>`
+            : `<div class="mt-2 text-[11px] italic text-stone-500 text-center">Chưa có sự kiện lặp lại nào. Hãy thêm Ngày Giỗ, Sinh nhật... ở trên để lịch tự nhắc mỗi năm!</div>`;
 
         // 3. KHỐI GỢI Ý GIỜ HOÀNG ĐẠO
         let hourSuggestionHtml = "";
@@ -1161,14 +1417,17 @@
 
         // --- RÁP NỐI TOÀN BỘ HTML ---
         els.paper.innerHTML = `
+            ${reminderBannerHtml}
+
             <table class="paper-table"><tr>
                 <td class="w-[35%] text-center align-top p-4 border-r-2 border-black">
                     <div class="text-xs font-bold uppercase border-b border-black pb-1 inline-block">${wd}</div>
                     <div class="text-9xl font-bold leading-none mt-2 font-serif">${dData.solar.day}</div>
                     <div class="text-xs md:text-sm font-bold mt-4">THÁNG ${dData.solar.month} NĂM ${dData.solar.year}</div>
-                    <div class="mt-4 pt-2 border-t border-black space-y-1 font-bold">
-                        <div class="text-red-700 bg-red-50 rounded py-0.5 border">Ngày ${dData.text.day}</div>
-                        <div class="text-blue-800 bg-blue-50 rounded py-0.5 border">Tháng ${canThang} ${chiThang}</div>
+                    <div class="mt-3 pt-2 border-t border-black space-y-1 font-bold">
+                        <div class="text-red-700 bg-red-50 rounded py-0.5 border">Ngày ${dData.text.day} (${dData.lunar.day}/${dData.lunar.month}${dData.lunar.leap ? ' Nhuận' : ''} ÂL)</div>
+                        <div class="text-blue-800 bg-blue-50 rounded py-0.5 border">Tháng ${canThang} ${chiThang}${dData.lunar.leap ? ' <span class="text-red-600">(Nhuận)</span>' : ''}</div>
+                        <div class="text-[11px] rounded py-0.5 border ${dData.lunar.isThangDu ? 'text-emerald-800 bg-emerald-50 border-emerald-300' : 'text-amber-900 bg-amber-50 border-amber-300'}">${thangDuThieuText}</div>
                         <div class="text-stone-800 bg-stone-100 rounded py-0.5 border">Năm ${canNam} ${chiNam}</div>
                     </div>
                 </td>
@@ -1193,10 +1452,56 @@
             <table class="paper-table mt-[-2px]">
                 <tr>
                     <td class="p-0 bg-amber-50 border-2 border-amber-500">
-                        <div class="header-cell p-1 bg-amber-200 text-amber-900 italic">📝 Ghi chú cá nhân (Lưu tại thiết bị này)</div>
+                        <div class="header-cell p-1 bg-amber-200 text-amber-900 italic">📝 Ghi chú riêng cho ngày ${dData.solar.day}/${dData.solar.month}/${dData.solar.year} (Lưu tại thiết bị này)</div>
                         <div class="p-2 flex gap-2">
-                            <textarea id="personalNoteArea" class="flex-1 border border-amber-300 p-1.5 text-sm outline-none rounded" rows="2" placeholder="Hôm nay bạn định làm gì?">${currentNote}</textarea>
+                            <textarea id="personalNoteArea" class="flex-1 border border-amber-300 p-1.5 text-sm outline-none rounded" rows="2" placeholder="Hôm nay bạn định làm gì?">${escapeHtml(currentNote)}</textarea>
                             <button onclick="saveNote('${selectedDateKey}')" class="bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded font-bold text-sm shadow transition">LƯU</button>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+            <table class="paper-table mt-[-2px]">
+                <tr>
+                    <td class="p-0 bg-rose-50/70 border-2 border-rose-400">
+                        <div class="header-cell p-1.5 bg-rose-200 text-rose-900 tracking-wider">
+                            <i class="fa-solid fa-bell"></i> SỰ KIỆN LẶP LẠI HẰNG NĂM (GIỖ, SINH NHẬT, KỶ NIỆM...)
+                        </div>
+                        <div class="p-2.5">
+                            ${selectedEventsHtml}
+                            <div class="grid grid-cols-1 md:grid-cols-12 gap-2 items-end bg-white p-2 rounded border border-rose-200">
+                                <div class="md:col-span-4">
+                                    <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Tên sự kiện</label>
+                                    <input type="text" id="evtTitle" placeholder="VD: Giỗ Ông Nội, Sinh nhật..." class="w-full border border-stone-300 rounded px-2 py-1 text-xs outline-none focus:border-rose-500">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Theo lịch</label>
+                                    <select id="evtType" onchange="onChangeEvtType()" class="w-full border border-stone-300 rounded px-1.5 py-1 text-xs font-bold outline-none focus:border-rose-500">
+                                        <option value="LUNAR">Âm lịch</option>
+                                        <option value="SOLAR">Dương lịch</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-1 md:col-span-2">
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Ngày</label>
+                                        <input type="number" id="evtDay" min="1" max="30" value="${dData.lunar.day}" class="w-full border border-stone-300 rounded px-1.5 py-1 text-xs text-center font-bold outline-none focus:border-rose-500">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Tháng</label>
+                                        <input type="number" id="evtMonth" min="1" max="12" value="${dData.lunar.month}" class="w-full border border-stone-300 rounded px-1.5 py-1 text-xs text-center font-bold outline-none focus:border-rose-500">
+                                    </div>
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-[10px] font-bold text-stone-600 uppercase mb-0.5">Báo trước (ngày)</label>
+                                    <input type="number" id="evtRemind" min="0" max="60" value="3" class="w-full border border-stone-300 rounded px-1.5 py-1 text-xs text-center font-bold outline-none focus:border-rose-500">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <button onclick="addAnnualEvent()" class="w-full bg-rose-600 hover:bg-rose-700 text-white py-1.5 px-2 rounded font-bold text-xs shadow transition">
+                                        <i class="fa-solid fa-plus"></i> THÊM
+                                    </button>
+                                </div>
+                            </div>
+                            ${allEventsListHtml}
                         </div>
                     </td>
                 </tr>
